@@ -125,14 +125,18 @@ if [ $do_clean = 1 ]; then
 fi
 
 # just clean?
-if [ $clean_only = "1" ]; then 
+if [ $clean_only = "1" ]; then
   exit
 fi
 
 echo "------------------------ Check System ----------------------------"
+make="make"
 debian=0
 redhat=0
+sunos=0
 uname=$(uname)
+
+
 if [ $uname = "Darwin" ]; then
     group_listcmd="dscl . list /Groups | grep ${ns_group}"
     group_addcmd="dscl . create /Groups/${ns_group}"
@@ -143,10 +147,14 @@ else
     group_addcmd="groupadd ${ns_group}"
     ns_user_addcmd="useradd -g ${ns_group} ${ns_user}"
     ns_user_addgroup_hint="sudo usermod -G ${ns_group} YOUR_USERID"
-    if [ -f "/etc/debian_version" ]; then 
+    if [ -f "/etc/debian_version" ]; then
 	debian=1
-    elif [ -f "/etc/redhat-release" ]; then 
+    elif [ -f "/etc/redhat-release" ]; then
 	redhat=1
+    elif [ $uname = 'SunOS' ]; then
+	make="gmake"
+	export CC="gcc -m64"
+	sunos=1
     fi
 fi
 echo "------------------------ Check User and Group --------------------"
@@ -184,9 +192,16 @@ fi
 if [ $with_postgres = "1" ]; then
     postgresql_redhat="postgresql postgresql-devel"
     postgresql_debian="postgresql libpq-dev"
+    postgresql_sunos="postgresql-927"
+
+    if [ $sunos = "1" ]; then
+	pg_incl=/opt/pgsql927/include
+        pg_lib=/opt/pgsql927/lib
+    fi
 else
     postgresql_redhat=
     postgresql_debian=
+    postgresql_sunos=
 fi
 
 if [  $version_ns = "HEAD" ] ; then
@@ -197,14 +212,27 @@ else
     autoconf=
 fi
 
-if [ -f "/etc/debian_version" ]; then 
+if [ $debian = "1" ]; then
     # On Debian/Ubuntu, make sure we have zlib installed, otherwise
     # naviserver can't provide compression support
     apt-get install make ${autoconf} gcc zlib1g-dev wget ${postgresql_debian} ${mercurial} ${git} ${mongodb}
 fi
-if [ -f "/etc/redhat-release" ]; then 
+if [ $redhat = "1" ]; then
     # packages for FC/RHL 
     yum install make ${autoconf} gcc zlib wget ${postgresql} ${postgresql_redhat} ${mercurial} ${git} ${mongodb}
+fi
+
+if [ $sunos = "1" ]; then
+    # packages for OpenSolaris/OmniOS
+    pkg install pkg://omnios/developer/versioning/git mercurial ${autoconf} automake gcc48 zlib wget \
+	${postgresql_sunos} ${mercurial} ${git} ${mongodb}
+    pkg install \
+	developer/object-file \
+	developer/linker \
+	developer/library/lint \
+	developer/build/gnu-make \
+	system/header \
+	system/library/math/header-math
 fi
 
 echo "------------------------ Downloading sources ----------------------------"
@@ -212,11 +240,11 @@ if [ ! -f tcl${version_tcl}-src.tar.gz ]; then
     echo wget http://heanet.dl.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
     wget http://heanet.dl.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
 fi
-if [ ! -f tcllib-${version_tcllib}.tar.bz2 ]; then 
+if [ ! -f tcllib-${version_tcllib}.tar.bz2 ]; then
     wget http://heanet.dl.sourceforge.net/sourceforge/tcllib/tcllib-${version_tcllib}.tar.bz2
 fi
 
-if [ ! ${version_ns} = "HEAD" ]; then 
+if [ ! ${version_ns} = "HEAD" ]; then
     if [ ! -f naviserver-${version_ns}.tar.gz ]; then 
 	wget http://heanet.dl.sourceforge.net/sourceforge/naviserver/naviserver-${version_ns}.tar.gz
     fi
@@ -231,7 +259,7 @@ else
     fi
     if [ ! -f naviserver/configure ]; then
 	cd naviserver
-	bash autogen.sh
+	bash autogen.sh --with-tcl=${inst_dir}/lib --prefix=${inst_dir}
 	cd ..
     fi
 fi
@@ -304,8 +332,8 @@ set -o errexit
 tar xfz tcl${version_tcl}-src.tar.gz
 cd tcl${version_tcl}/unix
 ./configure --enable-threads --prefix=${inst_dir}
-make -j 6 
-make install
+${make}
+${make} install
 
 # Make sure, we have a tclsh in ns/bin
 if [ -f $inst_dir/bin/tclsh ]; then 
@@ -321,7 +349,7 @@ echo "------------------------ Installing TCLLib ------------------------------"
 tar xvfj tcllib-${version_tcllib}.tar.bz2
 cd tcllib-${version_tcllib}
 ./configure --prefix=${inst_dir}
-make install
+${make} install
 cd ..
 
 echo "------------------------ Installing Naviserver ---------------------------"
@@ -333,12 +361,12 @@ else
     cd naviserver
 fi
 ./configure --with-tcl=${inst_dir}/lib --prefix=${inst_dir}
-make -j 6
+${make}
 
 if [ ${version_ns} = "HEAD" ]; then 
-    make "DTPLITE=${inst_dir}/bin/tclsh $inst_dir/bin/dtplite" build-doc
+    ${make} "DTPLITE=${inst_dir}/bin/tclsh $inst_dir/bin/dtplite" build-doc
 fi
-make install
+${make} install
 cd ..
 
 echo "------------------------ Installing Modules/nsdbpg ----------------------"
@@ -346,8 +374,8 @@ if [ ! ${version_modules} = "HEAD" ]; then
     tar zxvf naviserver-${version_modules}-modules.tar.gz
 fi
 cd modules/nsdbpg
-make PGLIB=${pg_lib} PGINCLUDE=${pg_incl} NAVISERVER=${inst_dir}
-make NAVISERVER=${inst_dir} install
+${make} PGLIB=${pg_lib} PGINCLUDE=${pg_incl} NAVISERVER=${inst_dir}
+${make} NAVISERVER=${inst_dir} install
 cd ../..
 
 
@@ -357,15 +385,15 @@ tar xfz thread${version_thread}.tar.gz
 cd thread${version_thread}/unix/
 ../configure --enable-threads --prefix=${inst_dir} --exec-prefix=${inst_dir} --with-naviserver=${inst_dir} --with-tcl=${inst_dir}/lib
 make
-make install
+${make} install
 cd ../..
 
 if [ $with_mongo = "1" ]; then
     echo "------------------------ MongoDB-driver ----------------------------------"
 
     cd mongo-c-driver-legacy
-    make
-    make install
+    ${make}
+    ${make} install
     if  [ $debian = "1" ] ; then
 	ldconfig -v
     fi
@@ -392,7 +420,7 @@ else
 fi
 
 make
-make install
+${make} install
 cd ..
 
 echo "------------------------ Installing tdom --------------------------------"
@@ -400,7 +428,7 @@ echo "------------------------ Installing tdom --------------------------------"
 tar xfz tDOM-${version_tdom}.tgz
 cd tDOM-${version_tdom}/unix
 ../configure --enable-threads --disable-tdomalloc --prefix=${inst_dir} --exec-prefix=${inst_dir} --with-tcl=${inst_dir}/lib
-make install
+${make} install
 cd ../..
 
 # set up minimal permissions in ${inst_dir}

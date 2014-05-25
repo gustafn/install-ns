@@ -20,13 +20,17 @@ done
 echo "------------------------ Settings ---------------------------------------"
 
 oacs_core_version=HEAD
+oacs_core_version=oacs-5-8
 oacs_packages_version=HEAD
+oacs_packages_version=oacs-5-8
 oacs_service=oacs-${oacs_core_version}
 oacs_dir=/var/www/${oacs_service}
 oacs_user=nsadmin
 oacs_group=nsadmin
 ns_install_dir=/usr/local/ns
+build_dir=/usr/local/src
 ns_src_dir=/usr/local/src/naviserver-4.99.5
+#ns_src_dir=/usr/local/src/naviserver
 modules_src_dir=/usr/local/src/modules
 db_name=${oacs_service}
 install_dotlrn=0
@@ -107,6 +111,10 @@ else
 	debian=1
     elif [ -f "/etc/redhat-release" ]; then 
 	redhat=1
+    elif [ $uname = 'SunOS' ]; then
+       sunos=1
+       pkg install pkg:/omniti/database/postgresql-927/hstore
+       pg_dir=/opt/pgsql927
     fi
 fi
 
@@ -126,6 +134,13 @@ if [ $redhat == "1" ] ; then
 elif  [ $debian == "1" ] ; then
     if [ $with_postgres = "1" ]; then
 	apt-get install postgresql postgresql-contrib
+    fi
+elif  [ $sunos == "1" ] ; then
+    if [ $with_postgres = "1" ]; then
+	running=$(ps ax|fgrep "/postgres ")
+	if [ "$running" == "" ] ; then
+            echo "Postgres is NOT running. Please start the PostgreSQL server first"
+	fi
     fi
 fi
 
@@ -167,16 +182,16 @@ echo "------------------------ Setup Database ----------------------------"
 cd /tmp
 set -o errexit
 
-dbuser_exists=$(sudo -u postgres ${pg_dir}/bin/psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='${oacs_user}'")
+dbuser_exists=$(su  postgres -c "${pg_dir}/bin/psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='nsadmin'\"")
 if [ "$dbuser_exists" != "1" ]; then
-    sudo -u postgres ${pg_dir}/bin/createuser -a -d ${oacs_user}
+    su postgres -c "${pg_dir}/bin/createuser -a -d ${oacs_user}"
 fi
 
-db_exists=$(sudo -u postgres ${pg_dir}/bin/psql postgres -tAc "SELECT 1 FROM pg_database WHERE datname='${db_name}'")
+db_exists=$(su postgres -c "${pg_dir}/bin/psql postgres -tAc \"SELECT 1 FROM pg_database WHERE datname='${db_name}'\"")
 if [ "$db_exists" != "1" ]; then
-    sudo -u postgres ${pg_dir}/bin/createdb -E UNICODE ${db_name}
-    #sudo -u postgres ${pg_dir}/bin/psql -d ${db_name} -f ${pg_dir}/share/postgresql/contrib/hstore.sql
-    sudo -u postgres ${pg_dir}/bin/psql -d ${db_name} -tAc "create extension hstore;"
+    su postgres -c "${pg_dir}/bin/createdb -E UNICODE ${db_name}"
+    #su postgres -c "${pg_dir}/bin/psql -d ${db_name} -f ${pg_dir}/share/postgresql/contrib/hstore.sql"
+    su postgres -c "${pg_dir}/bin/psql -d ${db_name} -tAc \"create extension hstore;\""
 fi
 
 echo "------------------------ Download OpenACS ----------------------------"
@@ -191,6 +206,17 @@ if [ "$cvspath" == "" ] ; then
 	apt-get install cvs
     elif [ $redhat == "1" ] ; then
 	yum install cvs
+    elif [ $sunos == "1" ] ; then
+	# why is there no CVS available via "pkg install" ?
+	cd ${build_dir}
+	if [ ! -f cvs-1.11.23.tar.gz ]; then
+	    wget http://ftp.gnu.org/non-gnu/cvs/source/stable/1.11.23/cvs-1.11.23.tar.gz
+	fi
+	tar zxvf cvs-1.11.23.tar.gz
+	cd cvs-1.11.23
+	./configure --prefix=/usr/gnu
+	gmake
+	gmake install
     else
 	echo "cvs is not installed; you might install it with"
 	echo "    apt-get install cvs"
