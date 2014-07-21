@@ -19,24 +19,44 @@ done
 
 echo "------------------------ Settings ---------------------------------------"
 
+ns_install_dir=/usr/local/ns
+
 oacs_core_version=HEAD
 oacs_core_version=oacs-5-8
 oacs_packages_version=HEAD
 oacs_packages_version=oacs-5-8
-oacs_service=oacs-${oacs_core_version}
+
+if [ ${oacs_core_version} = "HEAD" ]; then
+    oacs_service=oacs-${oacs_core_version}
+else
+    oacs_service=${oacs_core_version}
+fi
+
 oacs_dir=/var/www/${oacs_service}
-oacs_user=nsadmin
-oacs_group=nsadmin
-ns_install_dir=/usr/local/ns
-build_dir=/usr/local/src
-ns_src_dir=/usr/local/src/naviserver-4.99.6
-#ns_src_dir=/usr/local/src/naviserver
-modules_src_dir=/usr/local/src/modules
 db_name=${oacs_service}
 install_dotlrn=0
+
 pg_dir=/usr/
 #pg_dir=/usr/local/pgsql
-with_postgres=1
+
+source ${ns_install_dir}/lib/nsConfig.sh
+
+#
+# inherited/derived variables
+#
+#build_dir=/usr/local/src
+#with_postgres=1
+#ns_src_dir=/usr/local/src/naviserver-4.99.6
+
+oacs_user=${ns_user}
+oacs_group=${ns_group}
+
+if [ ! ${version_ns} = "HEAD" ]; then 
+    ns_src_dir=${build_dir}/naviserver-${version_ns}
+else
+    ns_src_dir=${build_dir}/naviserver
+fi
+modules_src_dir=${build_dir}/modules
 
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8

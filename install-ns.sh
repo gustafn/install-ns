@@ -24,8 +24,8 @@ echo "------------------------ Settings ---------------------------------------"
 
 build_dir=/usr/local/src
 #build_dir=/usr/local/src/oo2
-inst_dir=/usr/local/ns
-#inst_dir=/usr/local/oo2
+ns_install_dir=/usr/local/ns
+#ns_install_dir=/usr/local/oo2
 version_ns=4.99.6
 #version_ns=HEAD
 version_modules=4.99.6
@@ -73,7 +73,7 @@ LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
            For details see http://www.gnu.org/licenses.
 
 SETTINGS   Build-Dir          ${build_dir}
-           Install-Dir        ${inst_dir}
+           Install-Dir        ${ns_install_dir}
            NaviServer         ${version_ns}
            NaviServer Modules ${version_modules}        
            Tcllib             ${version_tcllib}
@@ -102,7 +102,7 @@ echo "------------------------ Cleanup -----------------------------------------
 
 # The cleanup on the installation dir is optional, since it might
 # delete something else not from our installation.
-#rm -rf ${inst_dir}
+#rm -rf ${ns_install_dir}
 
 mkdir -p ${build_dir}
 cd ${build_dir}
@@ -128,6 +128,25 @@ fi
 if [ $clean_only = "1" ]; then
   exit
 fi
+
+echo "------------------------ Save config variables in ${ns_install_dir}/lib/nsConfig.sh"
+cat << EOF > ${ns_install_dir}/lib/nsConfig.sh
+build_dir=${build_dir}
+ns_install_dir=${ns_install_dir}
+version_ns=${version_ns}
+version_modules=${version_modules}
+version_tcl=${version_tcl}
+version_tcllib=${version_tcllib}
+version_thread=${version_thread}
+version_xotcl=${version_xotcl}
+version_tdom=${version_tdom}
+ns_user=${ns_user}
+ns_group=${ns_group}
+with_mongo=${with_mongo}
+with_postgres=${with_postgres}
+pg_incl=${pg_incl}
+pg_lib=${pg_lib}
+EOF
 
 echo "------------------------ Check System ----------------------------"
 make="make"
@@ -259,7 +278,7 @@ else
     fi
     if [ ! -f naviserver/configure ]; then
 	cd naviserver
-	bash autogen.sh --with-tcl=${inst_dir}/lib --prefix=${inst_dir}
+	bash autogen.sh --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir}
 	cd ..
     fi
 fi
@@ -331,16 +350,16 @@ set -o errexit
 
 tar xfz tcl${version_tcl}-src.tar.gz
 cd tcl${version_tcl}/unix
-./configure --enable-threads --prefix=${inst_dir}
+./configure --enable-threads --prefix=${ns_install_dir}
 ${make}
 ${make} install
 
 # Make sure, we have a tclsh in ns/bin
-if [ -f $inst_dir/bin/tclsh ]; then 
-    rm $inst_dir/bin/tclsh
+if [ -f $ns_install_dir/bin/tclsh ]; then 
+    rm $ns_install_dir/bin/tclsh
 fi
-source $inst_dir/lib/tclConfig.sh
-ln -sf $inst_dir/bin/tclsh${TCL_VERSION} $inst_dir/bin/tclsh
+source $ns_install_dir/lib/tclConfig.sh
+ln -sf $ns_install_dir/bin/tclsh${TCL_VERSION} $ns_install_dir/bin/tclsh
 
 cd ../..
 
@@ -348,7 +367,7 @@ echo "------------------------ Installing TCLLib ------------------------------"
 
 tar xvfj tcllib-${version_tcllib}.tar.bz2
 cd tcllib-${version_tcllib}
-./configure --prefix=${inst_dir}
+./configure --prefix=${ns_install_dir}
 ${make} install
 cd ..
 
@@ -360,11 +379,11 @@ if [ ! ${version_ns} = "HEAD" ]; then
 else
     cd naviserver
 fi
-./configure --with-tcl=${inst_dir}/lib --prefix=${inst_dir}
+./configure --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir}
 ${make}
 
 if [ ${version_ns} = "HEAD" ]; then 
-    ${make} "DTPLITE=${inst_dir}/bin/tclsh $inst_dir/bin/dtplite" build-doc
+    ${make} "DTPLITE=${ns_install_dir}/bin/tclsh $ns_install_dir/bin/dtplite" build-doc
 fi
 ${make} install
 cd ..
@@ -374,8 +393,8 @@ if [ ! ${version_modules} = "HEAD" ]; then
     tar zxvf naviserver-${version_modules}-modules.tar.gz
 fi
 cd modules/nsdbpg
-${make} PGLIB=${pg_lib} PGINCLUDE=${pg_incl} NAVISERVER=${inst_dir}
-${make} NAVISERVER=${inst_dir} install
+${make} PGLIB=${pg_lib} PGINCLUDE=${pg_incl} NAVISERVER=${ns_install_dir}
+${make} NAVISERVER=${ns_install_dir} install
 cd ../..
 
 
@@ -383,7 +402,7 @@ echo "------------------------ Installing Thread ------------------------------"
 
 tar xfz thread${version_thread}.tar.gz
 cd thread${version_thread}/unix/
-../configure --enable-threads --prefix=${inst_dir} --exec-prefix=${inst_dir} --with-naviserver=${inst_dir} --with-tcl=${inst_dir}/lib
+../configure --enable-threads --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-naviserver=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
 make
 ${make} install
 cd ../..
@@ -414,9 +433,9 @@ fi
 export CC=gcc
 
 if [ $with_mongo = "1" ]; then
-    ./configure --enable-threads --enable-symbols --prefix=${inst_dir} --exec-prefix=${inst_dir} --with-tcl=${inst_dir}/lib --with-mongodb=${build_dir}/mongo-c-driver-legacy/src/,${build_dir}/mongo-c-driver-legacy
+    ./configure --enable-threads --enable-symbols --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib --with-mongodb=${build_dir}/mongo-c-driver-legacy/src/,${build_dir}/mongo-c-driver-legacy
 else
-    ./configure --enable-threads --enable-symbols --prefix=${inst_dir} --exec-prefix=${inst_dir} --with-tcl=${inst_dir}/lib
+    ./configure --enable-threads --enable-symbols --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
 fi
 
 make
@@ -427,13 +446,13 @@ echo "------------------------ Installing tdom --------------------------------"
 
 tar xfz tDOM-${version_tdom}.tgz
 cd tDOM-${version_tdom}/unix
-../configure --enable-threads --disable-tdomalloc --prefix=${inst_dir} --exec-prefix=${inst_dir} --with-tcl=${inst_dir}/lib
+../configure --enable-threads --disable-tdomalloc --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
 ${make} install
 cd ../..
 
-# set up minimal permissions in ${inst_dir}
-chgrp -R ${ns_group} ${inst_dir}
-chmod -R g+w ${inst_dir}
+# set up minimal permissions in ${ns_install_dir}
+chgrp -R ${ns_group} ${ns_install_dir}
+chmod -R g+w ${ns_install_dir}
 
 echo "
 
@@ -441,10 +460,10 @@ Congratulations, you have installed NaviServer.
 
 You can now run plain NaviServer by typing the following command: 
 
-  sudo ${inst_dir}/bin/nsd -f -u ${ns_user} -g ${ns_group} -t ${inst_dir}/conf/nsd-config.tcl
+  sudo ${ns_install_dir}/bin/nsd -f -u ${ns_user} -g ${ns_group} -t ${ns_install_dir}/conf/nsd-config.tcl
 
 As a next step, you need to configure the server according to your needs,
 or you might want to use the server with OpenACS. Consult as a reference 
-the alternate configuration files in ${inst_dir}/conf/
+the alternate configuration files in ${ns_install_dir}/conf/
 
 "
