@@ -19,6 +19,10 @@ done
 
 echo "------------------------ Settings ---------------------------------------"
 
+##
+## In case you configured install-ns.sh to use a different
+## ns_install_dir, adjust it here to the same directory
+##
 ns_install_dir=/usr/local/ns
 
 oacs_core_version=HEAD
@@ -211,7 +215,7 @@ db_exists=$(su postgres -c "${pg_dir}/bin/psql postgres -tAc \"SELECT 1 FROM pg_
 if [ "$db_exists" != "1" ]; then
     su postgres -c "${pg_dir}/bin/createdb -E UNICODE ${db_name}"
     #su postgres -c "${pg_dir}/bin/psql -d ${db_name} -f ${pg_dir}/share/postgresql/contrib/hstore.sql"
-    su postgres -c "${pg_dir}/bin/psql -d ${db_name} -tAc \"create extension hstore;\""
+    su postgres -c "${pg_dir}/bin/psql -d ${db_name} -tAc \"create extension hstore\""
 fi
 
 echo "------------------------ Download OpenACS ----------------------------"
