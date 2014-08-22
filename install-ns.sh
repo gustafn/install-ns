@@ -438,7 +438,7 @@ else
     ./configure --enable-threads --enable-symbols --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
 fi
 
-make
+${make}
 ${make} install
 cd ..
 
