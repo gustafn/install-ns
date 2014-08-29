@@ -2,7 +2,7 @@
 
 clean=0
 build=0
-while [ x"$1" != x ]; do
+while [ x"$1" != x ] ; do
     case $1 in
         clean) clean=1
             shift
@@ -30,7 +30,7 @@ oacs_core_version=oacs-5-8
 oacs_packages_version=HEAD
 oacs_packages_version=oacs-5-8
 
-if [ ${oacs_core_version} = "HEAD" ]; then
+if [ ${oacs_core_version} = "HEAD" ] ; then
     oacs_service=oacs-${oacs_core_version}
 else
     oacs_service=${oacs_core_version}
@@ -55,7 +55,7 @@ source ${ns_install_dir}/lib/nsConfig.sh
 oacs_user=${ns_user}
 oacs_group=${ns_group}
 
-if [ ! ${version_ns} = "HEAD" ]; then 
+if [ ! ${version_ns} = "HEAD" ] ; then
     ns_src_dir=${build_dir}/naviserver-${version_ns}
 else
     ns_src_dir=${build_dir}/naviserver
@@ -84,21 +84,25 @@ LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
 SETTINGS   OpenACS version              ${oacs_core_version}
            OpenACS packages             ${oacs_packages_version}
            OpenACS directory            ${oacs_dir}
-           OpenACS service              ${oacs_service} 
-           OpenACS user                 ${oacs_user}     
+           OpenACS service              ${oacs_service}
+           OpenACS user                 ${oacs_user}
            OpenACS groupce              ${oacs_group}
-           PostgreSQL directory         ${pg_dir}     
+           PostgreSQL directory         ${pg_dir}
            Database name                ${db_name}
            Naviserver install directory ${ns_install_dir}
            Naviserver src directory     ${ns_src_dir}
            Naviserver modules directory ${modules_src_dir}
            Install DotLRN               ${install_dotlrn}
-           With PostgresSQL             ${with_postgres}"
+           With PostgresSQL             ${with_postgres}
+           PostgresSQL user             ${pg_user}
+           Make command                 ${make}
+           Type command                 ${type}
+"
 
-if [ $build == "0" ]; then
-echo "
+if [ $build = "0" ] ; then
+    echo "
 WARNING    Check Settings AND Cleanup section before running this script!
-           If you know what you're doing then call the call the script as 
+           If you know what you're doing then call the call the script as
               $0 build
 "
 exit
@@ -113,56 +117,48 @@ echo "------------------------ Cleanup -----------------------------------------
 #rm -r ${oacs_dir}
 
 # just clean?
-if [ $clean == "1" ]; then 
+if [ $clean = "1" ] ; then
   exit
 fi
 
 echo "------------------------ Check System ----------------------------"
-debian=0
-redhat=0
-uname=$(uname)
-if [ $uname = "Darwin" ]; then
+if  [ $macosx = "1" ] ; then
     group_listcmd="dscl . list /Groups | grep ${oacs_group}"
     group_addcmd="dscl . create /Groups/${oacs_group}"
     oacs_user_addcmd="dscl . create /Users/${oacs_user};dseditgroup -o edit -a ${oacs_user} -t user ${oacs_group}"
-    pg_user_addcmd="dscl . create /Users/postgres;dscl . create /Users/postgres UserShell /bin/bash"
+    pg_user_addcmd="dscl . create /Users/${pg_user};dscl . create /Users/${pg_user} UserShell /bin/bash"
 else
     group_listcmd="grep ${oacs_group} /etc/group"
     group_addcmd="groupadd ${oacs_group}"
     oacs_user_addcmd="useradd -g ${oacs_group} ${oacs_user}"
-    pg_user_addcmd="useradd -s /bin/bash postgres"
-    if [ -f "/etc/debian_version" ]; then 
-	debian=1
-    elif [ -f "/etc/redhat-release" ]; then 
-	redhat=1
-    elif [ $uname = 'SunOS' ]; then
-       sunos=1
+    pg_user_addcmd="useradd -s /bin/bash ${pg_user}"
+    if  [ $sunos = "1" ] ; then
        pkg install pkg:/omniti/database/postgresql-927/hstore
        pg_dir=/opt/pgsql927
     fi
 fi
 
-if [ $redhat == "1" ] ; then
-    if [ $with_postgres = "1" ]; then
+if [ $redhat = "1" ] ; then
+    if [ $with_postgres = "1" ] ; then
 	yum install postgresql-server
     fi
     running=$(ps ax|fgrep postgres:)
-    if [ "$running" == "" ] ; then
-	echo "Postgres is not running. You might consider to initialize postgres"
+    if [ "$running" = "" ] ; then
+	echo "PostgreSQL is not running. You might consider to initialize PostgreSQL"
 	echo "    service postgresql initdb"
 	echo "and/or to start the database"
 	echo "    service postgresql start"
 	echo "and rerun this script"
 	exit
     fi
-elif  [ $debian == "1" ] ; then
-    if [ $with_postgres = "1" ]; then
+elif  [ $debian = "1" ] ; then
+    if [ $with_postgres = "1" ] ; then
 	apt-get install postgresql postgresql-contrib
     fi
-elif  [ $sunos == "1" ] ; then
-    if [ $with_postgres = "1" ]; then
+elif  [ $sunos = "1" ] ; then
+    if [ $with_postgres = "1" ] ; then
 	running=$(ps ax|fgrep "/postgres ")
-	if [ "$running" == "" ] ; then
+	if [ "$running" = "" ] ; then
             echo "Postgres is NOT running. Please start the PostgreSQL server first"
 	fi
     fi
@@ -172,13 +168,13 @@ echo "------------------------ Check Userids ----------------------------"
 
 group=$(eval ${group_listcmd})
 echo "${group_listcmd} => $group"
-if [ "x$group" = "x" ]; then
+if [ "x$group" = "x" ] ; then
     eval ${group_addcmd}
 fi
 
 id=$(id -u ${oacs_user})
-if [ $? != "0" ]; then
-    if  [ $debian == "1" ] ; then
+if [ $? != "0" ] ; then
+    if  [ $debian = "1" ] ; then
 	eval ${oacs_user_addcmd}
     else
 	echo "User ${oacs_user} does not exist; you might add it with something like"
@@ -186,9 +182,9 @@ if [ $? != "0" ]; then
 	exit
     fi
 fi
-id=$(id -u postgres)
-if [ $? != "0" ]; then
-    echo "User postgres does not exist; you should add it via installing postgres" 
+id=$(id -u ${pg_user})
+if [ $? != "0" ] ; then
+    echo "User ${pg_user} does not exist; you should add it via installing postgres"
     echo "like e.g. under Ubuntu with "
     echo "     apt-get install postgresql postgresql-contrib"
     echo "alternatively you might create the use with e.g."
@@ -199,23 +195,27 @@ fi
 echo "------------------------ Setup Database ----------------------------"
 
 #
-# assume, the db is installed and already running, 
-# and users postgres and ${oacs_user} and group ${oacs_group} are created
+# assume, the db is installed and already running,
+# and users ${pg_user} and ${oacs_user} and group ${oacs_group} are created
 #
 
 cd /tmp
 set -o errexit
 
-dbuser_exists=$(su  postgres -c "${pg_dir}/bin/psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='nsadmin'\"")
-if [ "$dbuser_exists" != "1" ]; then
-    su postgres -c "${pg_dir}/bin/createuser -a -d ${oacs_user}"
+echo "Checking if oacs_user ${oacs_user} exists in db."
+dbuser_exists=$(su ${pg_user} -c "${pg_dir}/bin/psql template1 -tAc \"SELECT 1 FROM pg_roles WHERE rolname='${oacs_user}'\"")
+if [ "$dbuser_exists" != "1" ] ; then
+    echo "Creating oacs_user ${oacs_user}."
+    su ${pg_user} -c "${pg_dir}/bin/createuser -a -d ${oacs_user}"
 fi
 
-db_exists=$(su postgres -c "${pg_dir}/bin/psql postgres -tAc \"SELECT 1 FROM pg_database WHERE datname='${db_name}'\"")
-if [ "$db_exists" != "1" ]; then
-    su postgres -c "${pg_dir}/bin/createdb -E UNICODE ${db_name}"
-    #su postgres -c "${pg_dir}/bin/psql -d ${db_name} -f ${pg_dir}/share/postgresql/contrib/hstore.sql"
-    su postgres -c "${pg_dir}/bin/psql -d ${db_name} -tAc \"create extension hstore\""
+echo "Checking if db ${db_name} exists."
+db_exists=$(su ${pg_user} -c "${pg_dir}/bin/psql template1 -tAc \"SELECT 1 FROM pg_database WHERE datname='${db_name}'\"")
+if [ "$db_exists" != "1" ] ; then
+    echo "Creating db ${db_name}."
+    su ${pg_user} -c "${pg_dir}/bin/createdb -E UNICODE ${db_name}"
+    #su ${pg_user} -c "${pg_dir}/bin/psql -d ${db_name} -f ${pg_dir}/share/postgresql/contrib/hstore.sql"
+    su ${pg_user} -c "${pg_dir}/bin/psql -d ${db_name} -tAc \"create extension hstore\""
 fi
 
 echo "------------------------ Download OpenACS ----------------------------"
@@ -224,23 +224,23 @@ set +o errexit
 #
 # we use cvs for obtaining OpenACS
 #
-cvspath=$(type -a cvs)
-if [ "$cvspath" == "" ] ; then
-    if [ $debian == "1" ] ; then
+cvspath=$(${type} cvs)
+if [ "$cvspath" = "" ] ; then
+    if [ $debian = "1" ] ; then
 	apt-get install cvs
-    elif [ $redhat == "1" ] ; then
+    elif [ $redhat = "1" ] ; then
 	yum install cvs
-    elif [ $sunos == "1" ] ; then
+    elif [ $sunos = "1" ] ; then
 	# why is there no CVS available via "pkg install" ?
 	cd ${build_dir}
-	if [ ! -f cvs-1.11.23.tar.gz ]; then
+	if [ ! -f cvs-1.11.23.tar.gz ] ; then
 	    wget http://ftp.gnu.org/non-gnu/cvs/source/stable/1.11.23/cvs-1.11.23.tar.gz
 	fi
 	tar zxvf cvs-1.11.23.tar.gz
 	cd cvs-1.11.23
 	./configure --prefix=/usr/gnu
-	gmake
-	gmake install
+	${make}
+	${make} install
     else
 	echo "cvs is not installed; you might install it with"
 	echo "    apt-get install cvs"
@@ -251,11 +251,11 @@ fi
 #
 # we use git for obtaining xowf
 #
-gitpath=$(type -a git)
-if [ "$gitpath" == "" ]; then
-    if [ $debian == "1" ]; then
+gitpath=$(${type} git)
+if [ "$gitpath" = "" ] ; then
+    if [ $debian = "1" ] ; then
 	apt-get install git
-    elif [ $redhat == "1" ]; then
+    elif [ $redhat = "1" ] ; then
 	yum install git
     else
 	echo "git is not installed; you might install it with"
@@ -271,16 +271,16 @@ cd ${oacs_dir}
 cvs -q -d:pserver:anonymous@cvs.openacs.org:/cvsroot checkout -r ${oacs_core_version} acs-core
 ln -sf $(echo openacs-4/[a-z]*) .
 cd ${oacs_dir}/packages
-cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} xotcl-all 
-cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} acs-developer-support ajaxhelper 
+cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} xotcl-all
+cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} acs-developer-support ajaxhelper
 
-if [ $install_dotlrn == "1" ]; then
+if [ $install_dotlrn = "1" ] ; then
     cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} dotlrn-all
 fi
 
 # install xowf
-if [ ! -d "./xowf" ] ; then 
-    git clone git://alice.wu.ac.at/xowf 
+if [ ! -d "./xowf" ] ; then
+    git clone git://alice.wu.ac.at/xowf
 fi
 cd xowf
 git pull
@@ -300,7 +300,7 @@ echo "Writing ${ns_install_dir}/config-${oacs_service}.tcl"
 cp ${ns_src_dir}/openacs-config.tcl ${ns_install_dir}/config-${oacs_service}.tcl
 cat << EOF > /tmp/subst.tcl
  set fn ${ns_install_dir}/config-${oacs_service}.tcl
- set file [open \$fn]; set c [read \$file]; close \$file
+ set file [open \$fn]; set c [read \$file] ; close \$file
  regsub -all {"openacs"} \$c {"${oacs_service}"} c
  regsub -all {set\\s+db_user\\s+\\\$server} \$c {set db_user ${oacs_user}} c
  set file [open \$fn w]; puts -nonewline \$file \$c; close \$file
@@ -309,7 +309,7 @@ ${ns_install_dir}/bin/tclsh8.5 /tmp/subst.tcl
 
 
 
-if [ $redhat == "1" ] ; then
+if [ $redhat = "1" ] ; then
 echo "Writing /lib/systemd/system/${oacs_service}.service"
 cat <<EOF > /lib/systemd/system/${oacs_service}.service
 [Unit]
@@ -329,7 +329,7 @@ PrivateTmp=true
 [Install]
 #WantedBy=multi-user.target
 EOF
-elif [ $debian == "1" ] ; then
+elif [ $debian = "1" ] ; then
    # Create automatically a configured upstart script into /etc/init/ ...
 echo "Writing /etc/init/${oacs_service}.conf"
 cat <<EOF > /etc/init/${oacs_service}.conf
@@ -344,7 +344,7 @@ umask 002
 env LANG=en_US.UTF-8
 
 pre-start script
-  until sudo -u postgres ${pg_dir}/bin/psql -l ; do sleep 1; done
+  until sudo -u ${pg_user} ${pg_dir}/bin/psql -l ; do sleep 1; done
 end script
 
 exec ${ns_install_dir}/bin/nsd -i -t ${ns_install_dir}/config-${oacs_service}.tcl -u ${oacs_user} -g ${oacs_group}
@@ -357,18 +357,18 @@ Congratulations, you have installed OpenACS with NaviServer on your machine.
 You might start the server manually with
 
     sudo ${ns_install_dir}/bin/nsd -t ${ns_install_dir}/config-${oacs_service}.tcl -u ${oacs_user} -g ${oacs_group}"
-if [ $redhat == "1" ] ; then
+if [ $redhat = "1" ] ; then
 echo "
-or you can manage your installation with systemd (RedHat, Fedora Core). In this case, 
+or you can manage your installation with systemd (RedHat, Fedora Core). In this case,
 you might use the following commands
 
     systemctl status ${oacs_service}
     systemctl start ${oacs_service}
     systemctl stop ${oacs_service}
 "
-elif [ $debian == "1" ] ; then
+elif [ $debian = "1" ] ; then
 echo "
-or you can manage your installation with upstart (Ubuntu/Debian). In this case, 
+or you can manage your installation with upstart (Ubuntu/Debian). In this case,
 you might use the following commands
 
     status ${oacs_service}
@@ -379,8 +379,8 @@ fi
 
 echo "
 To use OpenACS, point your browser to http://localhost:8000/
-The configuration file is ${ns_install_dir}/config-${oacs_service}.tcl 
-and might be tailored to your needs. The access.log and error.log of 
+The configuration file is ${ns_install_dir}/config-${oacs_service}.tcl
+and might be tailored to your needs. The access.log and error.log of
 this instance are in ${oacs_dir}/log
 
 "

@@ -3,7 +3,7 @@
 do_clean=0
 clean_only=0
 build=0
-while [ x"$1" != x ]; do
+while [ x"$1" != x ] ; do
     case $1 in
         clean) clean_only=1
 	    do_clean=1
@@ -30,7 +30,7 @@ version_ns=4.99.6
 #version_ns=HEAD
 version_modules=4.99.6
 #version_modules=HEAD
-version_tcl=8.5.15
+version_tcl=8.5.16
 version_tcllib=1.15
 version_thread=2.7.0
 version_xotcl=2.0b5
@@ -46,18 +46,80 @@ with_postgres=1
 # "libpg-fe.h" and "libpq.so" are typically needed.
 pg_incl=/usr/include/postgresql
 pg_lib=/usr/lib
-
-# To use on Mac OS X postgres of the mac ports:
-#pg_incl=/opt/local/include/postgresql93/
-#pg_lib=/opt/local/lib/postgresql93/
+pg_user=postgres
 
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 
+echo "------------------------ Check System ----------------------------"
+debian=0
+redhat=0
+macosx=0
+sunos=0
+freebsd=0
+
+make="make"
+type="type -a"
+
+pg_packages=
+
+uname=$(uname)
+if [ $uname = "Darwin" ] ; then
+    macosx=1
+    group_listcmd="dscl . list /Groups | grep ${ns_group}"
+    group_addcmd="dscl . create /Groups/${ns_group}"
+    ns_user_addcmd="dscl . create /Users/${ns_user};dseditgroup -o edit -a ${ns_user} -t user ${ns_group}"
+    ns_user_addgroup_hint="dseditgroup -o edit -a YOUR_USERID -t user ${ns_group}"
+
+    if [ $with_postgres = "1" ] ; then
+	# Preconfigured for PostgreSQL 9.3 installed via mac ports
+	pg_incl=/opt/local/include/postgresql93/
+	pg_lib=/opt/local/lib/postgresql93/
+	pg_packages="postgresql93 postgresql93-server"
+    fi
+else
+    if [ -f "/etc/debian_version" ] ; then
+	debian=1
+	if [ $with_postgres = "1" ] ; then
+	    pg_packages="postgresql libpq-dev"
+	fi
+    elif [ -f "/etc/redhat-release" ] ; then
+	redhat=1
+	if [ $with_postgres = "1" ] ; then
+	    pg_packages="postgresql postgresql-devel"
+	fi
+    elif [ $uname = 'SunOS' ] ; then
+	sunos=1
+	make="gmake"
+	export CC="gcc -m64"
+	if [ $with_postgres = "1" ] ; then
+	    pg_packages="postgresql-927"
+	    pg_incl=/opt/pgsql927/include
+            pg_lib=/opt/pgsql927/lib
+	fi
+    elif [ $uname = "FreeBSD" ] ; then
+        freebsd=1
+        make="gmake"
+	type="type"
+        # adjust following to local gcc version:
+        setenv CC="/usr/local/bin/gcc49"
+	if [ $with_postgres = "1" ] ; then
+            # for freebsd10, file is: /usr/local/include/postgresql/internal/postgres_fe.h so:
+            #pg_incl=/usr/local/include/postgresql/internal
+            pg_incl=/usr/local/include
+            pg_lib=/usr/local/lib
+	fi
+    fi
+    group_listcmd="grep ${ns_group} /etc/group"
+    group_addcmd="groupadd ${ns_group}"
+    ns_user_addcmd="useradd -g ${ns_group} ${ns_user}"
+    ns_user_addgroup_hint="sudo usermod -G ${ns_group} YOUR_USERID"
+fi
+
 echo "
 Installation Script for NaviServer
 
-This script installs Tcl, NaviServer, the essential 
+This script installs Tcl, NaviServer, the essential
 NaviServer modules, tcllib, libthread, XOTcl and tDOM
 from scratch by obtaining the sources from the actual
 releases and compiling it.
@@ -72,25 +134,35 @@ LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
            This is free software, and you are welcome to redistribute it under certain conditions;
            For details see http://www.gnu.org/licenses.
 
-SETTINGS   Build-Dir          ${build_dir}
-           Install-Dir        ${ns_install_dir}
-           NaviServer         ${version_ns}
-           NaviServer Modules ${version_modules}        
-           Tcllib             ${version_tcllib}
-           Thread             ${version_thread}
-           NSF/NX/XOTcl       ${version_xotcl}
-           Tcl                ${version_tcl}
-           tDOM               ${version_tdom}
-           NaviSever user     ${ns_user}     
-           NaviServer group   ${ns_group}
-           With Mongo         ${with_mongo}
-           With PostgresSQL   ${with_postgres}"
+SETTINGS   Build-Dir             ${build_dir}
+           Install-Dir           ${ns_install_dir}
+           NaviServer            ${version_ns}
+           NaviServer Modules    ${version_modules}
+           Tcllib                ${version_tcllib}
+           Thread                ${version_thread}
+           NSF/NX/XOTcl          ${version_xotcl}
+           Tcl                   ${version_tcl}
+           tDOM                  ${version_tdom}
+           NaviSever user        ${ns_user}
+           NaviServer group      ${ns_group}
+           Make command          ${make}
+           Type command          ${type}
+           With Mongo            ${with_mongo}
+           With PostgreSQL       ${with_postgres}"
+if [ ${with_postgres} = "1" ] ; then
+    echo "
+           PostgresSQL user      ${pg_user}
+           postgres/include      ${pg_incl}
+           postgres/lib          ${pg_lib}
+           PostgresSQL Packages  ${pg_packages}
+"
+fi
 
 
 if [ $build = "0" ] && [ ! $clean_only = "1" ] ; then
     echo "
 WARNING    Check Settings AND Cleanup section before running this script!
-           If you know what you're doing then call the call the script as 
+           If you know what you're doing then call the call the script as
 
               sudo bash $0 build
 "
@@ -107,7 +179,7 @@ echo "------------------------ Cleanup -----------------------------------------
 mkdir -p ${build_dir}
 cd ${build_dir}
 
-if [ $do_clean = 1 ]; then
+if [ $do_clean = 1 ] ; then
     #rm    tcl${version_tcl}-src.tar.gz
     rm -r tcl${version_tcl}
     #rm    tcllib-${version_tcllib}.tar.bz2
@@ -125,7 +197,7 @@ if [ $do_clean = 1 ]; then
 fi
 
 # just clean?
-if [ $clean_only = "1" ]; then
+if [ $clean_only = "1" ] ; then
   exit
 fi
 
@@ -141,51 +213,31 @@ version_thread=${version_thread}
 version_xotcl=${version_xotcl}
 version_tdom=${version_tdom}
 ns_user=${ns_user}
+pg_user=${pg_user}
 ns_group=${ns_group}
 with_mongo=${with_mongo}
 with_postgres=${with_postgres}
 pg_incl=${pg_incl}
 pg_lib=${pg_lib}
+make=${make}
+type=${type}
+debian=${debian}
+redhat=${redhat}
+macosx=${macosx}
+sunos=${sunos}
+freebsd=${freebsd}
 EOF
 
-echo "------------------------ Check System ----------------------------"
-make="make"
-debian=0
-redhat=0
-sunos=0
-uname=$(uname)
-
-
-if [ $uname = "Darwin" ]; then
-    group_listcmd="dscl . list /Groups | grep ${ns_group}"
-    group_addcmd="dscl . create /Groups/${ns_group}"
-    ns_user_addcmd="dscl . create /Users/${ns_user};dseditgroup -o edit -a ${ns_user} -t user ${ns_group}"
-    ns_user_addgroup_hint="dseditgroup -o edit -a YOUR_USERID -t user ${ns_group}"
-else
-    group_listcmd="grep ${ns_group} /etc/group"
-    group_addcmd="groupadd ${ns_group}"
-    ns_user_addcmd="useradd -g ${ns_group} ${ns_user}"
-    ns_user_addgroup_hint="sudo usermod -G ${ns_group} YOUR_USERID"
-    if [ -f "/etc/debian_version" ]; then
-	debian=1
-    elif [ -f "/etc/redhat-release" ]; then
-	redhat=1
-    elif [ $uname = 'SunOS' ]; then
-	make="gmake"
-	export CC="gcc -m64"
-	sunos=1
-    fi
-fi
 echo "------------------------ Check User and Group --------------------"
 
 group=$(eval ${group_listcmd})
 echo "${group_listcmd} => $group"
-if [ "x$group" = "x" ]; then
+if [ "x$group" = "x" ] ; then
     eval ${group_addcmd}
 fi
 
 id=$(id -u ${ns_user})
-if [ $? != "0" ]; then
+if [ $? != "0" ] ; then
     if  [ $debian = "1" ] ; then
 	eval ${ns_user_addcmd}
     else
@@ -196,7 +248,7 @@ if [ $? != "0" ]; then
 fi
 
 echo "------------------------ System dependencies ---------------------------------"
-if [ $with_mongo = "1" ]; then
+if [ $with_mongo = "1" ] ; then
     mongodb=mongodb
 else
     mongodb=
@@ -208,21 +260,6 @@ else
     git=
 fi
 
-if [ $with_postgres = "1" ]; then
-    postgresql_redhat="postgresql postgresql-devel"
-    postgresql_debian="postgresql libpq-dev"
-    postgresql_sunos="postgresql-927"
-
-    if [ $sunos = "1" ]; then
-	pg_incl=/opt/pgsql927/include
-        pg_lib=/opt/pgsql927/lib
-    fi
-else
-    postgresql_redhat=
-    postgresql_debian=
-    postgresql_sunos=
-fi
-
 if [  $version_ns = "HEAD" ] ; then
     mercurial=mercurial
     autoconf=autoconf
@@ -231,20 +268,24 @@ else
     autoconf=
 fi
 
-if [ $debian = "1" ]; then
+if [ $debian = "1" ] ; then
     # On Debian/Ubuntu, make sure we have zlib installed, otherwise
     # naviserver can't provide compression support
-    apt-get install make ${autoconf} gcc zlib1g-dev wget ${postgresql_debian} ${mercurial} ${git} ${mongodb}
+    apt-get install make ${autoconf} gcc zlib1g-dev wget ${pg_packages} ${mercurial} ${git} ${mongodb}
 fi
-if [ $redhat = "1" ]; then
-    # packages for FC/RHL 
-    yum install make ${autoconf} gcc zlib wget ${postgresql} ${postgresql_redhat} ${mercurial} ${git} ${mongodb}
+if [ $redhat = "1" ] ; then
+    # packages for FC/RHL
+    yum install make ${autoconf} gcc zlib wget ${pg_packages} ${mercurial} ${git} ${mongodb}
 fi
 
-if [ $sunos = "1" ]; then
+if [ $macosx = "1" ] ; then
+    port install make ${autoconf} zlib wget ${pg_packages} ${mercurial} ${git} ${mongodb}
+fi
+
+if [ $sunos = "1" ] ; then
     # packages for OpenSolaris/OmniOS
     pkg install pkg://omnios/developer/versioning/git mercurial ${autoconf} automake gcc48 zlib wget \
-	${postgresql_sunos} ${mercurial} ${git} ${mongodb}
+	${pg_packages} ${mercurial} ${git} ${mongodb}
     pkg install \
 	developer/object-file \
 	developer/linker \
@@ -255,20 +296,20 @@ if [ $sunos = "1" ]; then
 fi
 
 echo "------------------------ Downloading sources ----------------------------"
-if [ ! -f tcl${version_tcl}-src.tar.gz ]; then
+if [ ! -f tcl${version_tcl}-src.tar.gz ] ; then
     echo wget http://heanet.dl.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
     wget http://heanet.dl.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
 fi
-if [ ! -f tcllib-${version_tcllib}.tar.bz2 ]; then
+if [ ! -f tcllib-${version_tcllib}.tar.bz2 ] ; then
     wget http://heanet.dl.sourceforge.net/sourceforge/tcllib/tcllib-${version_tcllib}.tar.bz2
 fi
 
-if [ ! ${version_ns} = "HEAD" ]; then
-    if [ ! -f naviserver-${version_ns}.tar.gz ]; then 
+if [ ! ${version_ns} = "HEAD" ] ; then
+    if [ ! -f naviserver-${version_ns}.tar.gz ] ; then
 	wget http://heanet.dl.sourceforge.net/sourceforge/naviserver/naviserver-${version_ns}.tar.gz
     fi
 else
-    if [ ! -d naviserver ]; then 
+    if [ ! -d naviserver ] ; then
 	hg clone https://bitbucket.org/naviserver/naviserver
     else
 	cd naviserver
@@ -276,7 +317,7 @@ else
 	hg update
 	cd ..
     fi
-    if [ ! -f naviserver/configure ]; then
+    if [ ! -f naviserver/configure ] ; then
 	cd naviserver
 	bash autogen.sh --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir}
 	cd ..
@@ -284,8 +325,8 @@ else
 fi
 
 cd ${build_dir}
-if [ ! ${version_modules} = "HEAD" ]; then 
-    if [ ! -f naviserver-${version_modules}-modules.tar.gz ]; then 
+if [ ! ${version_modules} = "HEAD" ] ; then
+    if [ ! -f naviserver-${version_modules}-modules.tar.gz ] ; then
 	wget http://heanet.dl.sourceforge.net/sourceforge/naviserver/naviserver-${version_modules}-modules.tar.gz
     fi
 else
@@ -300,7 +341,7 @@ else
 	nsdhcpd nsrtsp nsauthpam nsmemcache nsssl \
 	nsvfs nsdbi nsdbipg nsdbilite nsdbimy
     do
-	if [ ! -d $d ]; then 
+	if [ ! -d $d ] ; then
 	    hg clone http://bitbucket.org/naviserver/$d
 	else
 	    cd $d
@@ -312,35 +353,35 @@ else
 fi
 
 cd ${build_dir}
-if [ ! -f thread${version_thread}.tar.gz ]; then 
+if [ ! -f thread${version_thread}.tar.gz ] ; then
     wget http://heanet.dl.sourceforge.net/sourceforge/tcl/thread${version_thread}.tar.gz
 fi
 
-if [ ! ${version_xotcl} = "HEAD" ]; then 
-    if [ ! -f nsf${version_xotcl}.tar.gz ]; then 
+if [ ! ${version_xotcl} = "HEAD" ] ; then
+    if [ ! -f nsf${version_xotcl}.tar.gz ] ; then
 	wget http://heanet.dl.sourceforge.net/sourceforge/next-scripting/nsf${version_xotcl}.tar.gz
     fi
 else
-    if [ ! -d nsf ]; then 
+    if [ ! -d nsf ] ; then
 	git clone git://alice.wu-wien.ac.at/nsf
-    else 
+    else
 	cd nsf
 	git pull
 	cd ..
     fi
 fi
 
-if [ $with_mongo = "1" ]; then
-    if [ ! -d mongo-c-driver-legacy ]; then 
-	git clone https://github.com/mongodb/mongo-c-driver-legacy 
-    else 
+if [ $with_mongo = "1" ] ; then
+    if [ ! -d mongo-c-driver-legacy ] ; then
+	git clone https://github.com/mongodb/mongo-c-driver-legacy
+    else
 	cd mongo-c-driver-legacy
 	git pull
 	cd ..
     fi
 fi
 
-if [ ! -f tDOM-${version_tdom}.tgz ]; then 
+if [ ! -f tDOM-${version_tdom}.tgz ] ; then
     wget --no-check-certificate https://github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
 fi
 
@@ -355,7 +396,7 @@ ${make}
 ${make} install
 
 # Make sure, we have a tclsh in ns/bin
-if [ -f $ns_install_dir/bin/tclsh ]; then 
+if [ -f $ns_install_dir/bin/tclsh ] ; then
     rm $ns_install_dir/bin/tclsh
 fi
 source $ns_install_dir/lib/tclConfig.sh
@@ -373,7 +414,7 @@ cd ..
 
 echo "------------------------ Installing Naviserver ---------------------------"
 
-if [ ! ${version_ns} = "HEAD" ]; then 
+if [ ! ${version_ns} = "HEAD" ] ; then
     tar zxvf naviserver-${version_ns}.tar.gz
     cd naviserver-${version_ns}
 else
@@ -382,14 +423,14 @@ fi
 ./configure --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir}
 ${make}
 
-if [ ${version_ns} = "HEAD" ]; then 
+if [ ${version_ns} = "HEAD" ] ; then
     ${make} "DTPLITE=${ns_install_dir}/bin/tclsh $ns_install_dir/bin/dtplite" build-doc
 fi
 ${make} install
 cd ..
 
 echo "------------------------ Installing Modules/nsdbpg ----------------------"
-if [ ! ${version_modules} = "HEAD" ]; then 
+if [ ! ${version_modules} = "HEAD" ] ; then
     tar zxvf naviserver-${version_modules}-modules.tar.gz
 fi
 cd modules/nsdbpg
@@ -407,7 +448,7 @@ make
 ${make} install
 cd ../..
 
-if [ $with_mongo = "1" ]; then
+if [ $with_mongo = "1" ] ; then
     echo "------------------------ MongoDB-driver ----------------------------------"
 
     cd mongo-c-driver-legacy
@@ -424,7 +465,7 @@ fi
 
 echo "------------------------ Installing XOTcl 2.0 ----------------------------"
 
-if [ ! ${version_xotcl} = "HEAD" ]; then 
+if [ ! ${version_xotcl} = "HEAD" ] ; then
     tar xvfz nsf${version_xotcl}.tar.gz
     cd nsf${version_xotcl}
 else
@@ -432,7 +473,7 @@ else
 fi
 export CC=gcc
 
-if [ $with_mongo = "1" ]; then
+if [ $with_mongo = "1" ] ; then
     ./configure --enable-threads --enable-symbols --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib --with-mongodb=${build_dir}/mongo-c-driver-legacy/src/,${build_dir}/mongo-c-driver-legacy
 else
     ./configure --enable-threads --enable-symbols --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
@@ -458,12 +499,12 @@ echo "
 
 Congratulations, you have installed NaviServer.
 
-You can now run plain NaviServer by typing the following command: 
+You can now run plain NaviServer by typing the following command:
 
   sudo ${ns_install_dir}/bin/nsd -f -u ${ns_user} -g ${ns_group} -t ${ns_install_dir}/conf/nsd-config.tcl
 
 As a next step, you need to configure the server according to your needs,
-or you might want to use the server with OpenACS. Consult as a reference 
+or you might want to use the server with OpenACS. Consult as a reference
 the alternate configuration files in ${ns_install_dir}/conf/
 
 "
