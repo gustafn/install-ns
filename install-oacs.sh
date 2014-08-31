@@ -40,6 +40,7 @@ oacs_dir=/var/www/${oacs_service}
 db_name=${oacs_service}
 install_dotlrn=0
 
+pg_user=postgres
 pg_dir=/usr/
 #pg_dir=/usr/local/pgsql
 
@@ -225,12 +226,12 @@ set +o errexit
 # we use cvs for obtaining OpenACS
 #
 cvspath=$(${type} cvs)
-if [ "$cvspath" = "" ] ; then
-    if [ $debian = "1" ] ; then
+if [ ${cvspath} = "" ] ; then
+    if [ ${debian} = "1" ] ; then
 	apt-get install cvs
-    elif [ $redhat = "1" ] ; then
+    elif [ ${redhat} = "1" ] ; then
 	yum install cvs
-    elif [ $sunos = "1" ] ; then
+    elif [ ${sunos} = "1" ] ; then
 	# why is there no CVS available via "pkg install" ?
 	cd ${build_dir}
 	if [ ! -f cvs-1.11.23.tar.gz ] ; then
