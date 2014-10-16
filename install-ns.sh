@@ -271,20 +271,21 @@ fi
 if [ $debian = "1" ] ; then
     # On Debian/Ubuntu, make sure we have zlib installed, otherwise
     # naviserver can't provide compression support
-    apt-get install make ${autoconf} gcc zlib1g-dev wget ${pg_packages} ${mercurial} ${git} ${mongodb}
+    apt-get install make ${autoconf} gcc zlib1g-dev wget zip unzip ${pg_packages} ${mercurial} ${git} ${mongodb}
 fi
 if [ $redhat = "1" ] ; then
     # packages for FC/RHL
-    yum install make ${autoconf} gcc zlib wget ${pg_packages} ${mercurial} ${git} ${mongodb}
+    yum install make ${autoconf} gcc zlib wget zip unzip ${pg_packages} ${mercurial} ${git} ${mongodb}
 fi
 
 if [ $macosx = "1" ] ; then
-    port install make ${autoconf} zlib wget ${pg_packages} ${mercurial} ${git} ${mongodb}
+    port install make ${autoconf} zlib wget zip unzip ${pg_packages} ${mercurial} ${git} ${mongodb}
 fi
 
 if [ $sunos = "1" ] ; then
     # packages for OpenSolaris/OmniOS
     pkg install pkg://omnios/developer/versioning/git mercurial ${autoconf} automake gcc48 zlib wget \
+	compress/zip compress/unzip \
 	${pg_packages} ${mercurial} ${git} ${mongodb}
     pkg install \
 	developer/object-file \
@@ -471,7 +472,7 @@ if [ ! ${version_xotcl} = "HEAD" ] ; then
 else
     cd nsf
 fi
-export CC=gcc
+#export CC=gcc
 
 if [ $with_mongo = "1" ] ; then
     ./configure --enable-threads --enable-symbols --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib --with-mongodb=${build_dir}/mongo-c-driver-legacy/src/,${build_dir}/mongo-c-driver-legacy
