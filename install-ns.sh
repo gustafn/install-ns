@@ -110,7 +110,7 @@ else
             pg_lib=/usr/local/lib
 	fi
     fi
-    group_listcmd="grep ${ns_group} /etc/group"
+    group_listcmd="grep -o ${ns_group} /etc/group"
     group_addcmd="groupadd ${ns_group}"
     ns_user_addcmd="useradd -g ${ns_group} ${ns_user}"
     ns_user_addgroup_hint="sudo usermod -G ${ns_group} YOUR_USERID"

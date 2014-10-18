@@ -42,17 +42,37 @@ db_name=${oacs_service}
 install_dotlrn=0
 
 pg_user=postgres
-pg_dir=/usr/
+pg_dir=/usr
 #pg_dir=/usr/local/pgsql
 
-source ${ns_install_dir}/lib/nsConfig.sh
-
+source ${ns_install_dir}/lib/nsfConfig.sh
 #
 # inherited/derived variables
-#
-#build_dir=/usr/local/src
-#with_postgres=1
-#ns_src_dir=/usr/local/src/naviserver-4.99.6
+# add defaults if inherited didn't work
+if [ "${build_dir}x" = "x" ] ; then
+    build_dir=/usr/local/src
+fi
+if [ "${with_postgres}x" = "x" ] ; then
+    with_postgres=1
+fi
+if [ "${make}x" = "x" ] ; then
+    make="make"
+fi
+if [ "${type}x" = "x" ] ; then
+    type="type -a"
+fi
+if [ "${ns_user}x" = "x" ] ; then
+    ns_user=nsadmin
+fi
+if [ "${ns_group}x" = "x" ] ; then
+    ns_group=nsadmin
+fi
+if [ "${version_ns}x" = "x" ] ; then
+    version_ns=4.99.6
+fi
+if [ "${ns_src_dir}x" = "x" ] ; then
+    ns_src_dir=/usr/local/src/naviserver-${version_ns}
+fi
 
 oacs_user=${ns_user}
 oacs_group=${ns_group}
@@ -88,15 +108,17 @@ SETTINGS   OpenACS version              ${oacs_core_version}
            OpenACS directory            ${oacs_dir}
            OpenACS service              ${oacs_service}
            OpenACS user                 ${oacs_user}
-           OpenACS groupce              ${oacs_group}
+           OpenACS group                ${oacs_group}
+           With PostgresSQL             ${with_postgres}
+           PostgresSQL user             ${pg_user}
            PostgreSQL directory         ${pg_dir}
            Database name                ${db_name}
            Naviserver install directory ${ns_install_dir}
            Naviserver src directory     ${ns_src_dir}
            Naviserver modules directory ${modules_src_dir}
+           Naviserver user              ${ns_user}
+           Naviserver group             ${ns_group}
            Install DotLRN               ${install_dotlrn}
-           With PostgresSQL             ${with_postgres}
-           PostgresSQL user             ${pg_user}
            Make command                 ${make}
            Type command                 ${type}
 "
@@ -130,7 +152,7 @@ if  [ "${macosx}" = "1" ] ; then
     oacs_user_addcmd="dscl . create /Users/${oacs_user};dseditgroup -o edit -a ${oacs_user} -t user ${oacs_group}"
     pg_user_addcmd="dscl . create /Users/${pg_user};dscl . create /Users/${pg_user} UserShell /bin/bash"
 else
-    group_listcmd="grep ${oacs_group} /etc/group"
+    group_listcmd="grep -o ${oacs_group} /etc/group"
     group_addcmd="groupadd ${oacs_group}"
     oacs_user_addcmd="useradd -g ${oacs_group} ${oacs_user}"
     pg_user_addcmd="useradd -s /bin/bash ${pg_user}"
@@ -169,7 +191,7 @@ fi
 echo "------------------------ Check Userids ----------------------------"
 
 group=$(eval ${group_listcmd})
-echo "${group_listcmd}" => ${group}"
+echo "${group_listcmd}" => ${group}
 if [ "x${group}" = "x" ] ; then
     eval ${group_addcmd}
 fi
@@ -206,8 +228,10 @@ set -o errexit
 
 echo "Checking if oacs_user ${oacs_user} exists in db."
 dbuser_exists=$(su ${pg_user} -c "${pg_dir}/bin/psql template1 -tAc \"SELECT 1 FROM pg_roles WHERE rolname='${oacs_user}'\"")
-if [ "$dbuser_exists" != "1" ] ; then
-    echo "Creating oacs_user ${oacs_user}."
+if [ "$dbuser_exists" = "1" ] ; then
+    echo "db user ${oacs_user} exists. "
+else
+    echo "Creating oacs_user ${oacs_user}. "
     su ${pg_user} -c "${pg_dir}/bin/createuser -a -d ${oacs_user}"
 fi
 
@@ -255,7 +279,7 @@ fi
 #
 gitpath=$(${type} git)
 if [ "$gitpath" = "" ] ; then
-    if [ "$debian = "1" ] ; then
+    if [ "$debian" = "1" ] ; then
 	apt-get install git
     elif [ "${redhat}" = "1" ] ; then
 	yum install git
