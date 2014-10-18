@@ -49,6 +49,9 @@ source ${ns_install_dir}/lib/nsfConfig.sh
 #
 # inherited/derived variables
 # add defaults if inherited didn't work
+if [ -f "/etc/debian_version" ] ; then
+	debian=1
+fi
 if [ "${build_dir}x" = "x" ] ; then
     build_dir=/usr/local/src
 fi
@@ -341,7 +344,6 @@ cat << EOF > /tmp/subst.tcl
  set file [open \$fn w]; puts -nonewline \$file \$c; close \$file
 EOF
 ${ns_install_dir}/bin/tclsh8.5 /tmp/subst.tcl
-
 
 
 if [ "${redhat}" = "1" ] ; then
