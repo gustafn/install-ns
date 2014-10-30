@@ -30,6 +30,9 @@ oacs_core_version=oacs-5-8
 oacs_packages_version=HEAD
 oacs_packages_version=oacs-5-8
 
+oacs_tar_release=http://openacs.org/projects/openacs/download/download/openacs-5.8.1.tar.gz?revision_id=4197803
+oacs_tar_release=
+
 if [ ${oacs_core_version} = "HEAD" ] ; then
     oacs_service=oacs-${oacs_core_version}
 else
@@ -83,10 +86,11 @@ LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
 
 SETTINGS   OpenACS version              ${oacs_core_version}
            OpenACS packages             ${oacs_packages_version}
+           OpenACS tar release          ${oacs_tar_release}
            OpenACS directory            ${oacs_dir}
            OpenACS service              ${oacs_service}
            OpenACS user                 ${oacs_user}
-           OpenACS groupce              ${oacs_group}
+           OpenACS group                ${oacs_group}
            PostgreSQL directory         ${pg_dir}
            Database name                ${db_name}
            Naviserver install directory ${ns_install_dir}
@@ -221,33 +225,34 @@ fi
 echo "------------------------ Download OpenACS ----------------------------"
 set +o errexit
 
-#
-# we use cvs for obtaining OpenACS
-#
-cvspath=$(${type} cvs)
-if [ "$cvspath" = "" ] ; then
-    if [ $debian = "1" ] ; then
-	apt-get install cvs
-    elif [ $redhat = "1" ] ; then
-	yum install cvs
-    elif [ $sunos = "1" ] ; then
-	# why is there no CVS available via "pkg install" ?
-	cd ${build_dir}
-	if [ ! -f cvs-1.11.23.tar.gz ] ; then
-	    wget http://ftp.gnu.org/non-gnu/cvs/source/stable/1.11.23/cvs-1.11.23.tar.gz
+if [ "$oacs_tar_release" = "" ] ; then
+    #
+    # we use cvs for obtaining OpenACS
+    #
+    cvspath=$(${type} cvs)
+    if [ "$cvspath" = "" ] ; then
+	if [ $debian = "1" ] ; then
+	    apt-get install cvs
+	elif [ $redhat = "1" ] ; then
+	    yum install cvs
+	elif [ $sunos = "1" ] ; then
+	    # why is there no CVS available via "pkg install" ?
+	    cd ${build_dir}
+	    if [ ! -f cvs-1.11.23.tar.gz ] ; then
+		wget http://ftp.gnu.org/non-gnu/cvs/source/stable/1.11.23/cvs-1.11.23.tar.gz
+	    fi
+	    tar zxvf cvs-1.11.23.tar.gz
+	    cd cvs-1.11.23
+	    ./configure --prefix=/usr/gnu
+	    ${make}
+	    ${make} install
+	else
+	    echo "cvs is not installed; you might install it with"
+	    echo "    apt-get install cvs"
+	    exit
 	fi
-	tar zxvf cvs-1.11.23.tar.gz
-	cd cvs-1.11.23
-	./configure --prefix=/usr/gnu
-	${make}
-	${make} install
-    else
-	echo "cvs is not installed; you might install it with"
-	echo "    apt-get install cvs"
-	exit
     fi
 fi
-
 #
 # we use git for obtaining xowf
 #
@@ -264,19 +269,26 @@ if [ "$gitpath" = "" ] ; then
     fi
 fi
 
-
 mkdir -p ${oacs_dir}
 cd ${oacs_dir}
 
-cvs -q -d:pserver:anonymous@cvs.openacs.org:/cvsroot checkout -r ${oacs_core_version} acs-core
-ln -sf $(echo openacs-4/[a-z]*) .
-cd ${oacs_dir}/packages
-cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} xotcl-all
-cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} acs-developer-support ajaxhelper
+if [ "$oacs_tar_release" = "" ] ; then
 
-if [ $install_dotlrn = "1" ] ; then
-    cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} dotlrn-all
+    cvs -q -d:pserver:anonymous@cvs.openacs.org:/cvsroot checkout -r ${oacs_core_version} acs-core
+    ln -sf $(echo openacs-4/[a-z]*) .
+    cd ${oacs_dir}/packages
+    cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} xotcl-all
+    cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} acs-developer-support ajaxhelper
+
+    if [ $install_dotlrn = "1" ] ; then
+	cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} dotlrn-all
+    fi
+else
+    wget $oacs_tar_release -O openacs-5.8.1.tar.gz
+    tar zxvf openacs-5.8.1.tar.gz
+    ln -sf openacs-5.8.1/* .
 fi
+
 
 # install xowf
 if [ ! -d "./xowf" ] ; then
