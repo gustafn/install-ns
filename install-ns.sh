@@ -30,7 +30,7 @@ version_ns=4.99.6
 #version_ns=HEAD
 version_modules=4.99.6
 #version_modules=HEAD
-version_tcl=8.5.16
+version_tcl=8.5.17
 version_tcllib=1.15
 version_thread=2.7.0
 version_xotcl=2.0b5
@@ -202,9 +202,10 @@ if [ $clean_only = "1" ] ; then
 fi
 
 echo "------------------------ Save config variables in ${ns_install_dir}/lib/nsConfig.sh"
+mkdir -p  ${ns_install_dir}/lib
 cat << EOF > ${ns_install_dir}/lib/nsConfig.sh
-build_dir=${build_dir}
-ns_install_dir=${ns_install_dir}
+build_dir="${build_dir}"
+ns_install_dir="${ns_install_dir}"
 version_ns=${version_ns}
 version_modules=${version_modules}
 version_tcl=${version_tcl}
@@ -217,10 +218,10 @@ pg_user=${pg_user}
 ns_group=${ns_group}
 with_mongo=${with_mongo}
 with_postgres=${with_postgres}
-pg_incl=${pg_incl}
-pg_lib=${pg_lib}
-make=${make}
-type=${type}
+pg_incl="${pg_incl}"
+pg_lib="${pg_lib}"
+make="${make}"
+type="${type}"
 debian=${debian}
 redhat=${redhat}
 macosx=${macosx}
