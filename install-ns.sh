@@ -272,21 +272,21 @@ fi
 if [ $debian = "1" ] ; then
     # On Debian/Ubuntu, make sure we have zlib installed, otherwise
     # naviserver can't provide compression support
-    apt-get install make ${autoconf} gcc zlib1g-dev wget zip unzip ${pg_packages} ${mercurial} ${git} ${mongodb}
+    apt-get install make ${autoconf} gcc zlib1g-dev wget curl zip unzip ${pg_packages} ${mercurial} ${git} ${mongodb}
 fi
 if [ $redhat = "1" ] ; then
     # packages for FC/RHL
-    yum install make ${autoconf} gcc zlib wget zip unzip ${pg_packages} ${mercurial} ${git} ${mongodb}
+    yum install make ${autoconf} gcc zlib wget curl zip unzip ${pg_packages} ${mercurial} ${git} ${mongodb}
 fi
 
 if [ $macosx = "1" ] ; then
-    port install make ${autoconf} zlib wget zip unzip ${pg_packages} ${mercurial} ${git} ${mongodb}
+    port install make ${autoconf} zlib wget curl zip unzip ${pg_packages} ${mercurial} ${git} ${mongodb}
 fi
 
 if [ $sunos = "1" ] ; then
     # packages for OpenSolaris/OmniOS
     pkg install pkg://omnios/developer/versioning/git mercurial ${autoconf} automake gcc48 zlib wget \
-	compress/zip compress/unzip \
+	curl compress/zip compress/unzip \
 	${pg_packages} ${mercurial} ${git} ${mongodb}
     pkg install \
 	developer/object-file \
@@ -384,7 +384,8 @@ if [ $with_mongo = "1" ] ; then
 fi
 
 if [ ! -f tDOM-${version_tdom}.tgz ] ; then
-    wget --no-check-certificate https://github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
+    #wget --no-check-certificate https://cloud.github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
+    curl -L -O  https://github.com/downloads/tDOM/tdom/${version_tdom}.tgz
 fi
 
 #exit

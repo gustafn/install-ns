@@ -47,6 +47,10 @@ pg_dir=/usr/
 #pg_dir=/usr/local/pgsql
 
 source ${ns_install_dir}/lib/nsConfig.sh
+if [ "$ns_user" = "" ] ; then
+    echo "could not determine ns_user from  ${ns_install_dir}/lib/nsConfig.sh"
+    exit
+fi
 
 #
 # inherited/derived variables
@@ -107,7 +111,7 @@ if [ $build = "0" ] ; then
     echo "
 WARNING    Check Settings AND Cleanup section before running this script!
            If you know what you're doing then call the call the script as
-              $0 build
+              bash $0 build
 "
 exit
 fi
@@ -218,7 +222,7 @@ db_exists=$(su ${pg_user} -c "${pg_dir}/bin/psql template1 -tAc \"SELECT 1 FROM 
 if [ "$db_exists" != "1" ] ; then
     echo "Creating db ${db_name}."
     su ${pg_user} -c "${pg_dir}/bin/createdb -E UNICODE ${db_name}"
-    #su ${pg_user} -c "${pg_dir}/bin/psql -d ${db_name} -f ${pg_dir}/share/postgresql/contrib/hstore.sql"
+    su ${pg_user} -c "${pg_dir}/bin/psql -d ${db_name} -f ${pg_dir}/share/postgresql/contrib/hstore.sql"
     su ${pg_user} -c "${pg_dir}/bin/psql -d ${db_name} -tAc \"create extension hstore\""
 fi
 
