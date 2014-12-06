@@ -222,7 +222,10 @@ db_exists=$(su ${pg_user} -c "${pg_dir}/bin/psql template1 -tAc \"SELECT 1 FROM 
 if [ "$db_exists" != "1" ] ; then
     echo "Creating db ${db_name}."
     su ${pg_user} -c "${pg_dir}/bin/createdb -E UNICODE ${db_name}"
-    su ${pg_user} -c "${pg_dir}/bin/psql -d ${db_name} -f ${pg_dir}/share/postgresql/contrib/hstore.sql"
+    #hstoreSql=${pg_dir}/share/postgresql/contrib/hstore.sql
+    #if [ -f  ${hstoreSql} ] ; then
+    #	su ${pg_user} -c "${pg_dir}/bin/psql -d ${db_name} -f ${hstoreSql}"
+    #fi
     su ${pg_user} -c "${pg_dir}/bin/psql -d ${db_name} -tAc \"create extension hstore\""
 fi
 

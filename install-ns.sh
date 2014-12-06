@@ -385,7 +385,7 @@ fi
 
 if [ ! -f tDOM-${version_tdom}.tgz ] ; then
     #wget --no-check-certificate https://cloud.github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
-    curl -L -O  https://github.com/downloads/tDOM/tdom/${version_tdom}.tgz
+    curl -L -O  https://github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
 fi
 
 #exit
