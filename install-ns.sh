@@ -250,7 +250,7 @@ fi
 
 echo "------------------------ System dependencies ---------------------------------"
 if [ $with_mongo = "1" ] ; then
-    mongodb=mongodb
+    mongodb=mongodb libtool
 else
     mongodb=
 fi
@@ -374,10 +374,10 @@ else
 fi
 
 if [ $with_mongo = "1" ] ; then
-    if [ ! -d mongo-c-driver-legacy ] ; then
-	git clone https://github.com/mongodb/mongo-c-driver-legacy
+    if [ ! -d mongo-c-driver ] ; then
+      git clone https://github.com/mongodb/mongo-c-driver
     else
-	cd mongo-c-driver-legacy
+	cd mongo-c-driver
 	git pull
 	cd ..
     fi
@@ -454,7 +454,8 @@ cd ../..
 if [ $with_mongo = "1" ] ; then
     echo "------------------------ MongoDB-driver ----------------------------------"
 
-    cd mongo-c-driver-legacy
+    cd mongo-c-driver
+    bash autogen.sh
     ${make}
     ${make} install
     if  [ $debian = "1" ] ; then
