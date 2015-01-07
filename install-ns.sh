@@ -250,7 +250,7 @@ fi
 
 echo "------------------------ System dependencies ---------------------------------"
 if [ $with_mongo = "1" ] ; then
-    mongodb=mongodb libtool
+    mongodb="mongodb libtool autoconf"
 else
     mongodb=
 fi
