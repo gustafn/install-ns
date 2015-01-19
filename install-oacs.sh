@@ -342,11 +342,10 @@ Wants=postgresql.service
 [Service]
 Type=forking
 PIDFile=${oacs_dir}/log/nsd.pid
-Environment=LANG=en_US.UTF-8
+Environment="LANG=en_US.UTF-8"
 ExecStartPre=/bin/rm -f ${oacs_dir}/log/nsd.pid
-ExecStart=${ns_install_dir}/bin/nsd -t ${ns_install_dir}/config-${oacs_service}.tcl -u ${oacs_user} -g ${oacs_group}
+ExecStart=${ns_install_dir}/bin/nsd -u ${oacs_user} -g ${oacs_group} -t ${ns_install_dir}/config-${oacs_service}.tcl
 KillMode=process
-PrivateTmp=true
 
 [Install]
 #WantedBy=multi-user.target
