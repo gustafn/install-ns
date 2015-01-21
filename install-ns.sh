@@ -478,7 +478,7 @@ fi
 #export CC=gcc
 
 if [ $with_mongo = "1" ] ; then
-    ./configure --enable-threads --enable-symbols --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib --with-mongodb=${build_dir}/mongo-c-driver-legacy/src/,${build_dir}/mongo-c-driver-legacy
+    ./configure --enable-threads --enable-symbols --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib --with-mongoc=${build_dir}/mongo-c-driver/src/mongoc/,${build_dir}/mongo-c-driver/.libs --with-bson=${build_dir}/mongo-c-driver/src/libbson/src/bson
 else
     ./configure --enable-threads --enable-symbols --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
 fi
