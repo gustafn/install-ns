@@ -72,10 +72,10 @@ if [ $uname = "Darwin" ] ; then
     ns_user_addgroup_hint="dseditgroup -o edit -a YOUR_USERID -t user ${ns_group}"
 
     if [ $with_postgres = "1" ] ; then
-	# Preconfigured for PostgreSQL 9.3 installed via mac ports
-	pg_incl=/opt/local/include/postgresql93/
-	pg_lib=/opt/local/lib/postgresql93/
-	pg_packages="postgresql93 postgresql93-server"
+	# Preconfigured for PostgreSQL 9.4 installed via mac ports
+	pg_incl=/opt/local/include/postgresql94/
+	pg_lib=/opt/local/lib/postgresql94/
+	pg_packages="postgresql94 postgresql94-server"
     fi
 else
     if [ -f "/etc/debian_version" ] ; then
