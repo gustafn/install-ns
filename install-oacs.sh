@@ -344,7 +344,13 @@ Type=forking
 PIDFile=${oacs_dir}/log/nsd.pid
 Environment="LANG=en_US.UTF-8"
 ExecStartPre=/bin/rm -f ${oacs_dir}/log/nsd.pid
+
+# standard statup (non-privileged port, like 8000)
 ExecStart=${ns_install_dir}/bin/nsd -u ${oacs_user} -g ${oacs_group} -t ${ns_install_dir}/config-${oacs_service}.tcl
+
+# statup for privileged port, like 80
+# ExecStart=${ns_install_dir}/bin/nsd -u ${oacs_user} -g ${oacs_group} -t ${ns_install_dir}/config-${oacs_service}.tcl -b YOUR.IP.ADRESS 80
+
 Restart=on-abnormal
 KillMode=process
 
@@ -369,7 +375,11 @@ pre-start script
   until sudo -u ${pg_user} ${pg_dir}/bin/psql -l ; do sleep 1; done
 end script
 
+# standard statup (non-privileged port, like 8000)
 exec ${ns_install_dir}/bin/nsd -i -t ${ns_install_dir}/config-${oacs_service}.tcl -u ${oacs_user} -g ${oacs_group}
+
+# statup for privileged port, like 80
+#exec /usr/local/oo2/bin/nsd -i -t /usr/local/oo2/config-wi1.tcl -u ${oacs_user} -g ${oacs_group} -b YOUR.IP.ADRESS 80
 EOF
 fi
 
