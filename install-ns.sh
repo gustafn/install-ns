@@ -1,4 +1,5 @@
 #!/bin/bash
+#!/usr/local/bin/bash
 
 do_clean=0
 clean_only=0
@@ -26,14 +27,14 @@ build_dir=/usr/local/src
 #build_dir=/usr/local/src/oo2
 ns_install_dir=/usr/local/ns
 #ns_install_dir=/usr/local/oo2
-version_ns=4.99.6
+version_ns=4.99.7
 #version_ns=HEAD
-version_modules=4.99.6
+version_modules=4.99.7
 #version_modules=HEAD
 version_tcl=8.5.17
 version_tcllib=1.15
 version_thread=2.7.0
-version_xotcl=2.0b5
+version_xotcl=2.0.0
 #version_xotcl=HEAD
 version_tdom=0.8.3
 ns_user=nsadmin
@@ -64,6 +65,7 @@ type="type -a"
 pg_packages=
 
 uname=$(uname)
+
 if [ $uname = "Darwin" ] ; then
     macosx=1
     group_listcmd="dscl . list /Groups | grep ${ns_group}"
@@ -72,48 +74,53 @@ if [ $uname = "Darwin" ] ; then
     ns_user_addgroup_hint="dseditgroup -o edit -a YOUR_USERID -t user ${ns_group}"
 
     if [ $with_postgres = "1" ] ; then
-	# Preconfigured for PostgreSQL 9.3 installed via mac ports
-	pg_incl=/opt/local/include/postgresql93/
-	pg_lib=/opt/local/lib/postgresql93/
-	pg_packages="postgresql93 postgresql93-server"
+	# Preconfigured for PostgreSQL 9.4 installed via mac ports
+	pg_incl=/opt/local/include/postgresql94/
+	pg_lib=/opt/local/lib/postgresql94/
+	pg_packages="postgresql94 postgresql94-server"
     fi
 else
-    if [ -f "/etc/debian_version" ] ; then
-	debian=1
-	if [ $with_postgres = "1" ] ; then
-	    pg_packages="postgresql libpq-dev"
-	fi
-    elif [ -f "/etc/redhat-release" ] ; then
-	redhat=1
-	if [ $with_postgres = "1" ] ; then
-	    pg_packages="postgresql postgresql-devel"
-	fi
-    elif [ $uname = 'SunOS' ] ; then
-	sunos=1
-	make="gmake"
-	export CC="gcc -m64"
-	if [ $with_postgres = "1" ] ; then
-	    pg_packages="postgresql-927"
-	    pg_incl=/opt/pgsql927/include
-            pg_lib=/opt/pgsql927/lib
-	fi
-    elif [ $uname = "FreeBSD" ] ; then
-        freebsd=1
-        make="gmake"
-	type="type"
-        # adjust following to local gcc version:
-        setenv CC="/usr/local/bin/gcc49"
-	if [ $with_postgres = "1" ] ; then
-            # for freebsd10, file is: /usr/local/include/postgresql/internal/postgres_fe.h so:
-            #pg_incl=/usr/local/include/postgresql/internal
-            pg_incl=/usr/local/include
-            pg_lib=/usr/local/lib
-	fi
-    fi
     group_listcmd="grep -o ${ns_group} /etc/group"
     group_addcmd="groupadd ${ns_group}"
     ns_user_addcmd="useradd -g ${ns_group} ${ns_user}"
     ns_user_addgroup_hint="sudo usermod -G ${ns_group} YOUR_USERID"
+    if [ -f "/etc/debian_version" ] ; then
+	    debian=1
+	    if [ $with_postgres = "1" ] ; then
+	        pg_packages="postgresql libpq-dev"
+	    fi
+    elif [ -f "/etc/redhat-release" ] ; then
+	    redhat=1
+	    if [ $with_postgres = "1" ] ; then
+	        pg_packages="postgresql postgresql-devel"
+	    fi
+    elif [ $uname = 'SunOS' ] ; then
+	    sunos=1
+	    make="gmake"
+	    export CC="gcc -m64"
+	    if [ $with_postgres = "1" ] ; then
+	        pg_packages="postgresql-927"
+	        pg_incl=/opt/pgsql927/include
+            pg_lib=/opt/pgsql927/lib
+	    fi
+    elif [ $uname = "FreeBSD" ] ; then
+        freebsd=1
+        make="gmake"
+        ns_user=openacs
+        ns_group=openacs
+        group_addcmd="pw groupadd ${ns_group}"
+        ns_user_addcmd="pw useradd ${ns_user} -g ${ns_group}"
+        pg_user=pgsql
+	    type="type"
+        # adjust following to local gcc version:
+        # setenv CC="/usr/local/bin/gcc49"
+	    if [ $with_postgres = "1" ] ; then
+            # for freebsd10, file is: /usr/local/include/postgresql/internal/postgres_fe.h so:
+            #pg_incl=/usr/local/include/postgresql/internal
+            pg_incl=/usr/local/include
+            pg_lib=/usr/local/lib
+	    fi
+    fi
 fi
 
 echo "
@@ -155,6 +162,8 @@ if [ ${with_postgres} = "1" ] ; then
            postgres/include      ${pg_incl}
            postgres/lib          ${pg_lib}
            PostgresSQL Packages  ${pg_packages}
+           uname                 ${uname}
+           freebsd               ${freebsd}
 "
 fi
 
@@ -202,6 +211,7 @@ if [ $clean_only = "1" ] ; then
 fi
 
 echo "------------------------ Save config variables in ${ns_install_dir}/lib/nsConfig.sh"
+mkdir -p ${ns_install_dir}/lib
 cat << EOF > ${ns_install_dir}/lib/nsConfig.sh
 build_dir=${build_dir}
 ns_install_dir=${ns_install_dir}
@@ -239,7 +249,10 @@ fi
 id=$(id -u ${ns_user})
 if [ $? != "0" ] ; then
     if  [ $debian = "1" ] ; then
-	eval ${ns_user_addcmd}
+	    eval ${ns_user_addcmd}
+    elif
+        [ $freebsd = "1" ] ; then
+	    eval ${ns_user_addcmd}
     else
 	echo "User ${ns_user} does not exist; you might add it with something like"
 	echo "     ${ns_user_addcmd}"
@@ -249,7 +262,7 @@ fi
 
 echo "------------------------ System dependencies ---------------------------------"
 if [ $with_mongo = "1" ] ; then
-    mongodb=mongodb
+    mongodb="mongodb libtool autoconf"
 else
     mongodb=
 fi
@@ -271,20 +284,21 @@ fi
 if [ $debian = "1" ] ; then
     # On Debian/Ubuntu, make sure we have zlib installed, otherwise
     # naviserver can't provide compression support
-    apt-get install make ${autoconf} gcc zlib1g-dev wget ${pg_packages} ${mercurial} ${git} ${mongodb}
+    apt-get install make ${autoconf} gcc zlib1g-dev curl zip unzip wget ${pg_packages} ${mercurial} ${git} ${mongodb}
 fi
 if [ $redhat = "1" ] ; then
     # packages for FC/RHL
-    yum install make ${autoconf} gcc zlib wget ${pg_packages} ${mercurial} ${git} ${mongodb}
+    yum install make ${autoconf} gcc zlib wget curl zip unzip ${pg_packages} ${mercurial} ${git} ${mongodb}
 fi
 
 if [ $macosx = "1" ] ; then
-    port install make ${autoconf} zlib wget ${pg_packages} ${mercurial} ${git} ${mongodb}
+    port install make ${autoconf} zlib wget curl zip unzip ${pg_packages} ${mercurial} ${git} ${mongodb}
 fi
 
 if [ $sunos = "1" ] ; then
     # packages for OpenSolaris/OmniOS
     pkg install pkg://omnios/developer/versioning/git mercurial ${autoconf} automake gcc48 zlib wget \
+        curl compress/zip compress/unzip \
 	${pg_packages} ${mercurial} ${git} ${mongodb}
     pkg install \
 	developer/object-file \
@@ -372,17 +386,18 @@ else
 fi
 
 if [ $with_mongo = "1" ] ; then
-    if [ ! -d mongo-c-driver-legacy ] ; then
+    if [ ! -d mongo-c-driver ] ; then
 	git clone https://github.com/mongodb/mongo-c-driver-legacy
     else
-	cd mongo-c-driver-legacy
+	cd mongo-c-driver
 	git pull
 	cd ..
     fi
 fi
 
 if [ ! -f tDOM-${version_tdom}.tgz ] ; then
-    wget --no-check-certificate https://github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
+    #wget --no-check-certificate https://github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
+    curl -L -O  https://github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
 fi
 
 #exit
@@ -451,7 +466,8 @@ cd ../..
 if [ $with_mongo = "1" ] ; then
     echo "------------------------ MongoDB-driver ----------------------------------"
 
-    cd mongo-c-driver-legacy
+    cd mongo-c-driver
+    bash autogen.sh
     ${make}
     ${make} install
     if  [ $debian = "1" ] ; then
@@ -464,24 +480,24 @@ if [ $with_mongo = "1" ] ; then
 fi
 
 echo "------------------------ Installing XOTcl 2.0 ----------------------------"
+    
+    if [ ! ${version_xotcl} = "HEAD" ] ; then
+        tar xvfz nsf${version_xotcl}.tar.gz
+        cd nsf${version_xotcl}
+    else
+        cd nsf
+    fi
 
-if [ ! ${version_xotcl} = "HEAD" ] ; then
-    tar xvfz nsf${version_xotcl}.tar.gz
-    cd nsf${version_xotcl}
-else
-    cd nsf
-fi
-export CC=gcc
-
-if [ $with_mongo = "1" ] ; then
-    ./configure --enable-threads --enable-symbols --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib --with-mongodb=${build_dir}/mongo-c-driver-legacy/src/,${build_dir}/mongo-c-driver-legacy
-else
-    ./configure --enable-threads --enable-symbols --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
-fi
-
-${make}
-${make} install
-cd ..
+    #export CC=gcc
+    if [ $with_mongo = "1" ] ; then
+        ./configure --enable-threads --enable-symbols --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib --with-mongoc=${build_dir}/mongo-c-driver/src/mongoc/,${build_dir}/mongo-c-driver/.libs --with-bson=${build_dir}/mongo-c-driver/src/libbson/src/bson
+    else
+        ./configure --enable-threads --enable-symbols --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
+    fi
+    
+    ${make}
+    ${make} install
+    cd ..
 
 echo "------------------------ Installing tdom --------------------------------"
 
@@ -505,6 +521,4 @@ You can now run plain NaviServer by typing the following command:
 
 As a next step, you need to configure the server according to your needs,
 or you might want to use the server with OpenACS. Consult as a reference
-the alternate configuration files in ${ns_install_dir}/conf/
-
-"
+the alternate configuration files in ${ns_install_dir}/conf/"
