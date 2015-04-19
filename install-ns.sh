@@ -32,6 +32,7 @@ version_modules=4.99.8
 #version_modules=HEAD
 version_tcl=8.5.18
 version_tcllib=1.16
+tcllib_dirname=tcllib
 version_thread=2.7.2
 version_xotcl=2.0.0
 #version_xotcl=HEAD
@@ -182,8 +183,8 @@ cd ${build_dir}
 if [ $do_clean = 1 ] ; then
     #rm    tcl${version_tcl}-src.tar.gz
     rm -r tcl${version_tcl}
-    #rm    tcllib-${version_tcllib}.tar.bz2
-    rm -r tcllib-${version_tcllib}
+    #rm    ${tcllib_dirname}-${version_tcllib}.tar.bz2
+    rm -r ${tcllib_dirname}-${version_tcllib}
     #rm    naviserver-${version_ns}.tar.gz
     rm -rf naviserver-${version_ns}
     #rm    naviserver-${version_ns}-modules.tar.gz
@@ -302,8 +303,13 @@ if [ ! -f tcl${version_tcl}-src.tar.gz ] ; then
     echo wget http://heanet.dl.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
     wget http://heanet.dl.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
 fi
+if [ ! -f ${tcllib_dirname}-${version_tcllib}.tar.bz2 ] ; then
+    wget http://heanet.dl.sourceforge.net/sourceforge/tcllib/${tcllib_dirname}-${version_tcllib}.tar.bz2
+fi
+# All versions of tcllib up to 1.15 were named tcllib-*. Version 1.6 is named Tcllib -1.16 (capital T)
 if [ ! -f tcllib-${version_tcllib}.tar.bz2 ] ; then
-    wget http://heanet.dl.sourceforge.net/sourceforge/tcllib/tcllib-${version_tcllib}.tar.bz2
+    wget http://heanet.dl.sourceforge.net/sourceforge/tcllib/Tcllib-${version_tcllib}.tar.bz2
+    tcllib_dirname=Tcllib
 fi
 
 if [ ! ${version_ns} = "HEAD" ] ; then
@@ -409,8 +415,8 @@ cd ../..
 
 echo "------------------------ Installing TCLLib ------------------------------"
 
-tar xvfj tcllib-${version_tcllib}.tar.bz2
-cd tcllib-${version_tcllib}
+tar xvfj ${tcllib_dirname}-${version_tcllib}.tar.bz2
+cd ${tcllib_dirname}-${version_tcllib}
 ./configure --prefix=${ns_install_dir}
 ${make} install
 cd ..
