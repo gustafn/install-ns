@@ -31,7 +31,7 @@ version_ns=4.99.8
 version_modules=4.99.8
 #version_modules=HEAD
 version_tcl=8.5.18
-version_tcllib=1.16
+version_tcllib=1.17
 tcllib_dirname=tcllib
 version_thread=2.7.2
 version_xotcl=2.0.0
@@ -306,7 +306,10 @@ fi
 if [ ! -f ${tcllib_dirname}-${version_tcllib}.tar.bz2 ] ; then
     wget http://heanet.dl.sourceforge.net/sourceforge/tcllib/${tcllib_dirname}-${version_tcllib}.tar.bz2
 fi
-# All versions of tcllib up to 1.15 were named tcllib-*. Version 1.6 is named Tcllib -1.16 (capital T)
+
+# All versions of tcllib up to 1.15 were named tcllib-*.
+# tcllib-1.16 was named a while Tcllib-1.16 (capital T), but has been renamed later
+# to the standard naming conventions. tcllib-1.17 is fine again.
 if [ ! -f tcllib-${version_tcllib}.tar.bz2 ] ; then
     wget http://heanet.dl.sourceforge.net/sourceforge/tcllib/Tcllib-${version_tcllib}.tar.bz2
     tcllib_dirname=Tcllib
