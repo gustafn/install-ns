@@ -71,7 +71,7 @@ if [ "${ns_group}x" = "x" ] ; then
     ns_group=nsadmin
 fi
 if [ "${version_ns}x" = "x" ] ; then
-    version_ns=4.99.7
+    version_ns=4.99.8
 fi
 if [ "${ns_src_dir}x" = "x" ] ; then
     ns_src_dir=/usr/local/src/naviserver-${version_ns}
