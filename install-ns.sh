@@ -68,7 +68,7 @@ uname=$(uname)
 if [ $uname = "Darwin" ] ; then
     macosx=1
     group_listcmd="dscl . list /Groups | grep ${ns_group}"
-    group_addcmd="dscl . create /Groups/${ns_group}"
+    group_addcmd="dscl . create /Groups/${ns_group} PrimaryGroupID $((`dscl . -list /Groups PrimaryGroupID | awk '{print $2}' | sort -rn|head -1` + 1))"
     ns_user_addcmd="dscl . create /Users/${ns_user};dseditgroup -o edit -a ${ns_user} -t user ${ns_group}"
     ns_user_addgroup_hint="dseditgroup -o edit -a YOUR_USERID -t user ${ns_group}"
 
@@ -235,16 +235,18 @@ echo "------------------------ Check User and Group --------------------"
 group=$(eval ${group_listcmd})
 echo "${group_listcmd} => $group"
 if [ "x$group" = "x" ] ; then
+    echo "creating group ${ns_group} with command ${group_addcmd}"
     eval ${group_addcmd}
 fi
 
 id=$(id -u ${ns_user})
 if [ $? != "0" ] ; then
-    if  [ $debian = "1" ] ; then
+    if  [ $debian = "1" ] || [ $macosx = "1" ] ; then
+	echo "creating user ${ns_user} with command ${ns_user_addcmd}"
 	eval ${ns_user_addcmd}
     else
-	echo "User ${ns_user} does not exist; you might add it with something like"
-	echo "     ${ns_user_addcmd}"
+	echo "User ${ns_user} does not exist; you might add it with a command like"
+	echo "     sudo ${ns_user_addcmd}"
 	exit
     fi
 fi
