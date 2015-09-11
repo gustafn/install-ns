@@ -36,7 +36,7 @@ tcllib_dirname=tcllib
 version_thread=2.7.2
 version_xotcl=2.0.0
 #version_xotcl=HEAD
-version_tdom=0.8.3
+version_tdom=GIT
 ns_user=nsadmin
 ns_group=nsadmin
 with_mongo=0
@@ -194,7 +194,7 @@ if [ $do_clean = 1 ] ; then
     #rm    nsf${version_xotcl}.tar.gz
     rm -rf nsf${version_xotcl}
     #rm    tDOM-${version_tdom}.tgz
-    rm -r tDOM-${version_tdom}
+    rm -rf tDOM-${version_tdom}
 fi
 
 # just clean?
@@ -258,7 +258,7 @@ else
     mongodb=
 fi
 
-if [ $with_mongo = "1" ] || [ $version_xotcl = "HEAD" ] ; then
+if [ $with_mongo = "1" ] || [ $version_xotcl = "HEAD" ] || [ $version_tdom = "GIT" ] ; then
     git=git
 else
     git=
@@ -394,10 +394,16 @@ if [ $with_mongo = "1" ] ; then
     fi
 fi
 
-if [ ! -f tDOM-${version_tdom}.tgz ] ; then
-    #wget --no-check-certificate https://cloud.github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
-    curl -L -O  https://github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
+if [ ! ${version_tdom} = "GIT" ] ; then
+    if [ ! -f tDOM-${version_tdom}.tgz ] ; then
+	#wget --no-check-certificate https://cloud.github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
+	curl -L -O  https://github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
+    fi
+else
+    rm -rf tdom
+    git clone https://github.com/tDOM/tdom.git
 fi
+
 
 #exit
 echo "------------------------ Installing TCL ---------------------------------"
@@ -500,11 +506,19 @@ cd ..
 
 echo "------------------------ Installing tdom --------------------------------"
 
-tar xfz tDOM-${version_tdom}.tgz
-cd tDOM-${version_tdom}/unix
+if [ ${version_tdom} = "GIT" ] ; then
+    cd tdom
+    git checkout 'master@{2014-11-01 00:00:00}'
+    cd unix
+else
+    tar xfz tDOM-${version_tdom}.tgz
+    cd tDOM-${version_tdom}/unix
+fi
 ../configure --enable-threads --disable-tdomalloc --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
 ${make} install
 cd ../..
+
+echo "------------------------ Set permissions --------------------------------"
 
 # set up minimal permissions in ${ns_install_dir}
 chgrp -R ${ns_group} ${ns_install_dir}
