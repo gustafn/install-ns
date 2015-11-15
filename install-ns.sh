@@ -129,7 +129,7 @@ The script has a long heritage:
 (c) 2008      Malte Sussdorff, Nima Mazloumi
 (c) 2012-2014 Gustaf Neumann
 
-Tested under Mac OS X and Ubuntu 12.04 and 13.04
+Tested under Mac OS X, Ubuntu 12.04, 13.04, 14.04, Fedora Core 18, and CentOS 7 (pg 9.4.5)
 
 LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
            This is free software, and you are welcome to redistribute it under certain conditions;

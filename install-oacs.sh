@@ -81,7 +81,7 @@ and optionally dotlrn and generates a config file and startup files
 (for Ubuntu and Fedora Core). The script assumes a pre-existing
 NaviServer installation, installed e.g. via install-ns.sh
 
-Tested on Ubuntu 12.04, 13.04 and Fedora Core 18
+Tested on Ubuntu 12.04, 13.04, 14.04 Fedora Core 18, and CentOS 7
 (c) 2013 Gustaf Neumann
 
 LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
