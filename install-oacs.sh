@@ -26,12 +26,13 @@ echo "------------------------ Settings ---------------------------------------"
 ns_install_dir=/usr/local/ns
 
 oacs_core_version=HEAD
-oacs_core_version=oacs-5-8
+oacs_core_version=oacs-5-9
 oacs_packages_version=HEAD
-oacs_packages_version=oacs-5-8
+oacs_packages_version=oacs-5-9
 
-oacs_tar_release=http://openacs.org/projects/openacs/download/download/openacs-5.8.1.tar.gz?revision_id=4197803
-oacs_tar_release=
+oacs_tar_release=openacs-5.9.0
+oacs_tar_release_url=http://openacs.org/projects/openacs/download/download/${oacs_tar_release}.tar.gz?revision_id=4869825
+oacs_tar_release_url=
 
 if [ ${oacs_core_version} = "HEAD" ] ; then
     oacs_service=oacs-${oacs_core_version}
@@ -90,7 +91,7 @@ LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
 
 SETTINGS   OpenACS version              ${oacs_core_version}
            OpenACS packages             ${oacs_packages_version}
-           OpenACS tar release          ${oacs_tar_release}
+           OpenACS tar release URL      ${oacs_tar_release_url}
            OpenACS directory            ${oacs_dir}
            OpenACS service              ${oacs_service}
            OpenACS user                 ${oacs_user}
@@ -235,7 +236,7 @@ fi
 echo "------------------------ Download OpenACS ----------------------------"
 set +o errexit
 
-if [ "$oacs_tar_release" = "" ] ; then
+if [ "$oacs_tar_release_url" = "" ] ; then
     #
     # we use cvs for obtaining OpenACS
     #
@@ -282,7 +283,7 @@ fi
 mkdir -p ${oacs_dir}
 cd ${oacs_dir}
 
-if [ "$oacs_tar_release" = "" ] ; then
+if [ "$oacs_tar_release_url" = "" ] ; then
 
     cvs -q -d:pserver:anonymous@cvs.openacs.org:/cvsroot checkout -r ${oacs_core_version} acs-core
     ln -sf $(echo openacs-4/[a-z]*) .
@@ -294,9 +295,9 @@ if [ "$oacs_tar_release" = "" ] ; then
 	cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} dotlrn-all
     fi
 else
-    wget $oacs_tar_release -O openacs-5.8.1.tar.gz
-    tar zxvf openacs-5.8.1.tar.gz
-    ln -sf openacs-5.8.1/* .
+    wget $oacs_tar_release_url -O ${oacs_tar_release}.tar.gz
+    tar zxvf ${oacs_tar_release}.tar.gz
+    ln -sf ${oacs_tar_release}/* .
 fi
 
 
