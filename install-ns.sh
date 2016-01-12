@@ -26,9 +26,9 @@ build_dir=/usr/local/src
 #build_dir=/usr/local/src/oo2
 ns_install_dir=/usr/local/ns
 #ns_install_dir=/usr/local/oo2
-version_ns=4.99.8
+version_ns=4.99.9
 #version_ns=HEAD
-version_modules=4.99.8
+version_modules=4.99.9
 #version_modules=HEAD
 version_tcl=8.5.18
 version_tcllib=1.17
@@ -127,7 +127,7 @@ releases and compiling it.
 
 The script has a long heritage:
 (c) 2008      Malte Sussdorff, Nima Mazloumi
-(c) 2012-2014 Gustaf Neumann
+(c) 2012-2016 Gustaf Neumann
 
 Tested under Mac OS X, Ubuntu 12.04, 13.04, 14.04, Fedora Core 18, and CentOS 7 (pg 9.4.5)
 
@@ -301,6 +301,8 @@ if [ $sunos = "1" ] ; then
 fi
 
 echo "------------------------ Downloading sources ----------------------------"
+set -o errexit
+
 if [ ! -f tcl${version_tcl}-src.tar.gz ] ; then
     echo wget http://heanet.dl.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
     wget http://heanet.dl.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
