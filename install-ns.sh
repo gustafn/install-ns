@@ -23,35 +23,37 @@ done
 echo "------------------------ Settings ---------------------------------------"
 # Installation directory and software versions to be installed
 
-build_dir=/usr/local/src
+build_dir="/usr/local/src"
 #build_dir=/usr/local/src/oo2
-ns_install_dir=/usr/local/ns
+ns_install_dir="/usr/local/ns"
 #ns_install_dir=/usr/local/oo2
-version_ns=4.99.8
+version_ns="4.99.9"
 #version_ns=HEAD
-version_modules=4.99.8
+version_modules="4.99.9"
 #version_modules=HEAD
-version_tcl=8.5.18
-version_tcllib=1.17
-tcllib_dirname=tcllib
-version_thread=2.7.2
-version_xotcl=2.0.0
+version_tcl="8.5.18"
+version_tcl_major="8.5"
+version_tcllib="1.17"
+tcllib_dirname="tcllib"
+version_thread="2.7.2"
+version_xotcl="2.0.0"
 #version_xotcl=HEAD
-version_tdom=0.8.3
-ns_user=nsadmin
-ns_group=nsadmin
-with_mongo=0
-with_postgres=1
+#version_tdom=0.8.3
+version_tdom="GIT"
+ns_user="nsadmin"
+ns_group="nsadmin"
+with_mongo="0"
+with_postgres="1"
 #
 # the pg_* variables should be the path leading to the include and
 # library file of postgres to be used in this build.  In particular,
 # "libpg-fe.h" and "libpq.so" are typically needed.
-pg_incl=/usr/include/postgresql
-pg_lib=/usr/lib
-pg_user=postgres
+pg_incl="/usr/include/postgresql"
+pg_lib="/usr/lib"
+pg_user="postgres"
 
-export LANG=en_US.UTF-8
-export LC_ALL=en_US.UTF-8
+export LANG="en_US.UTF-8"
+export LC_ALL="en_US.UTF-8"
 
 echo "------------------------ Check System ----------------------------"
 debian=0
@@ -189,7 +191,7 @@ echo "------------------------ Cleanup -----------------------------------------
 mkdir -p ${build_dir}
 cd ${build_dir}
 
-if [ $do_clean = 1 ] ; then
+if [ $do_clean = "1" ] ; then
     #rm   tcl${version_tcl}-src.tar.gz
     rm -r tcl${version_tcl}
     #rm    ${tcllib_dirname}-${version_tcllib}.tar.bz2
@@ -203,7 +205,8 @@ if [ $do_clean = 1 ] ; then
     #rm    nsf${version_xotcl}.tar.gz
     rm -rf nsf${version_xotcl}
     #rm    tDOM-${version_tdom}.tgz
-    rm -r tDOM-${version_tdom}
+    #rm -r tDOM-${version_tdom}
+    rm -rf tDOM-${version_tdom}
 fi
 
 # just clean?
@@ -268,7 +271,7 @@ else
     mongodb=
 fi
 
-if [ $with_mongo = "1" ] || [ $version_xotcl = "HEAD" ] ; then
+if [ $with_mongo = "1" ] || [ $version_xotcl = "HEAD" ] || [ $version_tdom = "GIT" ]    ; then
     git=git
 else
     git=
@@ -311,6 +314,8 @@ if [ $sunos = "1" ] ; then
 fi
 
 echo "------------------------ Downloading sources ----------------------------"
+set -o errexit
+
 if [ ! -f tcl${version_tcl}-src.tar.gz ] ; then
     echo wget http://heanet.dl.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
     wget http://heanet.dl.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
@@ -319,7 +324,7 @@ fi
 # tcllib-1.16 was named a while Tcllib-1.16 (capital T), but has been renamed later
 # to the standard naming conventions. tcllib-1.17 is fine again.
 if [ ! -f tcllib-${version_tcllib}.tar.bz2 ] ; then
-    tcllib_dirname=Tcllib
+    tcllib_dirname=tcllib
     wget http://heanet.dl.sourceforge.net/sourceforge/tcllib/${tcllib_dirname}-${version_tcllib}.tar.bz2
 
 fi
@@ -401,9 +406,14 @@ if [ $with_mongo = "1" ] ; then
     fi
 fi
 
-if [ ! -f tDOM-${version_tdom}.tgz ] ; then
-    #wget --no-check-certificate https://github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
-    curl -L -O  https://github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
+if [ ! ${version_tdom} = "GIT" ] ; then
+    if [ ! -f tDOM-${version_tdom}.tgz ] ; then
+	#wget --no-check-certificate https://cloud.github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
+	curl -L -O  https://github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
+    fi
+else
+    rm -rf tdom
+    git clone https://github.com/tDOM/tdom.git
 fi
 
 #exit
@@ -417,11 +427,13 @@ ${make}
 ${make} install
 
 # Make sure, we have a tclsh in ns/bin
-if [ -f $ns_install_dir/bin/tclsh ] ; then
-    rm $ns_install_dir/bin/tclsh
+if [ -f ${ns_install_dir}/bin/tclsh ] ; then
+    rm ${ns_install_dir}/bin/tclsh
 fi
-source $ns_install_dir/lib/tclConfig.sh
-ln -sf $ns_install_dir/bin/tclsh${TCL_VERSION} $ns_install_dir/bin/tclsh
+echo "sourcing ${ns_install_dir}/lib/tclConfig.sh"
+source ${ns_install_dir}/lib/tclConfig.sh
+echo "symbolic linking ${ns_install_dir}/bin/tclsh${version_tcl_major} ${ns_install_dir}/bin/tclsh"
+ln -sf ${ns_install_dir}/bin/tclsh${version_tcl_major} ${ns_install_dir}/bin/tclsh
 
 cd ../..
 
@@ -507,10 +519,17 @@ echo "------------------------ Installing XOTcl 2.0 ----------------------------
 
 echo "------------------------ Installing tdom --------------------------------"
 
-tar xfz tDOM-${version_tdom}.tgz
-cd tDOM-${version_tdom}/unix
+if [ ${version_tdom} = "GIT" ] ; then
+    cd tdom
+    git checkout 'master@{2014-11-01 00:00:00}'
+    cd unix
+else
+    tar xfz tDOM-${version_tdom}.tgz
+    cd tDOM-${version_tdom}/unix
+fi
 ../configure --enable-threads --disable-tdomalloc --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
 ${make} install
+
 cd ../..
 
 # set up minimal permissions in ${ns_install_dir}

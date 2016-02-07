@@ -27,9 +27,14 @@ ns_install_dir=/usr/local/ns
 oacs_core_dir=openacs-4
 oacs_core_dir=openacs-core
 oacs_core_version=HEAD
-oacs_core_version=oacs-5-8
+oacs_core_version=oacs-5-9
 oacs_packages_version=HEAD
-oacs_packages_version=oacs-5-8
+oacs_packages_version=oacs-5-9
+
+oacs_tar_release=openacs-5.9.0
+oacs_tar_release_url=http://openacs.org/projects/openacs/download/download/${oacs_tar_release}.tar.gz?revision_id=4869825
+oacs_tar_release_url=
+
 
 if [ "${oacs_core_version}" = "HEAD" ] ; then
     oacs_service=oacs-${oacs_core_version}
@@ -71,7 +76,7 @@ if [ "${ns_group}x" = "x" ] ; then
     ns_group=nsadmin
 fi
 if [ "${version_ns}x" = "x" ] ; then
-    version_ns=4.99.8
+    version_ns=4.99.9
 fi
 if [ "${ns_src_dir}x" = "x" ] ; then
     ns_src_dir=/usr/local/src/naviserver-${version_ns}
@@ -108,6 +113,7 @@ LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
 
 SETTINGS   OpenACS version              ${oacs_core_version}
            OpenACS packages             ${oacs_packages_version}
+           OpenACS tar release URL      ${oacs_tar_release_url}
            OpenACS directory            ${oacs_dir}
            OpenACS service              ${oacs_service}
            OpenACS user                 ${oacs_user}
@@ -249,34 +255,34 @@ fi
 
 echo "------------------------ Download OpenACS ----------------------------"
 set +o errexit
-
-#
-# we use cvs for obtaining OpenACS
-#
-cvspath=$(${type} cvs)
-if [ "${cvspath}" = "" ] ; then
-    if [ "${debian}" = "1" ] ; then
-	apt-get install cvs
-    elif [ "${redhat}" = "1" ] ; then
-	yum install cvs
-    elif [ "${sunos}" = "1" ] ; then
-	# why is there no CVS available via "pkg install" ?
-	cd ${build_dir}
-	if [ ! -f cvs-1.11.23.tar.gz ] ; then
-	    wget http://ftp.gnu.org/non-gnu/cvs/source/stable/1.11.23/cvs-1.11.23.tar.gz
+if [ "$oacs_tar_release_url" = "" ] ; then
+    #
+    # we use cvs for obtaining OpenACS
+    #
+    cvspath=$(${type} cvs)
+    if [ "${cvspath}" = "" ] ; then
+	if [ "${debian}" = "1" ] ; then
+	    apt-get install cvs
+	elif [ "${redhat}" = "1" ] ; then
+	    yum install cvs
+	elif [ "${sunos}" = "1" ] ; then
+	    # why is there no CVS available via "pkg install" ?
+	    cd ${build_dir}
+	    if [ ! -f cvs-1.11.23.tar.gz ] ; then
+		wget http://ftp.gnu.org/non-gnu/cvs/source/stable/1.11.23/cvs-1.11.23.tar.gz
+	    fi
+	    tar zxvf cvs-1.11.23.tar.gz
+	    cd cvs-1.11.23
+	    ./configure --prefix=/usr/gnu
+	    ${make}
+	    ${make} install
+	else
+	    echo "cvs is not installed; you might install it with"
+	    echo "    apt-get install cvs"
+	    exit
 	fi
-	tar zxvf cvs-1.11.23.tar.gz
-	cd cvs-1.11.23
-	./configure --prefix=/usr/gnu
-	${make}
-	${make} install
-    else
-	echo "cvs is not installed; you might install it with"
-	echo "    apt-get install cvs"
-	exit
     fi
 fi
-
 #
 # we use git for obtaining xowf
 #
@@ -297,8 +303,8 @@ fi
 mkdir -p ${oacs_dir}
 cd ${oacs_dir}
 
-#cvs -q -d:pserver:anonymous@cvs.openacs.org:/cvsroot checkout -r ${oacs_core_version} acs-core
-git clone https://github.com/xdcpm/openacs-core.git
+cvs -q -d:pserver:anonymous@cvs.openacs.org:/cvsroot checkout -r ${oacs_core_version} acs-core
+#git clone https://github.com/xdcpm/openacs-core.git
 #mv openacs-core ${oacs_core_dir}
 
 ln -sf $(echo ${oacs_core_dir}/[a-z]*) .
