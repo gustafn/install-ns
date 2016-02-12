@@ -308,7 +308,7 @@ cvs -q -d:pserver:anonymous@cvs.openacs.org:/cvsroot checkout -r ${oacs_core_ver
 #mv openacs-core ${oacs_core_dir}
 
 ln -sf $(echo ${oacs_core_dir}/[a-z]*) .
-cd ${oacs_dir}/packages
+cd ${openacs_core_dir}/packages
 #cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} xotcl-all
 #cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} acs-developer-support ajaxhelper
  git clone https://github.com/xdcpm/ajaxhelper.git
