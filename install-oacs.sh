@@ -32,7 +32,7 @@ oacs_packages_version=oacs-5-9
 
 oacs_tar_release=openacs-5.9.0
 oacs_tar_release_url=http://openacs.org/projects/openacs/download/download/${oacs_tar_release}.tar.gz?revision_id=4869825
-oacs_tar_release_url=
+#oacs_tar_release_url=
 
 if [ ${oacs_core_version} = "HEAD" ] ; then
     oacs_service=oacs-${oacs_core_version}
