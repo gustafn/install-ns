@@ -350,7 +350,7 @@ ExecStartPre=/bin/rm -f ${oacs_dir}/log/nsd.pid
 ExecStart=${ns_install_dir}/bin/nsd -u ${oacs_user} -g ${oacs_group} -t ${ns_install_dir}/config-${oacs_service}.tcl
 
 # startup for privileged port, like 80
-# ExecStart=${ns_install_dir}/bin/nsd -u ${oacs_user} -g ${oacs_group} -t ${ns_install_dir}/config-${oacs_service}.tcl -b YOUR.IP.ADRESS 80
+# ExecStart=${ns_install_dir}/bin/nsd -u ${oacs_user} -g ${oacs_group} -t ${ns_install_dir}/config-${oacs_service}.tcl -b YOUR.IP.ADRESS:80
 
 Restart=on-abnormal
 KillMode=process
@@ -380,7 +380,7 @@ end script
 exec ${ns_install_dir}/bin/nsd -i -t ${ns_install_dir}/config-${oacs_service}.tcl -u ${oacs_user} -g ${oacs_group}
 
 # startup for privileged port, like 80
-#exec /usr/local/oo2/bin/nsd -i -t /usr/local/oo2/config-wi1.tcl -u ${oacs_user} -g ${oacs_group} -b YOUR.IP.ADRESS 80
+#exec /usr/local/oo2/bin/nsd -i -t /usr/local/oo2/config-wi1.tcl -u ${oacs_user} -g ${oacs_group} -b YOUR.IP.ADRESS:80
 EOF
 fi
 
