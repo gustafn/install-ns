@@ -23,18 +23,28 @@ echo "------------------------ Settings ---------------------------------------"
 ## In case you configured install-ns.sh to use a different
 ## ns_install_dir, adjust it here to the same directory
 ##
-ns_install_dir=/usr/local/ns
-oacs_core_dir=openacs-4
+
+# set dev_p to 1 for developer site
+dev_p=0
+cvs_p=1
+
 oacs_core_dir=openacs-core
-oacs_core_version=HEAD
-oacs_core_version=oacs-5-9
-oacs_packages_version=HEAD
-oacs_packages_version=oacs-5-9
-
-oacs_tar_release=openacs-5.9.0
 oacs_tar_release_url=http://openacs.org/projects/openacs/download/download/${oacs_tar_release}.tar.gz?revision_id=4869825
-oacs_tar_release_url=
+oacs_core_version=oacs-5-9
+oacs_packages_version=oacs-5-9
+oacs_tar_release=openacs-5.9.0
+xdcpm=xdcpm
+if [ "${dev_p}" = "1" ] ; then
+    oacs_core_dir=openacs-4
+    oacs_tar_release_url=
+    oacs_core_version=HEAD
+#    oacs_core_version=oacs-5-9
+    oacs_packages_version=HEAD
+    oacs_packages_version=oacs-5-9
+    xdcpm=tekbasse
+fi
 
+ns_install_dir=/usr/local/ns
 
 if [ "${oacs_core_version}" = "HEAD" ] ; then
     oacs_service=oacs-${oacs_core_version}
@@ -303,20 +313,27 @@ fi
 mkdir -p ${oacs_dir}
 cd ${oacs_dir}
 
-cvs -q -d:pserver:anonymous@cvs.openacs.org:/cvsroot checkout -r ${oacs_core_version} acs-core
-#git clone https://github.com/xdcpm/openacs-core.git
-#mv openacs-core ${oacs_core_dir}
-
+if [ "${cvs_p}" = "1" ] ; then
+    cvs -q -d:pserver:anonymous@cvs.openacs.org:/cvsroot checkout -r ${oacs_core_version} acs-core
+else
+    if [ "${xdcpm}" = "xdcpm" ; then
+        git clone https://github.com/${xdcpm}/openacs-core.git
+        mv openacs-core ${oacs_core_dir}
+    else
+        git clone https://github.com/openacs/openacs-core.git
+        mv openacs-core ${oacs_core_dir}
+    fi
+fi
 ln -sf $(echo ${oacs_core_dir}/[a-z]*) .
 cd packages
 #cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} xotcl-all
 #cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} acs-developer-support ajaxhelper
- git clone https://github.com/xdcpm/ajaxhelper.git
- git clone https://github.com/xdcpm/acs-datetime.git
- git clone https://github.com/xdcpm/acs-events.git
- git clone https://github.com/xdcpm/spreadsheet.git
- git clone https://github.com/xdcpm/q-forms.git
- git clone https://github.com/xdcpm/accounts-finance.git
+ git clone https://github.com/${xdcpm}/ajaxhelper.git
+ git clone https://github.com/${xdcpm}/acs-datetime.git
+ git clone https://github.com/${xdcpm}/acs-events.git
+ git clone https://github.com/${xdcpm}/spreadsheet.git
+ git clone https://github.com/${xdcpm}/q-forms.git
+ git clone https://github.com/${xdcpm}/accounts-finance.git
 
 if [ "$install_dotlrn" = "1" ] ; then
     cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} dotlrn-all
