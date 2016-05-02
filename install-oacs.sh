@@ -52,6 +52,7 @@ if [ "$ns_user" = "" ] ; then
     echo "could not determine ns_user from  ${ns_install_dir}/lib/nsConfig.sh"
     exit
 fi
+echo "Loaded definitions from ${ns_install_dir}/lib/nsConfig.sh"
 
 #
 # inherited/derived variables
@@ -77,10 +78,12 @@ echo "
 Installation Script for OpenACS
 
 This script configures a (pre-installed) PostgreSQL installation for
-OpenACS, installs OpenACS core, basic OpenACS packages, xowiki, xowf
-and optionally dotlrn and generates a config file and startup files
-(for Ubuntu and Fedora Core). The script assumes a pre-existing
-NaviServer installation, installed e.g. via install-ns.sh
+OpenACS, installs OpenACS core, basic OpenACS packages (and xowiki, 
+xowf and optionally dotlrn on CVS based installs; tar-based installs
+can install these packages via 'install from repository'). The script 
+generates a config file and startup files (for Ubuntu and Fedora Core). 
+The script  assumes a pre-existing NaviServer installation, 
+installed e.g. via install-ns.sh
 
 Tested on Ubuntu 12.04, 13.04, 14.04 Fedora Core 18, and CentOS 7
 (c) 2013 Gustaf Neumann
@@ -136,6 +139,7 @@ if  [ $macosx = "1" ] ; then
     group_addcmd="dscl . create /Groups/${oacs_group}"
     oacs_user_addcmd="dscl . create /Users/${oacs_user};dseditgroup -o edit -a ${oacs_user} -t user ${oacs_group}"
     pg_user_addcmd="dscl . create /Users/${pg_user};dscl . create /Users/${pg_user} UserShell /bin/bash"
+    pg_dir=/opt/local
 else
     group_listcmd="grep ${oacs_group} /etc/group"
     group_addcmd="groupadd ${oacs_group}"
@@ -204,7 +208,7 @@ fi
 echo "------------------------ Setup Database ----------------------------"
 
 #
-# assume, the db is installed and already running,
+# Here we assume, the postgres is installed and already running on port 5432,
 # and users ${pg_user} and ${oacs_user} and group ${oacs_group} are created
 #
 
@@ -264,21 +268,6 @@ if [ "$oacs_tar_release_url" = "" ] ; then
 	fi
     fi
 fi
-#
-# we use git for obtaining xowf
-#
-gitpath=$(${type} git)
-if [ "$gitpath" = "" ] ; then
-    if [ $debian = "1" ] ; then
-	apt-get install git
-    elif [ $redhat = "1" ] ; then
-	yum install git
-    else
-	echo "git is not installed; you might install it with"
-	echo "    apt-get install git"
-	exit
-    fi
-fi
 
 mkdir -p ${oacs_dir}
 cd ${oacs_dir}
@@ -289,6 +278,7 @@ if [ "$oacs_tar_release_url" = "" ] ; then
     ln -sf $(echo openacs-4/[a-z]*) .
     cd ${oacs_dir}/packages
     cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} xotcl-all
+    cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} xowf
     cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} acs-developer-support ajaxhelper
 
     if [ $install_dotlrn = "1" ] ; then
@@ -300,14 +290,6 @@ else
     ln -sf ${oacs_tar_release}/* .
 fi
 
-
-# install xowf
-if [ ! -d "./xowf" ] ; then
-    git clone git://alice.wu.ac.at/xowf
-fi
-cd xowf
-git pull
-cd ..
 
 # install nsstats
 mkdir -p ${oacs_dir}/www/admin/
