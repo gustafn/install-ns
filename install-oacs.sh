@@ -324,7 +324,7 @@ cd ${oacs_dir}
 if [ "${cvs_p}" = "1" ] ; then
     cvs -q -d:pserver:anonymous@cvs.openacs.org:/cvsroot checkout -r ${oacs_core_version} acs-core
 else
-    if [ "${xdcpm}" = "xdcpm" ; then
+    if [ "${xdcpm}" = "xdcpm" ] ; then
         git clone https://github.com/${xdcpm}/openacs-core.git
         mv openacs-core ${oacs_core_dir}
     else
