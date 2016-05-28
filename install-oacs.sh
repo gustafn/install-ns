@@ -343,13 +343,13 @@ cd packages
  git clone https://github.com/${xdcpm}/q-forms.git
  git clone https://github.com/${xdcpm}/accounts-finance.git
 if [ "$dev_p" = "1" ] ; then
-  git clone http://github.com/tekbasse/hosting-farm.git
-  git clone http://github.com/tekbasse/accounts-receivables.git
-  git clone http://github.com/tekbasse/accounts-ledger.git
-  git clone http://github.com/tekbasse/q-wiki.git
-  git clone http://github.com/tekbasse/ref-us-states.git
-  git clone http://github.com/tekbasse/ref-us-counties.git
- 
+  git clone http:://github.com/tekbasse/hosting-farm.git
+  git clone https://github.com/tekbasse/accounts-receivables.git
+  git clone https://github.com/tekbasse/accounts-ledger.git
+  git clone https://github.com/tekbasse/q-wiki.git
+  git clone https://github.com/tekbasse/ref-us-states.git
+  git clone https://github.com/tekbasse/ref-us-counties.git
+  git clone https://github.com/tekbasse/customer-service.git
 fi
 
 if [ "$install_dotlrn" = "1" ] ; then
