@@ -27,13 +27,13 @@ build_dir="/usr/local/src"
 #build_dir=/usr/local/src/oo2
 ns_install_dir="/usr/local/ns"
 #ns_install_dir=/usr/local/oo2
-version_ns="4.99.9"
+version_ns="4.99.11"
 #version_ns=HEAD
-version_modules="4.99.9"
+version_modules="4.99.11"
 #version_modules=HEAD
-version_tcl="8.5.18"
+version_tcl="8.5.19"
 version_tcl_major="8.5"
-version_tcllib="1.17"
+version_tcllib="1.18"
 tcllib_dirname="tcllib"
 version_thread="2.7.2"
 version_xotcl="2.0.0"
@@ -72,7 +72,7 @@ uname=$(uname)
 if [ $uname = "Darwin" ] ; then
     macosx=1
     group_listcmd="dscl . list /Groups | grep ${ns_group}"
-    group_addcmd="dscl . create /Groups/${ns_group}"
+    group_addcmd="dscl . create /Groups/${ns_group} PrimaryGroupID $((`dscl . -list /Groups PrimaryGroupID | awk '{print $2}' | sort -rn|head -1` + 1))"
     ns_user_addcmd="dscl . create /Users/${ns_user};dseditgroup -o edit -a ${ns_user} -t user ${ns_group}"
     ns_user_addgroup_hint="dseditgroup -o edit -a YOUR_USERID -t user ${ns_group}"
 
@@ -136,9 +136,9 @@ releases and compiling it.
 
 The script has a long heritage:
 (c) 2008      Malte Sussdorff, Nima Mazloumi
-(c) 2012-2014 Gustaf Neumann
+(c) 2012-2016 Gustaf Neumann
 
-Tested under Mac OS X and Ubuntu 12.04 and 13.04
+Tested under Mac OS X, Ubuntu 12.04, 13.04, 14.04, Fedora Core 18, and CentOS 7 (pg 9.4.5)
 
 LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
            This is free software, and you are welcome to redistribute it under certain conditions;
@@ -247,19 +247,18 @@ echo "------------------------ Check User and Group --------------------"
 group=$(eval ${group_listcmd})
 echo "${group_listcmd} => $group"
 if [ "x$group" = "x" ] ; then
+    echo "creating group ${ns_group} with command ${group_addcmd}"
     eval ${group_addcmd}
 fi
 
 id=$(id -u ${ns_user})
 if [ $? != "0" ] ; then
-    if  [ $debian = "1" ] ; then
-	    eval ${ns_user_addcmd}
-    elif
-        [ $freebsd = "1" ] ; then
+    if  [ $debian = "1" ] || [ $macosx = "1" ] || [ $freebsd = "1" ] ; then
+	    echo "creating user ${ns_user} with command ${ns_user_addcmd}"
 	    eval ${ns_user_addcmd}
     else
 	echo "User ${ns_user} does not exist; you might add it with something like"
-	echo "     ${ns_user_addcmd}"
+	echo "  sudo ${ns_user_addcmd}"
 	exit
     fi
 fi
@@ -314,6 +313,7 @@ if [ $sunos = "1" ] ; then
 fi
 
 echo "------------------------ Downloading sources ----------------------------"
+# Exit on download errors
 set -o errexit
 
 if [ ! -f tcl${version_tcl}-src.tar.gz ] ; then

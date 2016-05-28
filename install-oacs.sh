@@ -25,8 +25,8 @@ echo "------------------------ Settings ---------------------------------------"
 ##
 
 # set dev_p to 1 for developer site
-dev_p=0
-cvs_p=1
+dev_p=1
+cvs_p=0
 
 oacs_core_dir=openacs-core
 oacs_tar_release_url=http://openacs.org/projects/openacs/download/download/${oacs_tar_release}.tar.gz?revision_id=4869825
@@ -61,6 +61,14 @@ pg_dir=/usr
 #pg_dir=/usr/local/pgsql
 
 source ${ns_install_dir}/lib/nsfConfig.sh
+if [ "$ns_user" = "" ] ; then
+    echo "could not determine ns_user from  ${ns_install_dir}/lib/nsConfig.sh"
+    exit
+fi
+echo "Loaded definitions from ${ns_install_dir}/lib/nsConfig.sh"
+
+#
+# inherited/derived variables
 #
 # inherited/derived variables
 # add defaults if inherited didn't work
@@ -86,7 +94,7 @@ if [ "${ns_group}x" = "x" ] ; then
     ns_group=nsadmin
 fi
 if [ "${version_ns}x" = "x" ] ; then
-    version_ns=4.99.9
+    version_ns=4.99.11
 fi
 if [ "${ns_src_dir}x" = "x" ] ; then
     ns_src_dir=/usr/local/src/naviserver-${version_ns}
@@ -114,7 +122,7 @@ and optionally dotlrn and generates a config file and startup files
 (for Ubuntu and Fedora Core). The script assumes a pre-existing
 NaviServer installation, installed e.g. via install-ns.sh
 
-Tested on Ubuntu 12.04, 13.04 and Fedora Core 18
+Tested on Ubuntu 12.04, 13.04, 14.04 Fedora Core 18, and CentOS 7, FreeBSD 10
 (c) 2013 Gustaf Neumann
 
 LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
@@ -334,6 +342,15 @@ cd packages
  git clone https://github.com/${xdcpm}/spreadsheet.git
  git clone https://github.com/${xdcpm}/q-forms.git
  git clone https://github.com/${xdcpm}/accounts-finance.git
+if [ "$dev_p" = "1" ] ; then
+  git clone http://github.com/tekbasse/hosting-farm.git
+  git clone http://github.com/tekbasse/accounts-receivables.git
+  git clone http://github.com/tekbasse/accounts-ledger.git
+  git clone http://github.com/tekbasse/q-wiki.git
+  git clone http://github.com/tekbasse/ref-us-states.git
+  git clone http://github.com/tekbasse/ref-us-counties.git
+ 
+fi
 
 if [ "$install_dotlrn" = "1" ] ; then
     cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} dotlrn-all
@@ -382,7 +399,16 @@ Type=forking
 PIDFile=${oacs_dir}/log/nsd.pid
 Environment=LANG=en_US.UTF-8
 ExecStartPre=/bin/rm -f ${oacs_dir}/log/nsd.pid
-ExecStart=${ns_install_dir}/bin/nsd -t ${ns_install_dir}/config-${oacs_service}.tcl -u ${oacs_user} -g ${oacs_group}
+
+# standard startup (non-privileged port, like 8000)
+ExecStart=${ns_install_dir}/bin/nsd -u ${oacs_user} -g ${oacs_group} -t ${ns_install_dir}/config-${oacs_service}.tcl
+
+# startup for privileged port, like 80
+# ExecStart=${ns_install_dir}/bin/nsd -u ${oacs_user} -g ${oacs_group} -t ${ns_install_dir}/config-${oacs_service}.tcl -b YOUR.IP.ADRESS:80
+
+# Could be prone to fire if doing this on a private, unmonitored development server:
+#Restart=on-abnormal
+
 KillMode=process
 PrivateTmp=true
 
