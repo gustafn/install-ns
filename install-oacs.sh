@@ -60,7 +60,7 @@ pg_user=postgres
 pg_dir=/usr
 #pg_dir=/usr/local/pgsql
 
-source ${ns_install_dir}/lib/nsfConfig.sh
+source ${ns_install_dir}/lib/nsConfig.sh
 if [ "$ns_user" = "" ] ; then
     echo "could not determine ns_user from  ${ns_install_dir}/lib/nsConfig.sh"
     exit
