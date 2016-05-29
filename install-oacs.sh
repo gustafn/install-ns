@@ -6,7 +6,8 @@ while [ x"$1" != x ] ; do
     case $1 in
         clean) clean=1
             shift
-            continue;;
+            rm /etc/init/
+           continue;;
         build) build=1
             shift
             continue;;
@@ -22,18 +23,39 @@ echo "------------------------ Settings ---------------------------------------"
 ##
 ## In case you configured install-ns.sh to use a different
 ## ns_install_dir, adjust it here to the same directory
-##
+ns_install_dir="/usr/local/ns"
 
 # set dev_p to 1 for developer site
-dev_p=1
-cvs_p=0
 
 oacs_core_dir=openacs-core
 oacs_tar_release_url=http://openacs.org/projects/openacs/download/download/${oacs_tar_release}.tar.gz?revision_id=4869825
+# set oacs_core_version to either oacs-5-9 for example, or HEAD
 oacs_core_version=oacs-5-9
 oacs_packages_version=oacs-5-9
 oacs_tar_release=openacs-5.9.0
 xdcpm=xdcpm
+
+install_dotlrn=0
+
+pg_user=postgres
+pg_dir=/usr
+#pg_dir=/usr/local/pgsql
+
+if [ "${oacs_core_version}" = "HEAD" ] ; then
+    oacs_service=oacs-${oacs_core_version}
+else
+    oacs_service=${oacs_core_version}
+fi
+
+
+source ${ns_install_dir}/lib/nsConfig.sh
+if [ "$ns_user" = "" ] ; then
+    echo "could not determine ns_user from  ${ns_install_dir}/lib/nsConfig.sh"
+    exit
+fi
+echo "Loaded definitions from ${ns_install_dir}/lib/nsConfig.sh"
+
+
 if [ "${dev_p}" = "1" ] ; then
     oacs_core_dir=openacs-4
     oacs_tar_release_url=
@@ -44,62 +66,8 @@ if [ "${dev_p}" = "1" ] ; then
     xdcpm=tekbasse
 fi
 
-ns_install_dir=/usr/local/ns
-
-if [ "${oacs_core_version}" = "HEAD" ] ; then
-    oacs_service=oacs-${oacs_core_version}
-else
-    oacs_service=${oacs_core_version}
-fi
-
 oacs_dir=/var/www/${oacs_service}
 db_name=${oacs_service}
-install_dotlrn=0
-
-pg_user=postgres
-pg_dir=/usr
-#pg_dir=/usr/local/pgsql
-
-source ${ns_install_dir}/lib/nsConfig.sh
-if [ "$ns_user" = "" ] ; then
-    echo "could not determine ns_user from  ${ns_install_dir}/lib/nsConfig.sh"
-    exit
-fi
-echo "Loaded definitions from ${ns_install_dir}/lib/nsConfig.sh"
-
-#
-# inherited/derived variables
-#
-# inherited/derived variables
-# add defaults if inherited didn't work
-if [ -f "/etc/debian_version" ] ; then
-	debian=1
-fi
-if [ "${build_dir}x" = "x" ] ; then
-    build_dir=/usr/local/src
-fi
-if [ "${with_postgres}x" = "x" ] ; then
-    with_postgres=1
-fi
-if [ "${make}x" = "x" ] ; then
-    make="make"
-fi
-if [ "${type}x" = "x" ] ; then
-    type="type -a"
-fi
-if [ "${ns_user}x" = "x" ] ; then
-    ns_user=nsadmin
-fi
-if [ "${ns_group}x" = "x" ] ; then
-    ns_group=nsadmin
-fi
-if [ "${version_ns}x" = "x" ] ; then
-    version_ns=4.99.11
-fi
-if [ "${ns_src_dir}x" = "x" ] ; then
-    ns_src_dir=/usr/local/src/naviserver-${version_ns}
-fi
-
 oacs_user=${ns_user}
 oacs_group=${ns_group}
 
@@ -434,6 +402,9 @@ pre-start script
 end script
 
 exec ${ns_install_dir}/bin/nsd -i -t ${ns_install_dir}/config-${oacs_service}.tcl -u ${oacs_user} -g ${oacs_group}
+
+# startup for privileged port, like 80
+#exec /usr/local/oo2/bin/nsd -i -t /usr/local/oo2/config-wi1.tcl -u ${oacs_user} -g ${oacs_group} -b YOUR.IP.ADRESS:80
 EOF
 fi
 

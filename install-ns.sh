@@ -7,7 +7,7 @@ build=0
 while [ x"$1" != x ] ; do
     case $1 in
         clean) clean_only=1
-	    do_clean=1
+	        do_clean=1
             shift
             continue;;
         build) build=1
@@ -23,6 +23,8 @@ done
 echo "------------------------ Settings ---------------------------------------"
 # Installation directory and software versions to be installed
 
+# set dev_p to 0 for release versions, 1 for head and developer related configuration options
+dev_p=1
 build_dir="/usr/local/src"
 #build_dir=/usr/local/src/oo2
 ns_install_dir="/usr/local/ns"
@@ -77,10 +79,10 @@ if [ $uname = "Darwin" ] ; then
     ns_user_addgroup_hint="dseditgroup -o edit -a YOUR_USERID -t user ${ns_group}"
 
     if [ $with_postgres = "1" ] ; then
-	# Preconfigured for PostgreSQL 9.4 installed via mac ports
-	pg_incl=/opt/local/include/postgresql94/
-	pg_lib=/opt/local/lib/postgresql94/
-	pg_packages="postgresql94 postgresql94-server"
+	    # Preconfigured for PostgreSQL 9.4 installed via mac ports
+	    pg_incl=/opt/local/include/postgresql94/
+	    pg_lib=/opt/local/lib/postgresql94/
+	    pg_packages="postgresql94 postgresql94-server"
     fi
 else
     group_listcmd="grep -o ${ns_group} /etc/group"
@@ -144,7 +146,8 @@ LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
            This is free software, and you are welcome to redistribute it under certain conditions;
            For details see http://www.gnu.org/licenses.
 
-SETTINGS   Build-Dir             ${build_dir}
+SETTINGS   Dev install? 1=yes    ${dev_p}
+           Build-Dir             ${build_dir}
            Install-Dir           ${ns_install_dir}
            NaviServer            ${version_ns}
            NaviServer Modules    ${version_modules}
@@ -178,6 +181,12 @@ WARNING    Check Settings AND Cleanup section before running this script!
 
               sudo bash $0 build
 "
+    if [ ${dev_p} = "1" ] ; then
+        echo "
+          ** dev_p is set  to 1. Cleanup will delete dir ${ns_install_dir}
+
+"
+    fi
     exit
 fi
 
@@ -186,7 +195,9 @@ echo "------------------------ Cleanup -----------------------------------------
 
 # The cleanup on the installation dir is optional, since it might
 # delete something else not from our installation.
-#rm -rf ${ns_install_dir}
+if [ ${dev_p} = "1" ] ; then
+    rm -rf ${ns_install_dir}
+fi
 
 mkdir -p ${build_dir}
 cd ${build_dir}
@@ -211,7 +222,7 @@ fi
 
 # just clean?
 if [ $clean_only = "1" ] ; then
-  exit
+    exit
 fi
 
 echo "------------------------ Save config variables in ${ns_install_dir}/lib/nsConfig.sh"
@@ -240,6 +251,8 @@ redhat=${redhat}
 macosx=${macosx}
 sunos=${sunos}
 freebsd=${freebsd}
+dev_p=${dev_p}
+cvs_p=${cvs_p}
 EOF
 
 echo "------------------------ Check User and Group --------------------"
@@ -257,9 +270,9 @@ if [ $? != "0" ] ; then
 	    echo "creating user ${ns_user} with command ${ns_user_addcmd}"
 	    eval ${ns_user_addcmd}
     else
-	echo "User ${ns_user} does not exist; you might add it with something like"
-	echo "  sudo ${ns_user_addcmd}"
-	exit
+	    echo "User ${ns_user} does not exist; you might add it with something like"
+	    echo "  sudo ${ns_user_addcmd}"
+	    exit
     fi
 fi
 
@@ -286,7 +299,7 @@ fi
 
 if [ $debian = "1" ] ; then
     # On Debian/Ubuntu, make sure we have zlib installed, otherwise
-    # naviserver can't provide compression support
+    # naviserver cannot provide compression support
     apt-get install make ${autoconf} gcc zlib1g-dev curl zip unzip wget ${pg_packages} ${mercurial} ${git} ${mongodb}
 fi
 if [ $redhat = "1" ] ; then
@@ -302,14 +315,14 @@ if [ $sunos = "1" ] ; then
     # packages for OpenSolaris/OmniOS
     pkg install pkg://omnios/developer/versioning/git mercurial ${autoconf} automake gcc48 zlib wget \
         curl compress/zip compress/unzip \
-	${pg_packages} ${mercurial} ${git} ${mongodb}
+	    ${pg_packages} ${mercurial} ${git} ${mongodb}
     pkg install \
-	developer/object-file \
-	developer/linker \
-	developer/library/lint \
-	developer/build/gnu-make \
-	system/header \
-	system/library/math/header-math
+	    developer/object-file \
+	    developer/linker \
+	    developer/library/lint \
+	    developer/build/gnu-make \
+	    system/header \
+	    system/library/math/header-math
 fi
 
 echo "------------------------ Downloading sources ----------------------------"
@@ -331,49 +344,49 @@ fi
 
 if [ ! ${version_ns} = "HEAD" ] ; then
     if [ ! -f naviserver-${version_ns}.tar.gz ] ; then
-	wget http://heanet.dl.sourceforge.net/sourceforge/naviserver/naviserver-${version_ns}.tar.gz
+	    wget http://heanet.dl.sourceforge.net/sourceforge/naviserver/naviserver-${version_ns}.tar.gz
     fi
 else
     if [ ! -d naviserver ] ; then
-	hg clone https://bitbucket.org/naviserver/naviserver
+	    hg clone https://bitbucket.org/naviserver/naviserver
     else
-	cd naviserver
-	hg pull
-	hg update
-	cd ..
+	    cd naviserver
+	    hg pull
+	    hg update
+	    cd ..
     fi
     if [ ! -f naviserver/configure ] ; then
-	cd naviserver
-	bash autogen.sh --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir}
-	cd ..
+	    cd naviserver
+	    bash autogen.sh --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir}
+	    cd ..
     fi
 fi
 
 cd ${build_dir}
 if [ ! ${version_modules} = "HEAD" ] ; then
     if [ ! -f naviserver-${version_modules}-modules.tar.gz ] ; then
-	wget http://heanet.dl.sourceforge.net/sourceforge/naviserver/naviserver-${version_modules}-modules.tar.gz
+	    wget http://heanet.dl.sourceforge.net/sourceforge/naviserver/naviserver-${version_modules}-modules.tar.gz
     fi
 else
     mkdir modules
     cd modules
     for d in nsdbbdb nsdbtds nsdbsqlite nsdbpg nsdbmysql \
-	nsocaml nssmtpd nstk nsdns nsfortune \
-	nssnmp nsicmp nsudp nsaccess nschartdir \
-	nsexample nsgdchart nssavi nssys nszlib nsaspell \
-	nsclamav nsexpat nsimap nssip nstftpd \
-	nssyslogd nsldapd nsradiusd nsphp nsstats nsconf \
-	nsdhcpd nsrtsp nsauthpam nsmemcache nsssl \
-	nsvfs nsdbi nsdbipg nsdbilite nsdbimy
+	    nsocaml nssmtpd nstk nsdns nsfortune \
+	    nssnmp nsicmp nsudp nsaccess nschartdir \
+	    nsexample nsgdchart nssavi nssys nszlib nsaspell \
+	    nsclamav nsexpat nsimap nssip nstftpd \
+	    nssyslogd nsldapd nsradiusd nsphp nsstats nsconf \
+	    nsdhcpd nsrtsp nsauthpam nsmemcache nsssl \
+	    nsvfs nsdbi nsdbipg nsdbilite nsdbimy
     do
-	if [ ! -d $d ] ; then
-	    hg clone http://bitbucket.org/naviserver/$d
-	else
-	    cd $d
-	    hg pull
-	    hg update
-	    cd ..
-	fi
+	    if [ ! -d $d ] ; then
+	        hg clone http://bitbucket.org/naviserver/$d
+	    else
+	        cd $d
+	        hg pull
+	        hg update
+	        cd ..
+	    fi
     done
 fi
 
@@ -384,32 +397,32 @@ fi
 
 if [ ! ${version_xotcl} = "HEAD" ] ; then
     if [ ! -f nsf${version_xotcl}.tar.gz ] ; then
-	wget http://heanet.dl.sourceforge.net/sourceforge/next-scripting/nsf${version_xotcl}.tar.gz
+	    wget http://heanet.dl.sourceforge.net/sourceforge/next-scripting/nsf${version_xotcl}.tar.gz
     fi
 else
     if [ ! -d nsf ] ; then
-	git clone git://alice.wu-wien.ac.at/nsf
+	    git clone git://alice.wu-wien.ac.at/nsf
     else
-	cd nsf
-	git pull
-	cd ..
+	    cd nsf
+	    git pull
+	    cd ..
     fi
 fi
 
 if [ $with_mongo = "1" ] ; then
     if [ ! -d mongo-c-driver ] ; then
-	git clone https://github.com/mongodb/mongo-c-driver-legacy
+	    git clone https://github.com/mongodb/mongo-c-driver-legacy
     else
-	cd mongo-c-driver
-	git pull
-	cd ..
+	    cd mongo-c-driver
+	    git pull
+	    cd ..
     fi
 fi
 
 if [ ! ${version_tdom} = "GIT" ] ; then
     if [ ! -f tDOM-${version_tdom}.tgz ] ; then
-	#wget --no-check-certificate https://cloud.github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
-	curl -L -O  https://github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
+	    #wget --no-check-certificate https://cloud.github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
+	    curl -L -O  https://github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
     fi
 else
     rm -rf tdom
@@ -489,33 +502,33 @@ if [ $with_mongo = "1" ] ; then
     ${make}
     ${make} install
     if  [ $debian = "1" ] ; then
-	ldconfig -v
+	    ldconfig -v
     fi
     if  [ $redhat = "1" ] ; then
-	ldconfig -v
+	    ldconfig -v
     fi
     cd ..
 fi
 
 echo "------------------------ Installing XOTcl 2.0 ----------------------------"
-    
-    if [ ! ${version_xotcl} = "HEAD" ] ; then
-        tar xvfz nsf${version_xotcl}.tar.gz
-        cd nsf${version_xotcl}
-    else
-        cd nsf
-    fi
 
-    #export CC=gcc
-    if [ $with_mongo = "1" ] ; then
-        ./configure --enable-threads --enable-symbols --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib --with-mongoc=${build_dir}/mongo-c-driver/src/mongoc/,${build_dir}/mongo-c-driver/.libs --with-bson=${build_dir}/mongo-c-driver/src/libbson/src/bson
-    else
-        ./configure --enable-threads --enable-symbols --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
-    fi
-    
-    ${make}
-    ${make} install
-    cd ..
+if [ ! ${version_xotcl} = "HEAD" ] ; then
+    tar xvfz nsf${version_xotcl}.tar.gz
+    cd nsf${version_xotcl}
+else
+    cd nsf
+fi
+
+#export CC=gcc
+if [ $with_mongo = "1" ] ; then
+    ./configure --enable-threads --enable-symbols --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib --with-mongoc=${build_dir}/mongo-c-driver/src/mongoc/,${build_dir}/mongo-c-driver/.libs --with-bson=${build_dir}/mongo-c-driver/src/libbson/src/bson
+else
+    ./configure --enable-threads --enable-symbols --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
+fi
+
+${make}
+${make} install
+cd ..
 
 echo "------------------------ Installing tdom --------------------------------"
 
@@ -547,3 +560,4 @@ You can now run plain NaviServer by typing the following command:
 As a next step, you need to configure the server according to your needs,
 or you might want to use the server with OpenACS. Consult as a reference
 the alternate configuration files in ${ns_install_dir}/conf/"
+# EOF
