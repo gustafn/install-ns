@@ -1,3 +1,20 @@
+#!/bin/bash
+#!/usr/local/bin/bash
+
+
+view_only=1
+
+while [ x"$1" != x ] ; do
+    case $1 in
+        start) view_only=0
+            shift
+            continue;;
+        *)  echo "argument '$1' ignored"
+            shift
+            continue;;
+    esac
+done
+
 
 # current settings
 oacs_service=oacs-5-8
@@ -5,9 +22,9 @@ ns_user=nsadmin
 ns_group=nsadmin
 
 
-
+#not used
 #name of new openacs service
-oacs_service_new=5-9
+oacs_service_new=oacs-5-9
 
 db_name=${oacs_service}
 
@@ -21,6 +38,64 @@ downloaded_dir=openacs-5.9.0
 service_dir=/var/www
 backup_dir=upgrade-backup-${oacs_service}
 backup_sql=${oacs_service}-backup.sql
+
+
+
+echo "
+Update Script for OpenACS
+
+This script helps to automate an OpenACS upgrade.
+
+Tested under Ubuntu 14.04
+
+(c) 2016 Benjamin Brink and OpenACS community
+Released under GNU GPLv2 license.
+LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
+           This is free software, and you are welcome to redistribute it under certain conditions;
+           For details see http://www.gnu.org/licenses.
+
+SETTINGS
+
+OpenACS current:
+  oacs_service ${oacs_service}
+  service_dir  ${service_dir}     <-- the directory of the OpenACS service root
+  ns_user      ${ns_user}
+  ns_group     ${ns_group}
+  db_name      ${oacs_service}
+
+This script first creates a backup directory in ${service_dir}:
+  backup_dir   ${backup_dir}
+
+The backup directory will contain a backup database file:
+  backup_sql   ${backup_sql}
+
+
+Upgrade source(s):
+  download_url    ${download_url}
+  Downloaded file will be called:
+  downloaded_file ${downloaded_file}
+  When expanded:
+  downloaded_dir  ${downloaded_dir}
+
+System/Postgresql related assumptions:
+  pg_dir       ${pg_dir}
+  pg_user      ${pg_user}
+  pg_user_dir  ${pg_user_dir}
+
+
+In order to accomodate system related integration, 
+this upgrade does not change the OpenACS settings from current settings.
+
+WARNING    Check Settings before running this script!
+
+To start script:  bash openacs-upgrade.sh start
+"
+
+if [ $view_only = "1" ] ; then
+    exit
+fi
+
+
 # exit on error
 set -o errexit
 
