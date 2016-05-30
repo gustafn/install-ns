@@ -86,9 +86,11 @@ System/Postgresql related assumptions:
 In order to accomodate system related integration, 
 this upgrade does not change the OpenACS settings from current settings.
 
-WARNING    Check Settings before running this script!
+WARNING    *Check Settings before running this script!
 
-To start script:  bash openacs-upgrade.sh start
+           *stop the OpenACS site before running script.
+           
+To start this script:  bash openacs-upgrade.sh start
 "
 
 if [ $view_only = "1" ] ; then
