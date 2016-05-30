@@ -19,61 +19,69 @@ downloaded_file=openacs-5.9.0-release.tar.gz
 downloaded_dir=openacs-5.9.0
 
 service_dir=/var/www
-
+backup_dir=upgrade-backup-${oacs_service}
+backup_sql=${oacs_service}-backup.sql
 # exit on error
 set -o errexit
 
 
-echo "stopping service"
-stop ${oacs_service}
+#echo "stopping service"
+#stop ${oacs_service}
 
 echo "cd ${service_dir}"
 cd ${service_dir}
 
 echo "----- Backup openacs system"
 # backup files
-echo "cp -R ${oacs_service} upgrade-backkup-${oacs_service}"
-cp -R ${oacs_service} upgrade-backkup-${oacs_service}
+echo "cp -Rp ${oacs_service} ${backup_dir}"
+cp -Rp ${oacs_service} ${backup_dir}
 
 # backup db
-echo "su - ${pg_user} -c ${pg_dir}/bin/pg_dump -U ${pg_user} -o -O ${db_name} -f ${pg_user-dir}/${oacs-dev}-backup-.sql"
+echo "su - ${pg_user} -c ${pg_dir}/bin/pg_dump -U ${pg_user} -o -O ${db_name} -f ${pg_user_dir}/${backup_sql}"
 # pg_dump -U postgres -o -O oacs-dev -f oacs-dev-20160528-stopped-nsd.sql
-su - ${pg_user} -c "${pg_dir}/bin/pg_dump -U ${pg_user} -o -O ${db_name} -f ${pg_user-dir}/${oacs-dev}-backup-.sql"
+su - ${pg_user} -c "${pg_dir}/bin/pg_dump -U ${pg_user} -o -O ${db_name} -f ${pg_user_dir}/${backup_sql}"
 
 #copy dump to backup dir
-echo "cp ${pg_user-dir}/${oacs-dev}-backup-.sql ${service_dir}/upgrade-backup-${oacs_service}/."
-cp ${pg_user-dir}/${oacs-dev}-backup-.sql ${service_dir}/upgrade-backup-${oacs_service}/.
+echo "cp ${pg_user_dir}/${backup_sql} ${service_dir}/${backup_dir}/."
+cp ${pg_user_dir}/${backup_sql} ${service_dir}/${backup_dir}/.
 
 echo "----- Prepping upgrade source files"
 
-if [ -f ${downloaded_dir} ] ; then
+cd ${service_dir}
+echo "pwd"
+pwd
+echo "ls -l"
+ls -l
+if [ -d ${service_dir}/${downloaded_dir} ] ; then
     echo "rm -R ${downloaded_dir}"
     rm -R ${service_dir}/${downloaded_dir}
 fi
-if [ ! -f ${downloaded_file} ] ; then
+if [ ! -f ${service_dir}/${downloaded_file} ] ; then
     echo "wget ${download_url}"
     wget ${download_url}
 fi
-if [ -f ${downloaded_dir} ] ; then
+if [ ! -d ${service_dir}/${downloaded_dir} ] ; then
     echo "tar xvfz ${downloaded_file}"
     tar xvfz ${downloaded_file}
 fi
 
 echo "----- Replacing old code with new code"
-# name of packages $(echo ${service_dir}/${downloaded_dir}/packages[a-z]*)
-echo "cd ${service_dir}/${oacs_service}/package/"
+# name of packages $(echo ${service_dir}/${downloaded_dir}/packages/[a-z]*)
+
+echo "cd ${service_dir}/${oacs_service}/packages"
 cd ${service_dir}/${oacs_service}/packages
 
-echo "rm -R $(echo ${service_dir}/${downloaded_dir}/packages[a-z]*)"
-rm -R $(echo ${service_dir}/${downloaded_dir}/packages[a-z]*)
+echo "rm -R $(echo `cd ${service_dir}/${downloaded_dir}/packages;ls -1d [a-z]*`)"
+rm -R $(echo `cd ${service_dir}/${downloaded_dir}/packages;ls -1d [a-z]*`)
 
 echo "cd ${service_dir}/${downloaded_dir}/packages"
 cd ${service_dir}/${downloaded_dir}/packages
 
-echo "mv $(echo ${service_dir}/${downloaded_dir}/packages[a-z]*) ${service_dir}/${oacs_service}/packages/."
-mv $(echo ${service_dir}/${downloaded_dir}/packages[a-z]*) ${service_dir}/${oacs_service}/packages/.
+echo "mv -v $(echo `ls -1d [a-z]*`) ${service_dir}/${oacs_service}/packages/. "
+mv -fv $(echo [a-z]*) ${service_dir}/${oacs_service}/packages/. 
 
-# tcl 
+# tcl dir
+
 echo "cd ${service_dir}/${oacs_service}"
 cd ${service_dir}/${oacs_service}
 
@@ -83,21 +91,21 @@ rm -R tcl
 echo "cd ${service_dir}/${downloaded_dir}"
 cd ${service_dir}/${downloaded_dir}
 
-echo "mv tcl ${service_dir}/${oacs_service}/."
-mv tcl ${service_dir}/${oacs_service}/.
+echo "mv -v tcl ${service_dir}/${oacs_service}/."
+mv -v tcl ${service_dir}/${oacs_service}/.
 
 # www
 echo "cd ${service_dir}/${oacs_service}"
 cd ${service_dir}/${oacs_service}
 
-echo "cp -R www www-$(echo date -Idate)"
-cp -R www www-$(echo date -Idate)
+echo "cp -Rp www www-$(echo `date -Idate`)"
+cp -Rp www www-$(echo `date -Idate`)
 
 echo "cd ${service_dir}/${downloaded_dir}"
 cd ${service_dir}/${downloaded_dir}
 
-echo "cp -R www ${service_dir}/${oacs_service}/www-new"
-cp -R www ${service_dir}/${oacs_service}/www-new
+echo "cp -Rp www ${service_dir}/${oacs_service}/www-new"
+cp -Rp www ${service_dir}/${oacs_service}/www-new
 
 # permissions
 
@@ -115,14 +123,20 @@ Next steps:
 
 3. Click 'Install Packages'
 
-4. Retstart service.
+4. CLick 'Install or upgrade' from the local file system.
 
-5. www files have to be manually integrated.
+5. Select packages requiring 'upgrade'
 
-Files in ${oacs_service}/www have been copied to ${oacs_service}/www-$(echo date -Idate)
+6. Load all data model scripts. ie Select all and click 'Install Packages'.
 
-New files are in www-new
+7. Retstart service.
 
-Usually there are changes in base templates. These changes can cause errors.
+8. www files may have to be manually integrated.
+   Files in ${service_dir}/${oacs_service}/www have been copied to ${service_dir}/${oacs_service}/www-$(echo www-`date -Idate`)
+   New files are in ${service_dir}/${oacs_service}/www-new
+
+Usually there are changes in *master.adp/.tcl templates. 
+If site has manually changed templates, changes may need to be manually added again to prevent template rendering errors.
+In any case, edits of the old templates should be manually re-edited into the new ones.
 "
 
