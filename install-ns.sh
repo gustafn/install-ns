@@ -275,15 +275,22 @@ fi
 if [ $debian = "1" ] ; then
     # On Debian/Ubuntu, make sure we have zlib installed, otherwise
     # naviserver can't provide compression support
-    apt-get install make ${autoconf} gcc zlib1g-dev wget curl zip unzip ${pg_packages} ${mercurial} ${git} ${mongodb}
+    apt-get install make ${autoconf} gcc zlib1g-dev wget curl zip unzip openssl ${pg_packages} ${mercurial} ${git} ${mongodb}
 fi
 if [ $redhat = "1" ] ; then
     # packages for FC/RHL
-    yum install make ${autoconf} gcc zlib wget curl zip unzip ${pg_packages} ${mercurial} ${git} ${mongodb}
+    
+    if [ -x "/usr/bin/dnf" ] ; then
+	pkgmanager=/usr/bin/dnf
+    else
+	pkgmanager=yum	
+    fi
+    
+    ${pkgmanager} install make ${autoconf} gcc zlib wget curl zip unzip openssl ${pg_packages} ${mercurial} ${git} ${mongodb}
 fi
 
 if [ $macosx = "1" ] ; then
-    port install make ${autoconf} zlib wget curl zip unzip ${pg_packages} ${mercurial} ${git} ${mongodb}
+    port install make ${autoconf} zlib wget curl zip unzip openssl ${pg_packages} ${mercurial} ${git} ${mongodb}
 fi
 
 if [ $sunos = "1" ] ; then
