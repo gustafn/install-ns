@@ -152,8 +152,15 @@ else
 fi
 
 if [ $redhat = "1" ] ; then
+
+    if [ -x "/usr/bin/dnf" ] ; then
+	pkgmanager=/usr/bin/dnf
+    else
+	pkgmanager=yum	
+    fi
+    
     if [ $with_postgres = "1" ] ; then
-	yum install postgresql-server
+	${pkgmanager} install postgresql-server
     fi
     running=$(ps ax|fgrep postgres:)
     if [ "$running" = "" ] ; then
@@ -249,7 +256,7 @@ if [ "$oacs_tar_release_url" = "" ] ; then
 	if [ $debian = "1" ] ; then
 	    apt-get install cvs
 	elif [ $redhat = "1" ] ; then
-	    yum install cvs
+	    ${pkgmanager} install cvs
 	elif [ $sunos = "1" ] ; then
 	    # why is there no CVS available via "pkg install" ?
 	    cd ${build_dir}
@@ -312,9 +319,26 @@ cat << EOF > /tmp/subst.tcl
 EOF
 ${ns_install_dir}/bin/tclsh8.5 /tmp/subst.tcl
 
-
+systemd=0
+upstart=0
 
 if [ $redhat = "1" ] ; then
+    systemd=1
+fi
+
+if [ $debian = "1" ] ; then
+    upstart=1
+
+    if [ -f "/etc/lsb-release" ] ; then
+	. /etc/lsb-release
+	if dpkg --compare-versions "$DISTRIB_RELEASE" "ge" "15.04" ; then
+	    systemd=1
+	fi
+    fi
+fi
+
+
+if [ $systemd = "1" ] ; then
 echo "Writing /lib/systemd/system/${oacs_service}.service"
 cat <<EOF > /lib/systemd/system/${oacs_service}.service
 [Unit]
@@ -340,7 +364,9 @@ KillMode=process
 [Install]
 #WantedBy=multi-user.target
 EOF
-elif [ $debian = "1" ] ; then
+fi
+
+if [ $upstart = "1" ] ; then
    # Create automatically a configured upstart script into /etc/init/ ...
 echo "Writing /etc/init/${oacs_service}.conf"
 cat <<EOF > /etc/init/${oacs_service}.conf
