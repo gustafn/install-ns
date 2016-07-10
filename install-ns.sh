@@ -33,7 +33,7 @@ version_modules=4.99.11
 version_tcl=8.5.19
 version_tcllib=1.18
 tcllib_dirname=tcllib
-version_thread=2.7.2
+version_thread=2.7.3
 version_xotcl=2.0.0
 #version_xotcl=HEAD
 version_tdom=GIT
@@ -193,7 +193,7 @@ if [ $do_clean = 1 ] ; then
     rm -r thread${version_thread}
     #rm    nsf${version_xotcl}.tar.gz
     rm -rf nsf${version_xotcl}
-    #rm    tDOM-${version_tdom}.tgz
+    #rm  -f tDOM-${version_tdom}.tgz
     rm -rf tDOM-${version_tdom}
 fi
 
@@ -339,11 +339,6 @@ else
 	hg update
 	cd ..
     fi
-    if [ ! -f naviserver/configure ] ; then
-	cd naviserver
-	bash autogen.sh --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir}
-	cd ..
-    fi
 fi
 
 cd ${build_dir}
@@ -352,7 +347,9 @@ if [ ! ${version_modules} = "HEAD" ] ; then
 	wget http://heanet.dl.sourceforge.net/sourceforge/naviserver/naviserver-${version_modules}-modules.tar.gz
     fi
 else
-    mkdir modules
+    if [ ! -d modules ] ; then
+	mkdir modules
+    fi
     cd modules
     for d in nsdbbdb nsdbtds nsdbsqlite nsdbpg nsdbmysql \
 	nsocaml nssmtpd nstk nsdns nsfortune \
@@ -406,11 +403,25 @@ fi
 if [ ! ${version_tdom} = "GIT" ] ; then
     if [ ! -f tDOM-${version_tdom}.tgz ] ; then
 	#wget --no-check-certificate https://cloud.github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
-	curl -L -O  https://github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
+	#curl -L -O  https://github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
+	#
+	# Get a version of tdom, which is compatible with Tcl
+	# 8.6. Unfortunately, the released version is not.
+	#
+	rm  -rf tDOM-${version_tdom} tDOM-${version_tdom}.tgz
+	curl -L -O https://github.com/tDOM/tdom/tarball/4be49b70cabea18c90504d1159fd63994b323234
+	tar zxvf 4be49b70cabea18c90504d1159fd63994b323234
+	mv tDOM-tdom-4be49b7 tDOM-${version_tdom}
     fi
 else
+    #
+    # get the newest version of tdom
+    #
     rm -rf tdom
     git clone https://github.com/tDOM/tdom.git
+    # cd tdom
+    # git checkout 'master@{2012-12-31 00:00:00}'
+    # cd ..
 fi
 
 
@@ -443,13 +454,20 @@ cd ..
 
 echo "------------------------ Installing Naviserver ---------------------------"
 
+cd ${build_dir}
+
 if [ ! ${version_ns} = "HEAD" ] ; then
     tar zxvf naviserver-${version_ns}.tar.gz
     cd naviserver-${version_ns}
+    ./configure --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir}
 else
     cd naviserver
+    if [ ! -f naviserver/configure ] ; then
+	bash autogen.sh --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir}
+    else
+	./configure --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir}
+    fi
 fi
-./configure --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir}
 ${make}
 
 if [ ${version_ns} = "HEAD" ] ; then
@@ -459,6 +477,7 @@ ${make} install
 cd ..
 
 echo "------------------------ Installing Modules/nsdbpg ----------------------"
+cd ${build_dir}
 if [ ! ${version_modules} = "HEAD" ] ; then
     tar zxvf naviserver-${version_modules}-modules.tar.gz
 fi
@@ -520,7 +539,7 @@ if [ ${version_tdom} = "GIT" ] ; then
     git checkout 'master@{2014-11-01 00:00:00}'
     cd unix
 else
-    tar xfz tDOM-${version_tdom}.tgz
+    #tar xfz tDOM-${version_tdom}.tgz
     cd tDOM-${version_tdom}/unix
 fi
 ../configure --enable-threads --disable-tdomalloc --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
