@@ -26,9 +26,9 @@ build_dir=/usr/local/src
 #build_dir=/usr/local/src/oo2
 ns_install_dir=/usr/local/ns
 #ns_install_dir=/usr/local/oo2
-version_ns=4.99.11
+version_ns=4.99.12
 #version_ns=HEAD
-version_modules=4.99.11
+version_modules=4.99.12
 #version_modules=HEAD
 version_tcl=8.5.19
 version_tcllib=1.18
@@ -286,7 +286,7 @@ if [ $redhat = "1" ] ; then
 	pkgmanager=yum	
     fi
     
-    ${pkgmanager} install make ${autoconf} gcc zlib wget curl zip unzip openssl ${pg_packages} ${mercurial} ${git} ${mongodb}
+    ${pkgmanager} install make ${autoconf} gcc zlib zlib-devel wget curl zip unzip openssl openssl-devel ${pg_packages} ${mercurial} ${git} ${mongodb}
 fi
 
 if [ $macosx = "1" ] ; then
