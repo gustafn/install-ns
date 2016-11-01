@@ -26,9 +26,9 @@ build_dir=/usr/local/src
 #build_dir=/usr/local/src/oo2
 ns_install_dir=/usr/local/ns
 #ns_install_dir=/usr/local/oo2
-version_ns=4.99.13
+version_ns=4.99.12
 #version_ns=HEAD
-version_modules=4.99.13
+version_modules=4.99.12
 #version_modules=HEAD
 version_tcl=8.5.19
 version_tcllib=1.18
@@ -103,13 +103,16 @@ else
         make="gmake"
 	type="type"
         # adjust following to local gcc version:
-        setenv CC="/usr/local/bin/gcc49"
+        setenv CC=clang
 	if [ $with_postgres = "1" ] ; then
             # for freebsd10, file is: /usr/local/include/postgresql/internal/postgres_fe.h so:
             #pg_incl=/usr/local/include/postgresql/internal
+	    pg_packages="postgresql96-client"
             pg_incl=/usr/local/include
             pg_lib=/usr/local/lib
 	fi
+	# make sure that bash is installed here, such that the recommendation for bash works below
+	pkg install bash
     fi
     group_listcmd="grep ${ns_group} /etc/group"
     group_addcmd="groupadd ${ns_group}"
@@ -305,6 +308,10 @@ if [ $sunos = "1" ] ; then
 	developer/build/gnu-make \
 	system/header \
 	system/library/math/header-math
+fi
+
+if [ $freebsd = "1" ] ; then
+     pkg install gmake clang38 openssl automake wget curl zip unzip ${pg_packages} ${autoconf} ${mercurial} ${git} ${mongodb}
 fi
 
 echo "------------------------ Downloading sources ----------------------------"
