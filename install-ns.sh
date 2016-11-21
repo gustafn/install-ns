@@ -72,6 +72,21 @@ if [ $uname = "Darwin" ] ; then
     ns_user_addcmd="dscl . create /Users/${ns_user};dseditgroup -o edit -a ${ns_user} -t user ${ns_group}"
     ns_user_addgroup_hint="dseditgroup -o edit -a YOUR_USERID -t user ${ns_group}"
 
+    osxversion=$(sw_vers -productVersion | awk -F '.' '{print $2}')
+    maxid=$(dscl . -list /Users UniqueID | awk '{print $2}' | sort -ug | tail -1)
+    newid=$((maxid+1))
+
+    #
+    # In OS X Yosemite (Mac OS X 10.10.*) sysadminctl was added for creating users
+    #
+    if [ ${osxversion} -ge 10 ]; then
+	ns_user_addcmd="sysadminctl -addUser ${ns_user} -UID ${newid}; dseditgroup -o edit -a ${ns_user} -t user ${ns_group}"
+    else
+	ns_user_addcmd="dscl . create /Users/${ns_user}; dscl . -create /Users/${ns_user} UniqueID ${newid}; dseditgroup -o edit -a ${ns_user} -t user ${ns_group}"
+    fi
+
+    ns_user_addgroup_hint="dseditgroup -o edit -a YOUR_USERID -t user ${ns_group}"
+
     if [ $with_postgres = "1" ] ; then
 	# Preconfigured for PostgreSQL 9.6 installed via mac ports
 	pg_incl=/opt/local/include/postgresql96/
@@ -79,6 +94,9 @@ if [ $uname = "Darwin" ] ; then
 	pg_packages="postgresql96 postgresql96-server"
     fi
 else
+    #
+    # Not Darwin
+    #
     if [ -f "/etc/debian_version" ] ; then
 	debian=1
 	if [ $with_postgres = "1" ] ; then
@@ -282,13 +300,13 @@ if [ $debian = "1" ] ; then
 fi
 if [ $redhat = "1" ] ; then
     # packages for FC/RHL
-    
+
     if [ -x "/usr/bin/dnf" ] ; then
 	pkgmanager=/usr/bin/dnf
     else
 	pkgmanager=yum	
     fi
-    
+
     ${pkgmanager} install make ${autoconf} gcc zlib zlib-devel wget curl zip unzip openssl openssl-devel ${pg_packages} ${mercurial} ${git} ${mongodb}
 fi
 
