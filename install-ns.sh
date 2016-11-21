@@ -73,10 +73,10 @@ if [ $uname = "Darwin" ] ; then
     ns_user_addgroup_hint="dseditgroup -o edit -a YOUR_USERID -t user ${ns_group}"
 
     if [ $with_postgres = "1" ] ; then
-	# Preconfigured for PostgreSQL 9.4 installed via mac ports
-	pg_incl=/opt/local/include/postgresql94/
-	pg_lib=/opt/local/lib/postgresql94/
-	pg_packages="postgresql94 postgresql94-server"
+	# Preconfigured for PostgreSQL 9.6 installed via mac ports
+	pg_incl=/opt/local/include/postgresql96/
+	pg_lib=/opt/local/lib/postgresql96/
+	pg_packages="postgresql96 postgresql96-server"
     fi
 else
     if [ -f "/etc/debian_version" ] ; then
@@ -94,9 +94,9 @@ else
 	make="gmake"
 	export CC="gcc -m64"
 	if [ $with_postgres = "1" ] ; then
-	    pg_packages="postgresql-927"
-	    pg_incl=/opt/pgsql927/include
-            pg_lib=/opt/pgsql927/lib
+	    pg_packages="postgresql-960"
+	    pg_incl=/opt/pgsql960/include
+            pg_lib=/opt/pgsql960/lib
 	fi
     elif [ $uname = "FreeBSD" ] ; then
         freebsd=1
@@ -300,7 +300,7 @@ if [ $sunos = "1" ] ; then
     # packages for OpenSolaris/OmniOS
     pkg install pkg://omnios/developer/versioning/git mercurial ${autoconf} automake gcc48 zlib wget \
 	curl compress/zip compress/unzip \
-	${pg_packages} ${mercurial} ${git} ${mongodb}
+	${pg_packages} ${mercurial} ${mongodb}
     pkg install \
 	developer/object-file \
 	developer/linker \
@@ -308,6 +308,8 @@ if [ $sunos = "1" ] ; then
 	developer/build/gnu-make \
 	system/header \
 	system/library/math/header-math
+
+    ln -s /opt/gcc-4.8.1/bin/gcc /bin/gcc
 fi
 
 if [ $freebsd = "1" ] ; then
