@@ -25,19 +25,55 @@ echo "------------------------ Settings ---------------------------------------"
 ##
 ns_install_dir=/usr/local/ns
 
-oacs_core_version=HEAD
-oacs_core_version=oacs-5-9
-oacs_packages_version=HEAD
-oacs_packages_version=oacs-5-9
 
+#
+# The following names are CVS tag mostly relevant for checkouts from
+# CVS, but as well for naming the service.
+#
+#   HEAD:
+#     the newest version, often not intended to be runable
+#
+#   oacs-x-y:
+#      the newest version of the oacs-x-y branch
+#      (not necessarily "released")
+#
+#   oacs-x-y-compat:
+#      the newest "released" version of the oacs-x-y branch
+#
+#   openacs-x-y-z-final:
+#      the version of the packages at the time OpenACS x.y.z was
+#      released (similar to a tar file produced at the time of
+#      a release of the main OpenACS packages).
+#
+# For tar releases, one should
+
+oacs_version=5-9
+#oacs_version=HEAD
+
+#oacs_core_tag=HEAD
+#oacs_core_tag=oacs-5-9
+oacs_core_tag=openacs-5-9-compat
+#oacs_core_tag=openacs-5-9-0-final
+
+#oacs_packages_tag=HEAD
+#oacs_packages_tag=oacs-5-9
+oacs_packages_tag=openacs-5-9-compat
+#oacs_packages_tag=openacs-5-9-0-final
+
+#
+# One can obtain the OpenACS sources either via tar file or via
+# cvs. When oacs_tar_release is non-empty, it is used and the CVS tags
+# are ignored.
+#
 oacs_tar_release=openacs-5.9.0
 oacs_tar_release_url=http://openacs.org/projects/openacs/download/download/${oacs_tar_release}.tar.gz?revision_id=4869825
 #oacs_tar_release_url=
 
-if [ ${oacs_core_version} = "HEAD" ] ; then
-    oacs_service=oacs-${oacs_core_version}
+
+if [ ${oacs_version} = "HEAD" ] ; then
+    oacs_service=oacs-${oacs_version}
 else
-    oacs_service=${oacs_core_version}
+    oacs_service=${oacs_version}
 fi
 
 oacs_dir=/var/www/${oacs_service}
@@ -92,8 +128,8 @@ LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
            This is free software, and you are welcome to redistribute it under certain conditions;
            For details see http://www.gnu.org/licenses.
 
-SETTINGS   OpenACS version              ${oacs_core_version}
-           OpenACS packages             ${oacs_packages_version}
+SETTINGS   OpenACS version              ${oacs_core_tag}
+           OpenACS packages             ${oacs_packages_tag}
            OpenACS tar release URL      ${oacs_tar_release_url}
            OpenACS directory            ${oacs_dir}
            OpenACS service              ${oacs_service}
@@ -281,15 +317,15 @@ cd ${oacs_dir}
 
 if [ "$oacs_tar_release_url" = "" ] ; then
 
-    cvs -q -d:pserver:anonymous@cvs.openacs.org:/cvsroot checkout -r ${oacs_core_version} acs-core
+    cvs -q -d:pserver:anonymous@cvs.openacs.org:/cvsroot checkout -r ${oacs_core_tag} acs-core
     ln -sf $(echo openacs-4/[a-z]*) .
     cd ${oacs_dir}/packages
-    cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} xotcl-all
-    cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} xowf
-    cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} acs-developer-support ajaxhelper
+    cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_tag} xotcl-all
+    cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_tag} xowf
+    cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_tag} acs-developer-support ajaxhelper
 
     if [ $install_dotlrn = "1" ] ; then
-	cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} dotlrn-all
+	cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_tag} dotlrn-all
     fi
 else
     wget $oacs_tar_release_url -O ${oacs_tar_release}.tar.gz
