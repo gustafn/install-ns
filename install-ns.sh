@@ -338,24 +338,24 @@ echo "------------------------ Downloading sources ----------------------------"
 set -o errexit
 
 if [ ! -f tcl${version_tcl}-src.tar.gz ] ; then
-    echo wget http://heanet.dl.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
-    wget http://heanet.dl.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
+    echo wget https://downloads.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
+    wget https://downloads.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
 fi
 if [ ! -f ${tcllib_dirname}-${version_tcllib}.tar.bz2 ] ; then
-    wget http://heanet.dl.sourceforge.net/sourceforge/tcllib/${tcllib_dirname}-${version_tcllib}.tar.bz2
+    wget https://downloads.sourceforge.net/sourceforge/tcllib/${tcllib_dirname}-${version_tcllib}.tar.bz2
 fi
 
 # All versions of tcllib up to 1.15 were named tcllib-*.
 # tcllib-1.16 was named a while Tcllib-1.16 (capital T), but has been renamed later
 # to the standard naming conventions. tcllib-1.17 is fine again.
 if [ ! -f tcllib-${version_tcllib}.tar.bz2 ] ; then
-    wget http://heanet.dl.sourceforge.net/sourceforge/tcllib/Tcllib-${version_tcllib}.tar.bz2
+    wget https://downloads.sourceforge.net/sourceforge/tcllib/Tcllib-${version_tcllib}.tar.bz2
     tcllib_dirname=Tcllib
 fi
 
 if [ ! ${version_ns} = "HEAD" ] ; then
     if [ ! -f naviserver-${version_ns}.tar.gz ] ; then
-	wget http://heanet.dl.sourceforge.net/sourceforge/naviserver/naviserver-${version_ns}.tar.gz
+	wget https://downloads.sourceforge.net/sourceforge/naviserver/naviserver-${version_ns}.tar.gz
     fi
 else
     if [ ! -d naviserver ] ; then
@@ -371,7 +371,7 @@ fi
 cd ${build_dir}
 if [ ! ${version_modules} = "HEAD" ] ; then
     if [ ! -f naviserver-${version_modules}-modules.tar.gz ] ; then
-	wget http://heanet.dl.sourceforge.net/sourceforge/naviserver/naviserver-${version_modules}-modules.tar.gz
+	wget https://downloads.sourceforge.net/sourceforge/naviserver/naviserver-${version_modules}-modules.tar.gz
     fi
 else
     if [ ! -d modules ] ; then
@@ -400,12 +400,12 @@ fi
 
 cd ${build_dir}
 if [ ! -f thread${version_thread}.tar.gz ] ; then
-    wget http://heanet.dl.sourceforge.net/sourceforge/tcl/thread${version_thread}.tar.gz
+    wget https://downloads.sourceforge.net/sourceforge/tcl/thread${version_thread}.tar.gz
 fi
 
 if [ ! ${version_xotcl} = "HEAD" ] ; then
     if [ ! -f nsf${version_xotcl}.tar.gz ] ; then
-	wget http://heanet.dl.sourceforge.net/sourceforge/next-scripting/nsf${version_xotcl}.tar.gz
+	wget https://downloads.sourceforge.net/sourceforge/next-scripting/nsf${version_xotcl}.tar.gz
     fi
 else
     if [ ! -d nsf ] ; then
