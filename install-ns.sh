@@ -588,7 +588,7 @@ You can now run plain NaviServer by typing the following command:
   sudo ${ns_install_dir}/bin/nsd -f -u ${ns_user} -g ${ns_group} -t ${ns_install_dir}/conf/nsd-config.tcl
 
 As a next step, you need to configure the server according to your needs,
-or you might want to use the server with OpenACS (seach for /install-oacs.sh). 
+or you might want to use the server with OpenACS (search for /install-oacs.sh). 
 Consult as a reference the alternate configuration files in ${ns_install_dir}/conf/
 
 "
