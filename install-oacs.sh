@@ -137,12 +137,12 @@ SETTINGS   OpenACS version              ${oacs_core_tag}
            OpenACS group                ${oacs_group}
            PostgreSQL directory         ${pg_dir}
            Database name                ${db_name}
-           Naviserver install directory ${ns_install_dir}
-           Naviserver src directory     ${ns_src_dir}
-           Naviserver modules directory ${modules_src_dir}
+           NaviServer install directory ${ns_install_dir}
+           NaviServer src directory     ${ns_src_dir}
+           NaviServer modules directory ${modules_src_dir}
            Install DotLRN               ${install_dotlrn}
-           With PostgresSQL             ${with_postgres}
-           PostgresSQL user             ${pg_user}
+           With PostgreSQL              ${with_postgres}
+           PostgreSQL user              ${pg_user}
            Make command                 ${make}
            Type command                 ${type}
 "
@@ -343,7 +343,7 @@ cp ${modules_src_dir}/nsstats/nsstats.tcl ${oacs_dir}/www/admin/
 chown -R ${oacs_user}:${oacs_group} ${oacs_dir}
 chmod -R g+w ${oacs_dir}
 
-# install and adapt naviserver config file
+# install and adapt NaviServer config file
 echo "Writing ${ns_install_dir}/config-${oacs_service}.tcl"
 cp ${ns_src_dir}/openacs-config.tcl ${ns_install_dir}/config-${oacs_service}.tcl
 cat << EOF > /tmp/subst.tcl

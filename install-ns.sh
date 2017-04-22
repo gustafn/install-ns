@@ -173,10 +173,10 @@ SETTINGS   Build-Dir             ${build_dir}
            With PostgreSQL       ${with_postgres}"
 if [ ${with_postgres} = "1" ] ; then
     echo "
-           PostgresSQL user      ${pg_user}
+           PostgreSQL user       ${pg_user}
            postgres/include      ${pg_incl}
            postgres/lib          ${pg_lib}
-           PostgresSQL Packages  ${pg_packages}
+           PostgreSQL Packages   ${pg_packages}
 "
 fi
 
@@ -295,7 +295,7 @@ fi
 
 if [ $debian = "1" ] ; then
     # On Debian/Ubuntu, make sure we have zlib installed, otherwise
-    # naviserver can't provide compression support
+    # NaviServer can't provide compression support
     apt-get install make ${autoconf} gcc zlib1g-dev wget curl zip unzip openssl ${pg_packages} ${mercurial} ${git} ${mongodb}
 fi
 if [ $redhat = "1" ] ; then
@@ -442,7 +442,7 @@ if [ ! ${version_tdom} = "GIT" ] ; then
     fi
 else
     #
-    # get the newest version of tdom
+    # get the newest version of tDOM
     #
     rm -rf tdom
     git clone https://github.com/tDOM/tdom.git
@@ -559,7 +559,7 @@ ${make}
 ${make} install
 cd ..
 
-echo "------------------------ Installing tdom --------------------------------"
+echo "------------------------ Installing tDOM --------------------------------"
 
 if [ ${version_tdom} = "GIT" ] ; then
     cd tdom
