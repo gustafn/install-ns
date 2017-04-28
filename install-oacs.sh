@@ -341,17 +341,18 @@ cp ${modules_src_dir}/nsstats/nsstats.tcl ${oacs_dir}/www/admin/
 chown -R ${oacs_user}:${oacs_group} ${oacs_dir}
 chmod -R g+w ${oacs_dir}
 
-# install and adapt naviserver config file
+# install and adapt NaviServer config file
 echo "Writing ${ns_install_dir}/config-${oacs_service}.tcl"
 cp ${ns_src_dir}/openacs-config.tcl ${ns_install_dir}/config-${oacs_service}.tcl
 cat << EOF > /tmp/subst.tcl
  set fn ${ns_install_dir}/config-${oacs_service}.tcl
  set file [open \$fn]; set c [read \$file] ; close \$file
  regsub -all {"openacs"} \$c {"${oacs_service}"} c
+ regsub -all ${ns_install_dir} \$c {${ns_install_dir}} c
  regsub -all {set\\s+db_user\\s+\\\$server} \$c {set db_user ${oacs_user}} c
  set file [open \$fn w]; puts -nonewline \$file \$c; close \$file
 EOF
-${ns_install_dir}/bin/tclsh8.5 /tmp/subst.tcl
+${ns_install_dir}/bin/tclsh /tmp/subst.tcl
 
 
 if [ "${redhat}" = "1" ] ; then

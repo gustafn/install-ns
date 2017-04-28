@@ -29,15 +29,15 @@ build_dir="/usr/local/src"
 #build_dir=/usr/local/src/oo2
 ns_install_dir="/usr/local/ns"
 #ns_install_dir=/usr/local/oo2
-version_ns="4.99.11"
+version_ns="4.99.14"
 #version_ns=HEAD
-version_modules="4.99.11"
+version_modules="4.99.14"
 #version_modules=HEAD
 version_tcl="8.5.19"
 version_tcl_major="8.5"
 version_tcllib="1.18"
 tcllib_dirname="tcllib"
-version_thread="2.7.2"
+version_thread="2.7.3"
 version_xotcl="2.0.0"
 #version_xotcl=HEAD
 #version_tdom=0.8.3
@@ -78,13 +78,32 @@ if [ $uname = "Darwin" ] ; then
     ns_user_addcmd="dscl . create /Users/${ns_user};dseditgroup -o edit -a ${ns_user} -t user ${ns_group}"
     ns_user_addgroup_hint="dseditgroup -o edit -a YOUR_USERID -t user ${ns_group}"
 
+    osxversion=$(sw_vers -productVersion | awk -F '.' '{print $2}')
+    maxid=$(dscl . -list /Users UniqueID | awk '{print $2}' | sort -ug | tail -1)
+    newid=$((maxid+1))
+
+    #
+    # In OS X Yosemite (Mac OS X 10.10.*) sysadminctl was added for creating users
+    #
+    if [ ${osxversion} -ge 10 ]; then
+        ns_user_addcmd="sysadminctl -addUser ${ns_user} -UID ${newid}; dseditgroup -o edit -a ${ns_user} -t user ${ns_group}"
+    else
+        ns_user_addcmd="dscl . create /Users/${ns_user}; dscl . -create /Users/${ns_user} UniqueID ${newid}; dseditgroup -o edit -a ${ns_user} -t user ${ns_group}"
+    fi
+
+    ns_user_addgroup_hint="dseditgroup -o edit -a YOUR_USERID -t user ${ns_group}"
+    
+    
     if [ $with_postgres = "1" ] ; then
-	    # Preconfigured for PostgreSQL 9.4 installed via mac ports
-	    pg_incl=/opt/local/include/postgresql94/
-	    pg_lib=/opt/local/lib/postgresql94/
-	    pg_packages="postgresql94 postgresql94-server"
+	    # Preconfigured for PostgreSQL 9.6 installed via mac ports
+	    pg_incl=/opt/local/include/postgresql96/
+	    pg_lib=/opt/local/lib/postgresql96/
+	    pg_packages="postgresql96 postgresql96-server"
     fi
 else
+    #
+    # Not Darwin
+    #
     group_listcmd="grep -o ${ns_group} /etc/group"
     group_addcmd="groupadd ${ns_group}"
     ns_user_addcmd="useradd -g ${ns_group} ${ns_user}"
@@ -104,27 +123,31 @@ else
 	    make="gmake"
 	    export CC="gcc -m64"
 	    if [ $with_postgres = "1" ] ; then
-	        pg_packages="postgresql-927"
-	        pg_incl=/opt/pgsql927/include
-            pg_lib=/opt/pgsql927/lib
+	        pg_packages="postgresql-960"
+	        pg_incl=/opt/pgsql960/include
+            pg_lib=/opt/pgsql960/lib
 	    fi
     elif [ $uname = "FreeBSD" ] ; then
         freebsd=1
         make="gmake"
+        type="type"
         ns_user=openacs
         ns_group=openacs
         group_addcmd="pw groupadd ${ns_group}"
         ns_user_addcmd="pw useradd ${ns_user} -g ${ns_group}"
         pg_user=pgsql
-	    type="type"
+        #pg_user=postgres
         # adjust following to local gcc version:
-        # setenv CC="/usr/local/bin/gcc49"
+        setenv CC=clang
 	    if [ $with_postgres = "1" ] ; then
             # for freebsd10, file is: /usr/local/include/postgresql/internal/postgres_fe.h so:
             #pg_incl=/usr/local/include/postgresql/internal
+            pg_packages="postgresql96-client"
             pg_incl=/usr/local/include
             pg_lib=/usr/local/lib
 	    fi
+        # make sure that bash is installed here, such that the recommendation for bash works below
+        pkg install bash
     fi
 fi
 
@@ -164,10 +187,10 @@ SETTINGS   Dev install? 1=yes    ${dev_p}
            With PostgreSQL       ${with_postgres}"
 if [ ${with_postgres} = "1" ] ; then
     echo "
-           PostgresSQL user      ${pg_user}
+           PostgreSQL user      ${pg_user}
            postgres/include      ${pg_incl}
            postgres/lib          ${pg_lib}
-           PostgresSQL Packages  ${pg_packages}
+           PostgreSQL Packages  ${pg_packages}
            uname                 ${uname}
            freebsd               ${freebsd}
 "
@@ -216,7 +239,7 @@ if [ $do_clean = "1" ] ; then
     #rm    nsf${version_xotcl}.tar.gz
     rm -rf nsf${version_xotcl}
     #rm    tDOM-${version_tdom}.tgz
-    #rm -r tDOM-${version_tdom}
+    #rm -f tDOM-${version_tdom}
     rm -rf tDOM-${version_tdom}
 fi
 
@@ -299,23 +322,30 @@ fi
 
 if [ $debian = "1" ] ; then
     # On Debian/Ubuntu, make sure we have zlib installed, otherwise
-    # naviserver cannot provide compression support
-    apt-get install make ${autoconf} gcc zlib1g-dev curl zip unzip wget ${pg_packages} ${mercurial} ${git} ${mongodb}
+    # Naviserver cannot provide compression support
+    apt-get install make ${autoconf} gcc zlib1g-dev curl zip unzip wget openssl ${pg_packages} ${mercurial} ${git} ${mongodb}
 fi
 if [ $redhat = "1" ] ; then
     # packages for FC/RHL
-    yum install make ${autoconf} gcc zlib wget curl zip unzip ${pg_packages} ${mercurial} ${git} ${mongodb}
+    if [ -x "/usr/bin/dnf" ] ; then
+        pkgmanager=/usr/bin/dnf
+    else
+        pkgmanager=yum
+    fi
+
+    ${pkgmanager} install make ${autoconf} gcc zlib zlib-devel wget curl zip unzip openssl openssl-devel ${pg_packages} ${mercurial} ${git} ${mongodb}
+    
 fi
 
 if [ $macosx = "1" ] ; then
-    port install make ${autoconf} zlib wget curl zip unzip ${pg_packages} ${mercurial} ${git} ${mongodb}
+    port install make ${autoconf} zlib wget curl zip unzip openssl ${pg_packages} ${mercurial} ${git} ${mongodb}
 fi
 
 if [ $sunos = "1" ] ; then
     # packages for OpenSolaris/OmniOS
     pkg install pkg://omnios/developer/versioning/git mercurial ${autoconf} automake gcc48 zlib wget \
         curl compress/zip compress/unzip \
-	    ${pg_packages} ${mercurial} ${git} ${mongodb}
+	    ${pg_packages} ${mercurial} ${mongodb}
     pkg install \
 	    developer/object-file \
 	    developer/linker \
@@ -323,6 +353,12 @@ if [ $sunos = "1" ] ; then
 	    developer/build/gnu-make \
 	    system/header \
 	    system/library/math/header-math
+
+    ln -s /opt/gcc-4.8.1/bin/gcc /bin/gcc
+fi
+
+if [ $freebsd = "1" ] ; then
+    pkg install gmake clang38 openssl automake wget curl zip unzip ${pg_packages} ${autoconf} ${mercurial} ${git} ${mongodb}
 fi
 
 echo "------------------------ Downloading sources ----------------------------"
@@ -330,21 +366,23 @@ echo "------------------------ Downloading sources ----------------------------"
 set -o errexit
 
 if [ ! -f tcl${version_tcl}-src.tar.gz ] ; then
-    echo wget http://heanet.dl.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
-    wget http://heanet.dl.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
+    echo wget https://downloads.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
+    wget https://downloads.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
 fi
 # All versions of tcllib up to 1.15 were named tcllib-*.
 # tcllib-1.16 was named a while Tcllib-1.16 (capital T), but has been renamed later
 # to the standard naming conventions. tcllib-1.17 is fine again.
 if [ ! -f tcllib-${version_tcllib}.tar.bz2 ] ; then
     tcllib_dirname=tcllib
-    wget http://heanet.dl.sourceforge.net/sourceforge/tcllib/${tcllib_dirname}-${version_tcllib}.tar.bz2
+    echo wget https://downloads.sourceforge.net/sourceforge/tcllib/${tcllib_dirname}-${version_tcllib}.tar.bz2
+    wget https://downloads.sourceforge.net/sourceforge/tcllib/${tcllib_dirname}-${version_tcllib}.tar.bz2
 
 fi
 
 if [ ! ${version_ns} = "HEAD" ] ; then
     if [ ! -f naviserver-${version_ns}.tar.gz ] ; then
-	    wget http://heanet.dl.sourceforge.net/sourceforge/naviserver/naviserver-${version_ns}.tar.gz
+        echo wget https://downloads.sourceforge.net/sourceforge/naviserver/naviserver-${version_ns}.tar.gz
+	    wget https://downloads.sourceforge.net/sourceforge/naviserver/naviserver-${version_ns}.tar.gz
     fi
 else
     if [ ! -d naviserver ] ; then
@@ -355,20 +393,20 @@ else
 	    hg update
 	    cd ..
     fi
-    if [ ! -f naviserver/configure ] ; then
-	    cd naviserver
-	    bash autogen.sh --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir}
-	    cd ..
-    fi
+
 fi
 
 cd ${build_dir}
 if [ ! ${version_modules} = "HEAD" ] ; then
     if [ ! -f naviserver-${version_modules}-modules.tar.gz ] ; then
-	    wget http://heanet.dl.sourceforge.net/sourceforge/naviserver/naviserver-${version_modules}-modules.tar.gz
+        echo wget https://downloads.sourceforge.net/sourceforge/naviserver/naviserver-${version_modules}-modules.tar.gz
+	    wget https://downloads.sourceforge.net/sourceforge/naviserver/naviserver-${version_modules}-modules.tar.gz
     fi
 else
-    mkdir modules
+    if [ ! -d modules ] ; then
+        mkdir modules
+    fi
+    
     cd modules
     for d in nsdbbdb nsdbtds nsdbsqlite nsdbpg nsdbmysql \
 	    nsocaml nssmtpd nstk nsdns nsfortune \
@@ -392,12 +430,12 @@ fi
 
 cd ${build_dir}
 if [ ! -f thread${version_thread}.tar.gz ] ; then
-    wget http://heanet.dl.sourceforge.net/sourceforge/tcl/thread${version_thread}.tar.gz
+    wget https://downloads.sourceforge.net/sourceforge/tcl/thread${version_thread}.tar.gz
 fi
 
 if [ ! ${version_xotcl} = "HEAD" ] ; then
     if [ ! -f nsf${version_xotcl}.tar.gz ] ; then
-	    wget http://heanet.dl.sourceforge.net/sourceforge/next-scripting/nsf${version_xotcl}.tar.gz
+	    wget https://downloads.sourceforge.net/sourceforge/next-scripting/nsf${version_xotcl}.tar.gz
     fi
 else
     if [ ! -d nsf ] ; then
@@ -422,11 +460,26 @@ fi
 if [ ! ${version_tdom} = "GIT" ] ; then
     if [ ! -f tDOM-${version_tdom}.tgz ] ; then
 	    #wget --no-check-certificate https://cloud.github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
-	    curl -L -O  https://github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
+	    #curl -L -O  https://github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
+        #
+        # Get a version of tdom, which is compatible with Tcl
+        # 8.6. Unfortunately, the released version is not.
+        #
+        rm  -rf tDOM-${version_tdom} tDOM-${version_tdom}.tgz
+        curl -L -O https://github.com/tDOM/tdom/tarball/4be49b70cabea18c90504d1159fd63994b323234
+        tar zxvf 4be49b70cabea18c90504d1159fd63994b323234
+        mv tDOM-tdom-4be49b7 tDOM-${version_tdom}
+        
     fi
 else
+    #
+    # get the newest version of tDOM
+    #
     rm -rf tdom
     git clone https://github.com/tDOM/tdom.git
+    # cd tdom
+    # git checkout 'master@{2012-12-31 00:00:00}'
+    # cd ..
 fi
 
 #exit
@@ -460,13 +513,21 @@ cd ..
 
 echo "------------------------ Installing Naviserver ---------------------------"
 
+cd ${build_dir}
+
 if [ ! ${version_ns} = "HEAD" ] ; then
     tar zxvf naviserver-${version_ns}.tar.gz
     cd naviserver-${version_ns}
+    ./configure --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir}
 else
     cd naviserver
+    if [ ! -f naviserver/configure ] ; then
+        bash autogen.sh --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir}
+    else
+        ./configure --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir}
+    fi
 fi
-./configure --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir}
+
 ${make}
 
 if [ ${version_ns} = "HEAD" ] ; then
@@ -476,6 +537,7 @@ ${make} install
 cd ..
 
 echo "------------------------ Installing Modules/nsdbpg ----------------------"
+cd ${build_dir}
 if [ ! ${version_modules} = "HEAD" ] ; then
     tar zxvf naviserver-${version_modules}-modules.tar.gz
 fi
@@ -487,7 +549,7 @@ cd ../..
 
 echo "------------------------ Installing Thread ------------------------------"
 
-tar xfz thread${version_thread}.tar.gz
+#tar xfz thread${version_thread}.tar.gz
 cd thread${version_thread}/unix/
 ../configure --enable-threads --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-naviserver=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
 make
@@ -530,7 +592,7 @@ ${make}
 ${make} install
 cd ..
 
-echo "------------------------ Installing tdom --------------------------------"
+echo "------------------------ Installing tDOM --------------------------------"
 
 if [ ${version_tdom} = "GIT" ] ; then
     cd tdom
@@ -558,6 +620,8 @@ You can now run plain NaviServer by typing the following command:
   sudo ${ns_install_dir}/bin/nsd -f -u ${ns_user} -g ${ns_group} -t ${ns_install_dir}/conf/nsd-config.tcl
 
 As a next step, you need to configure the server according to your needs,
-or you might want to use the server with OpenACS. Consult as a reference
-the alternate configuration files in ${ns_install_dir}/conf/"
+or you might want to use the server with OpenACS (search for /install-oacs.sh). 
+Consult as a reference the alternate configuration files in ${ns_install_dir}/conf/
+
+"
 # EOF
