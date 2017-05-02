@@ -397,10 +397,12 @@ ExecStart=${ns_install_dir}/bin/nsd -u ${oacs_user} -g ${oacs_group} -t ${ns_ins
 # startup for privileged port, like 80
 # ExecStart=${ns_install_dir}/bin/nsd -u ${oacs_user} -g ${oacs_group} -t ${ns_install_dir}/config-${oacs_service}.tcl -b YOUR.IP.ADDRESS:80
 
+# Use "Restart=always" to make the instance start up again after it has stopped via ns_shutdown (e.g. /acs-admin/server-restart).
 Restart=on-abnormal
 KillMode=process
 
 [Install]
+# Uncomment this if the service should start automatically after system reboots.
 #WantedBy=multi-user.target
 EOF
 fi
