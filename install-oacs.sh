@@ -465,9 +465,10 @@ you might use the following commands
 fi
 
 echo "
-To use OpenACS, point your browser to http://localhost:8000/
-The configuration file is ${ns_install_dir}/config-${oacs_service}.tcl
-and might be tailored to your needs. The access.log and error.log of
-this instance are in ${oacs_dir}/log
+After starting the server, you can use OpenACS by loading
+http://localhost:8000/ from a browser. The NaviServer 
+configuration file  is ${ns_install_dir}/config-${oacs_service}.tcl 
+and might be  tailored to your needs. The access.log and error.log 
+of this instance are in ${oacs_dir}/log
 
 "
