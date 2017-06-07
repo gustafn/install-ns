@@ -31,7 +31,7 @@ oacs_tar_release_url=http://openacs.org/projects/openacs/download/download/${oac
 oacs_core_version=oacs-5-9
 oacs_packages_version=oacs-5-9
 oacs_tar_release=openacs-5.9.0
-
+ns_install_dir=/usr/local/ns
 
 install_dotlrn=0
 
@@ -72,8 +72,9 @@ export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 
 
-SCRIPT_PATH="${BASH_SOURCE[0]}"
+SCRIPT_PATH=$(dirname "$0")
 custom_settings="${SCRIPT_PATH}/custom-local-settings.sh"
+echo "Checking for existence of '${custom_settings}'"
 if [[ -e "${custom_settings}" ]]; then
     source ${custom_settings}
     echo "Loaded local definitions from ${custom_settings}"
