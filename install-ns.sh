@@ -24,7 +24,7 @@ echo "------------------------ Settings ---------------------------------------"
 # Installation directory and software versions to be installed
 
 # set dev_p to 0 for release versions, 1 for head and developer related configuration options
-dev_p=1
+dev_p=0
 build_dir="/usr/local/src"
 #build_dir=/usr/local/src/oo2
 ns_install_dir="/usr/local/ns"
@@ -138,7 +138,8 @@ else
         pg_user=pgsql
         #pg_user=postgres
         # adjust following to local gcc version:
-        setenv CC=clang
+        # In tcsh: setenv CC=clang
+        export CC=clang
 	    if [ $with_postgres = "1" ] ; then
             # for freebsd10, file is: /usr/local/include/postgresql/internal/postgres_fe.h so:
             #pg_incl=/usr/local/include/postgresql/internal
@@ -147,6 +148,7 @@ else
             pg_lib=/usr/local/lib
 	    fi
         # make sure that bash is installed here, such that the recommendation for bash works below
+        echo "verify bash is installed."
         pkg install bash
     fi
 fi
@@ -187,10 +189,10 @@ SETTINGS   Dev install? 1=yes    ${dev_p}
            With PostgreSQL       ${with_postgres}"
 if [ ${with_postgres} = "1" ] ; then
     echo "
-           PostgreSQL user      ${pg_user}
+           PostgreSQL user       ${pg_user}
            postgres/include      ${pg_incl}
            postgres/lib          ${pg_lib}
-           PostgreSQL Packages  ${pg_packages}
+           PostgreSQL Packages   ${pg_packages}
            uname                 ${uname}
            freebsd               ${freebsd}
 "

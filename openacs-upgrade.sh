@@ -18,8 +18,8 @@ done
 
 # current settings
 oacs_service=oacs-5-8
-ns_user=nsadmin
-ns_group=nsadmin
+ns_user=openacs
+ns_group=openacs
 
 
 #not used
@@ -28,9 +28,9 @@ oacs_service_new=oacs-5-9
 
 db_name=${oacs_service}
 
-pg_dir=/usr/
-pg_user=postgres
-pg_user_dir=/var/lib/postgresql
+pg_dir=/usr/local/
+pg_user=pgsql
+pg_user_dir=/usr/local/pgsql
 download_url="http://openacs.org/projects/openacs/download/download/openacs-5.9.0.tar.gz?revision_id=4869825"
 downloaded_file=openacs-5.9.0-release.tar.gz
 downloaded_dir=openacs-5.9.0
@@ -38,7 +38,14 @@ downloaded_dir=openacs-5.9.0
 service_dir=/var/www
 backup_dir=upgrade-backup-${oacs_service}
 backup_sql=${oacs_service}-backup.sql
-
+wget=wget
+uname=$(uname)
+date_arg="-Idate"
+if [ $uname = "FreeBSD" ] ; then
+    wget=wget
+    #wget=curl
+    date_arg="+%s"
+fi
 
 
 echo "
@@ -82,6 +89,7 @@ System/Postgresql related assumptions:
   pg_user      ${pg_user}
   pg_user_dir  ${pg_user_dir}
 
+date fileref   $(echo `date ${date_arg}`)
 
 In order to accomodate system related integration, 
 this upgrade does not change the OpenACS settings from current settings.
@@ -110,7 +118,11 @@ cd ${service_dir}
 
 echo "----- Backup openacs system"
 # backup files
-echo "cp -Rp ${oacs_service} ${backup_dir}"
+if [ -d ${service_dir}/${backup_dir} ] ; then
+    backup_dir=${backup_dir}-$(echo `date ${date_arg}`)
+fi
+mkdir -p ${service_dir}/${backup_dir}
+echo "cp -Rp ${oacs_service}/ ${service_dir}/${backup_dir}"
 cp -Rp ${oacs_service} ${backup_dir}
 
 # backup db
@@ -134,8 +146,9 @@ if [ -d ${service_dir}/${downloaded_dir} ] ; then
     rm -R ${service_dir}/${downloaded_dir}
 fi
 if [ ! -f ${service_dir}/${downloaded_file} ] ; then
-    echo "wget ${download_url}"
-    wget ${download_url}
+    
+    echo "${wget} -O ${downloaded_file} ${download_url}"
+    ${wget} -O ${downloaded_file} ${download_url}
 fi
 if [ ! -d ${service_dir}/${downloaded_dir} ] ; then
     echo "tar xvfz ${downloaded_file}"
@@ -175,8 +188,8 @@ mv -v tcl ${service_dir}/${oacs_service}/.
 echo "cd ${service_dir}/${oacs_service}"
 cd ${service_dir}/${oacs_service}
 
-echo "cp -Rp www www-$(echo `date -Idate`)"
-cp -Rp www www-$(echo `date -Idate`)
+echo "cp -Rp www www-$(echo `date ${date_arg}`)"
+cp -Rp www www-$(echo `date ${date_arg}`)
 
 echo "cd ${service_dir}/${downloaded_dir}"
 cd ${service_dir}/${downloaded_dir}
@@ -209,7 +222,7 @@ Next steps:
 7. Retstart service.
 
 8. www files may have to be manually integrated.
-   Files in ${service_dir}/${oacs_service}/www have been copied to ${service_dir}/${oacs_service}/www-$(echo www-`date -Idate`)
+   Files in ${service_dir}/${oacs_service}/www have been copied to ${service_dir}/${oacs_service}/www-$(echo www-`date ${date_arg}`)
    New files are in ${service_dir}/${oacs_service}/www-new
 
 Usually there are changes in *master.adp/.tcl templates. 

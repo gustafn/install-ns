@@ -20,25 +20,24 @@ done
 
 echo "------------------------ Settings ---------------------------------------"
 
-##
-## In case you configured install-ns.sh to use a different
-## ns_install_dir, adjust it here to the same directory
-ns_install_dir="/usr/local/ns"
-
-# set dev_p to 1 for developer site
-
+## You can override any of these settings by adding settings to custom-local-settings.sh
+hostname=localhost
+ip_address=0.0.0.0
+httpport=8000
+httpsport=8443
 oacs_core_dir=openacs-core
 oacs_tar_release_url=http://openacs.org/projects/openacs/download/download/${oacs_tar_release}.tar.gz?revision_id=4869825
 # set oacs_core_version to either oacs-5-9 for example, or HEAD
 oacs_core_version=oacs-5-9
 oacs_packages_version=oacs-5-9
 oacs_tar_release=openacs-5.9.0
-xdcpm=xdcpm
+
 
 install_dotlrn=0
 
 pg_user=postgres
-pg_dir=/usr
+#pg_dir=/usr
+pg_dir=/usr/local
 #pg_dir=/usr/local/pgsql
 
 if [ "${oacs_core_version}" = "HEAD" ] ; then
@@ -49,24 +48,15 @@ fi
 
 
 source ${ns_install_dir}/lib/nsConfig.sh
+
 if [ "$ns_user" = "" ] ; then
     echo "could not determine ns_user from  ${ns_install_dir}/lib/nsConfig.sh"
     exit
 fi
 echo "Loaded definitions from ${ns_install_dir}/lib/nsConfig.sh"
 
-
-if [ "${dev_p}" = "1" ] ; then
-    oacs_core_dir=openacs-4
-    oacs_tar_release_url=
-    oacs_core_version=HEAD
-#    oacs_core_version=oacs-5-9
-    oacs_packages_version=HEAD
-    oacs_packages_version=oacs-5-9
-    xdcpm=tekbasse
-fi
-
 oacs_dir=/var/www/${oacs_service}
+config_tcl_dir=${oacs_dir}
 db_name=${oacs_service}
 oacs_user=${ns_user}
 oacs_group=${ns_group}
@@ -80,6 +70,18 @@ modules_src_dir=${build_dir}/modules
 
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
+
+
+SCRIPT_PATH="${BASH_SOURCE[0]}"
+custom_settings="${SCRIPT_PATH}/custom-local-settings.sh"
+if [[ -e "${custom_settings}" ]]; then
+    source ${custom_settings}
+    echo "Loaded local definitions from ${custom_settings}"
+    custom_p=1
+else
+    custom_p=0
+fi
+
 
 echo "
 Installation Script for OpenACS
@@ -97,11 +99,15 @@ LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
            This is free software, and you are welcome to redistribute it under certain conditions;
            For details see http://www.gnu.org/licenses.
 
-SETTINGS   OpenACS version              ${oacs_core_version}
+SETTINGS   values from custom source    ${custom_p}
+           hostname                     ${hostname}
+           ip_address                   ${ip_address}
+           OpenACS version              ${oacs_core_version}
            OpenACS packages             ${oacs_packages_version}
            OpenACS tar release URL      ${oacs_tar_release_url}
            OpenACS directory            ${oacs_dir}
            OpenACS service              ${oacs_service}
+           OpenACS config dir           ${config_tcl_dir}
            OpenACS user                 ${oacs_user}
            OpenACS group                ${oacs_group}
            With PostgresSQL             ${with_postgres}
@@ -186,7 +192,7 @@ fi
 echo "------------------------ Check Userids ----------------------------"
 
 group=$(eval ${group_listcmd})
-echo "${group_listcmd}" => ${group}
+echo "${group_listcmd} => ${group}"
 if [ "x${group}" = "x" ] ; then
     eval ${group_addcmd}
 fi
@@ -343,13 +349,16 @@ chmod -R g+w ${oacs_dir}
 
 # install and adapt NaviServer config file
 echo "Writing ${ns_install_dir}/config-${oacs_service}.tcl"
-cp ${ns_src_dir}/openacs-config.tcl ${ns_install_dir}/config-${oacs_service}.tcl
+cp ${ns_src_dir}/openacs-config.tcl ${config_tcl_dir}/config-${oacs_service}.tcl
 cat << EOF > /tmp/subst.tcl
  set fn ${ns_install_dir}/config-${oacs_service}.tcl
  set file [open \$fn]; set c [read \$file] ; close \$file
- regsub -all {"openacs"} \$c {"${oacs_service}"} c
- regsub -all ${ns_install_dir} \$c {${ns_install_dir}} c
- regsub -all {set\\s+db_user\\s+\\\$server} \$c {set db_user ${oacs_user}} c
+ regsub -- {localhost} \$c {"${hostname}"} c
+ regsub -- {0.0.0.0  ;#} \$c {${ip_address}  ;#} c
+ regsub -- {set db_name        } \$c {set db_name ${db_name}  ;# was}
+ regsub -all -- {"openacs"} \$c {"${oacs_service}"} c
+ regsub -all -- ${ns_install_dir} \$c {${ns_install_dir}} c
+ regsub -all -- {set\\s+db_user\\s+\\\$server} \$c {set db_user ${oacs_user}} c
  set file [open \$fn w]; puts -nonewline \$file \$c; close \$file
 EOF
 ${ns_install_dir}/bin/tclsh /tmp/subst.tcl
@@ -370,10 +379,10 @@ Environment=LANG=en_US.UTF-8
 ExecStartPre=/bin/rm -f ${oacs_dir}/log/nsd.pid
 
 # standard startup (non-privileged port, like 8000)
-ExecStart=${ns_install_dir}/bin/nsd -u ${oacs_user} -g ${oacs_group} -t ${ns_install_dir}/config-${oacs_service}.tcl
+ExecStart=${ns_install_dir}/bin/nsd -u ${oacs_user} -g ${oacs_group} -t ${config_tcl_dir}/config-${oacs_service}.tcl
 
 # startup for privileged port, like 80
-# ExecStart=${ns_install_dir}/bin/nsd -u ${oacs_user} -g ${oacs_group} -t ${ns_install_dir}/config-${oacs_service}.tcl -b YOUR.IP.ADRESS:80
+# ExecStart=${ns_install_dir}/bin/nsd -u ${oacs_user} -g ${oacs_group} -t ${config_tcl_dir}/config-${oacs_service}.tcl -b YOUR.IP.ADRESS:80
 
 # Could be prone to fire if doing this on a private, unmonitored development server:
 #Restart=on-abnormal
@@ -402,11 +411,36 @@ pre-start script
   until sudo -u ${pg_user} ${pg_dir}/bin/psql -l ; do sleep 1; done
 end script
 
-exec ${ns_install_dir}/bin/nsd -i -t ${ns_install_dir}/config-${oacs_service}.tcl -u ${oacs_user} -g ${oacs_group}
+exec ${ns_install_dir}/bin/nsd -i -t ${config_tcl_dir}/config-${oacs_service}.tcl -u ${oacs_user} -g ${oacs_group}
 
 # startup for privileged port, like 80
 #exec /usr/local/oo2/bin/nsd -i -t /usr/local/oo2/config-wi1.tcl -u ${oacs_user} -g ${oacs_group} -b YOUR.IP.ADRESS:80
 EOF
+elif [ "${freebsd}" = "1" ] ; then
+    cat <<EOF > /usr/local/etc/rc.d/${hostname}-${oacs_service}.sh
+#!/bin/sh
+
+# Startup script for NaviServer on FreeBSD
+#
+# Begin EDIT section
+#
+# Use the values provided from the beginning of the install script:
+oacs_service=${oacs_service}
+hostname=${hostname}
+IP=${ip_address}
+oacs_user=${oacs_user}
+oacs_group=${oacs_group}
+pg_user=${pg_user}
+pg_dir=${pg_dir}
+#
+# End EDIT section
+#
+PREFIX=${ns_install_dir}
+CONFIG=${config_tcl_dir}
+
+EOF
+    cat ${current_dir}/freebsd-server-rc.sh >> /usr/local/etc/rc.d/${hostname}-${oacs_service}.sh
+    chmod 750 /usr/local/etc/rc.d/${hostname}-${oacs_service}.sh
 fi
 
 
@@ -414,7 +448,7 @@ echo "
 Congratulations, you have installed OpenACS with NaviServer on your machine.
 You might start the server manually with
 
-    sudo ${ns_install_dir}/bin/nsd -t ${ns_install_dir}/config-${oacs_service}.tcl -u ${oacs_user} -g ${oacs_group}"
+    sudo ${ns_install_dir}/bin/nsd -t ${config_tcl_dir}/config-${oacs_service}.tcl -u ${oacs_user} -g ${oacs_group}"
 if [ "${redhat}" = "1" ] ; then
 echo "
 or you can manage your installation with systemd (RedHat, Fedora Core). In this case,
@@ -432,6 +466,13 @@ you might use the following commands
     status ${oacs_service}
     start ${oacs_service}
     stop ${oacs_service}
+"
+elif [ "${freebsd}" = "1" ] ; then
+echo "
+or you can manage your installation with an rc.d script. In this case,
+/usr/local/etc/rc.d/${hostname}-${oacs_service}.sh start
+/usr/local/etc/rc.d/${hostname}-${oacs_service}.sh stop
+/usr/local/etc/rc.d/${hostname}-${oacs_service}.sh faststart
 "
 fi
 
