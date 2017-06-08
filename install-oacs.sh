@@ -164,7 +164,6 @@ SETTINGS   OpenACS version              ${oacs_core_tag}
            OpenACS config dir           ${config_tcl_dir}
            OpenACS user                 ${oacs_user}
            OpenACS group                ${oacs_group}
-           OpenACS tar release URL      ${oacs_tar_release_url}
            With PostgresSQL             ${with_postgres}
            PostgresSQL user             ${pg_user}
            PostgreSQL directory         ${pg_dir}
@@ -402,15 +401,16 @@ chmod -R g+w ${oacs_dir}
 echo "Writing ${ns_install_dir}/config-${oacs_service}.tcl"
 cp ${ns_src_dir}/openacs-config.tcl ${config_tcl_dir}/config-${oacs_service}.tcl
 cat << EOF > /tmp/subst.tcl
- set fn ${ns_install_dir}/config-${oacs_service}.tcl
- set file [open \$fn]; set c [read \$file] ; close \$file
+ set fn1 ${ns_install_dir}/config-${oacs_service}.tcl
+ set fn2 ${config_tcl_dir}/config-${oacs_service}.tcl
+ set file [open \$fn1]; set c [read \$file] ; close \$file
  regsub -- {localhost} \$c {"${hostname}"} c
  regsub -- {0.0.0.0  ;#} \$c {${ip_address}  ;#} c
  regsub -- {set db_name        } \$c {set db_name ${db_name}  ;# was}
  regsub -all -- {"openacs"} \$c {"${oacs_service}"} c
  regsub -all -- ${ns_install_dir} \$c {${ns_install_dir}} c
  regsub -all -- {set\\s+db_user\\s+\\\$server} \$c {set db_user ${oacs_user}} c
- set file [open \$fn w]; puts -nonewline \$file \$c; close \$file
+ set file [open \$fn2 w]; puts -nonewline \$file \$c; close \$file
 EOF
 ${ns_install_dir}/bin/tclsh /tmp/subst.tcl
 

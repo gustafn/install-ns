@@ -74,7 +74,7 @@ if [ $uname = "Darwin" ] ; then
     group_addcmd="dscl . create /Groups/${ns_group} PrimaryGroupID $((`dscl . -list /Groups PrimaryGroupID | awk '{print $2}' | sort -rn|head -1` + 1))"
     ns_user_addcmd="dscl . create /Users/${ns_user};dseditgroup -o edit -a ${ns_user} -t user ${ns_group}"
     ns_user_addgroup_hint="dseditgroup -o edit -a YOUR_USERID -t user ${ns_group}"
-
+    
     osxversion=$(sw_vers -productVersion | awk -F '.' '{print $2}')
     maxid=$(dscl . -list /Users UniqueID | awk '{print $2}' | sort -ug | tail -1)
     newid=$((maxid+1))
@@ -141,7 +141,11 @@ else
 	    fi
         # make sure that bash is installed here, such that the recommendation for bash works below
         echo "verify bash is installed."
-        pkg install bash
+        bash_url="$(type bash)"
+        if [ "${bash_url}0" = "0" ] ; then
+            echo "bash is not installed. Please install bash before continuing."
+            exit
+        fi
     fi
 fi
 
@@ -154,6 +158,18 @@ if [[ -e "${custom_settings}" ]]; then
     custom_p=1
 else
     custom_p=0
+fi
+
+if [ $freebsd = "1" ] ; then
+    echo "
+
+This script requires these packages:
+  gmake clang38 automake
+  openssl
+  wget curl
+  zip unzip
+  ${pg_packages} ${autoconf} ${mercurial} ${git} ${mongodb}
+Please verify that they are installed before running script."
 fi
 
 echo "
@@ -361,9 +377,11 @@ if [ $sunos = "1" ] ; then
     ln -s /opt/gcc-4.8.1/bin/gcc /bin/gcc
 fi
 
-if [ $freebsd = "1" ] ; then
-    pkg install gmake clang38 openssl automake wget curl zip unzip ${pg_packages} ${autoconf} ${mercurial} ${git} ${mongodb}
-fi
+#if [ $freebsd = "1" ] ; then
+    # Just give a message in the main screen about these dependencies.
+    # Not all FreeBSD systems use pkg. Portmaster is another way for example.
+    #pkg install gmake clang38 openssl automake wget curl zip unzip ${pg_packages} ${autoconf} ${mercurial} ${git} ${mongodb}
+#fi
 
 echo "------------------------ Downloading sources ----------------------------"
 # Exit on download errors
@@ -628,4 +646,3 @@ or you might want to use the server with OpenACS (search for /install-oacs.sh).
 Consult as a reference the alternate configuration files in ${ns_install_dir}/conf/
 
 "
-
