@@ -1,4 +1,5 @@
 #!/bin/bash
+#!/usr/local/bin/bash
 
 clean=0
 build=0
@@ -20,44 +21,87 @@ done
 
 echo "------------------------ Settings ---------------------------------------"
 
-## You can override any of these settings by adding settings to custom-local-settings.sh
-hostname=localhost
-ip_address=0.0.0.0
-httpport=8000
-httpsport=8443
-oacs_core_dir=openacs-core
-oacs_tar_release_url=http://openacs.org/projects/openacs/download/download/${oacs_tar_release}.tar.gz?revision_id=4869825
-# set oacs_core_version to either oacs-5-9 for example, or HEAD
-oacs_core_version=oacs-5-9
-oacs_packages_version=oacs-5-9
-oacs_tar_release=openacs-5.9.0
+##
+## In case you configured install-ns.sh to use a different
+## ns_install_dir, adjust it here to the same directory
+##
 ns_install_dir=/usr/local/ns
 
-install_dotlrn=0
+
+#
+# The following names are CVS tag mostly relevant for checkouts from
+# CVS, but as well for naming the service.
+#
+#   HEAD:
+#     the newest version, often not intended to be runable
+#
+#   oacs-x-y:
+#      the newest version of the oacs-x-y branch
+#      (not necessarily "released")
+#
+#   oacs-x-y-compat:
+#      the newest "released" version of the oacs-x-y branch
+#
+#   openacs-x-y-z-final:
+#      the version of the packages at the time OpenACS x.y.z was
+#      released (similar to a tar file produced at the time of
+#      a release of the main OpenACS packages).
+#
+# For tar releases, one should
+
+oacs_version=5-9
+#oacs_version=HEAD
+
+#oacs_core_tag=HEAD
+#oacs_core_tag=oacs-5-9
+oacs_core_tag=openacs-5-9-compat
+#oacs_core_tag=openacs-5-9-0-final
+
+#oacs_packages_tag=HEAD
+#oacs_packages_tag=oacs-5-9
+oacs_packages_tag=openacs-5-9-compat
+#oacs_packages_tag=openacs-5-9-0-final
+
+#
+# One can obtain the OpenACS sources either via tar file or via
+# cvs. When oacs_tar_release is non-empty, it is used and the CVS tags
+# are ignored.
+#
+oacs_tar_release=openacs-5.9.0
+oacs_tar_release_url=http://openacs.org/projects/openacs/download/download/${oacs_tar_release}.tar.gz?revision_id=4869825
+#oacs_tar_release_url=
+
+
 
 pg_user=postgres
-#pg_dir=/usr
-pg_dir=/usr/local
+pg_dir=/usr
 
-
-if [ "${oacs_core_version}" = "HEAD" ] ; then
-    oacs_service=oacs-${oacs_core_version}
+if [ "${oacs_version}" = "HEAD" ] ; then
+    oacs_service=oacs-${oacs_version}
 else
-    oacs_service=${oacs_core_version}
+    oacs_service=${oacs_version}
 fi
 
 
 source ${ns_install_dir}/lib/nsConfig.sh
-
 if [ "$ns_user" = "" ] ; then
     echo "could not determine ns_user from  ${ns_install_dir}/lib/nsConfig.sh"
     exit
 fi
 echo "Loaded definitions from ${ns_install_dir}/lib/nsConfig.sh"
 
+
 oacs_dir=/var/www/${oacs_service}
-config_tcl_dir=${oacs_dir}
 db_name=${oacs_service}
+install_dotlrn=0
+
+#
+# inherited/derived variables
+#
+#build_dir=/usr/local/src
+#with_postgres=1
+#ns_src_dir=/usr/local/src/naviserver-4.99.6
+
 oacs_user=${ns_user}
 oacs_group=${ns_group}
 
@@ -70,6 +114,16 @@ modules_src_dir=${build_dir}/modules
 
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
+
+
+# Settings can be overridden by adding settings to custom-local-settings.sh
+hostname=localhost
+ip_address=0.0.0.0
+httpport=8000
+httpsport=8443
+# Depending on if OpenACS code originates from cvs or github
+oacs_core_dir=openacs-core
+config_tcl_dir=${oacs_dir}
 
 
 SCRIPT_PATH=$(dirname "$0")
@@ -100,17 +154,15 @@ LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
            This is free software, and you are welcome to redistribute it under certain conditions;
            For details see http://www.gnu.org/licenses.
 
-SETTINGS   values from custom source    ${custom_p}
-           hostname                     ${hostname}
-           ip_address                   ${ip_address}
-           OpenACS version              ${oacs_core_version}
-           OpenACS packages             ${oacs_packages_version}
+SETTINGS   OpenACS version              ${oacs_core_tag}
+           OpenACS packages             ${oacs_packages_tag}
            OpenACS tar release URL      ${oacs_tar_release_url}
            OpenACS directory            ${oacs_dir}
            OpenACS service              ${oacs_service}
            OpenACS config dir           ${config_tcl_dir}
            OpenACS user                 ${oacs_user}
            OpenACS group                ${oacs_group}
+           OpenACS tar release URL      ${oacs_tar_release_url}
            With PostgresSQL             ${with_postgres}
            PostgresSQL user             ${pg_user}
            PostgreSQL directory         ${pg_dir}
@@ -123,6 +175,9 @@ SETTINGS   values from custom source    ${custom_p}
            Install DotLRN               ${install_dotlrn}
            Make command                 ${make}
            Type command                 ${type}
+           values from custom source    ${custom_p}
+           hostname                     ${hostname}
+           ip_address                   ${ip_address}
 "
 
 if [ "${build}" = "0" ] ; then
@@ -165,8 +220,14 @@ else
 fi
 
 if [ "${redhat}" = "1" ] ; then
+    if [ -x "/usr/bin/dnf" ] ; then
+	pkgmanager=/usr/bin/dnf
+    else
+	pkgmanager=yum	
+    fi
+
     if [ "${with_postgres}" = "1" ] ; then
-	yum install postgresql-server
+	${pkgmanager} install postgresql-server
     fi
     running=$(ps ax|fgrep postgres:)
     if [ "${running}" = "" ] ; then
@@ -221,7 +282,7 @@ fi
 echo "------------------------ Setup Database ----------------------------"
 
 #
-# assume, the db is installed and already running,
+# Here we assume, the postgres is installed and already running on port 5432,
 # and users ${pg_user} and ${oacs_user} and group ${oacs_group} are created
 #
 
@@ -257,7 +318,7 @@ if [ "$oacs_tar_release_url" = "" ] ; then
 	if [ "${debian}" = "1" ] ; then
 	    apt-get install cvs
 	elif [ "${redhat}" = "1" ] ; then
-	    yum install cvs
+	    ${pkgmanager} install cvs
 	elif [ "${sunos}" = "1" ] ; then
 	    # why is there no CVS available via "pkg install" ?
 	    cd ${build_dir}
@@ -276,68 +337,54 @@ if [ "$oacs_tar_release_url" = "" ] ; then
 	fi
     fi
 fi
-#
-# we use git for obtaining xowf
-#
-gitpath=$(${type} git)
-if [ "$gitpath" = "" ] ; then
-    if [ "$debian" = "1" ] ; then
-	apt-get install git
-    elif [ "${redhat}" = "1" ] ; then
-	yum install git
-    else
-	echo "git is not installed; you might install it with"
-	echo "    apt-get install git"
-	exit
-    fi
-fi
-
 
 mkdir -p ${oacs_dir}
 cd ${oacs_dir}
 
-if [ "${cvs_p}" = "1" ] ; then
-    cvs -q -d:pserver:anonymous@cvs.openacs.org:/cvsroot checkout -r ${oacs_core_version} acs-core
-else
-    if [ "${xdcpm}" = "xdcpm" ] ; then
-        git clone https://github.com/${xdcpm}/openacs-core.git
-        mv openacs-core ${oacs_core_dir}
-    else
-        git clone https://github.com/openacs/openacs-core.git
-        mv openacs-core ${oacs_core_dir}
+if [ "$oacs_tar_release_url" = "" ] ; then
+
+    cvs -q -d:pserver:anonymous@cvs.openacs.org:/cvsroot checkout -r ${oacs_core_tag} acs-core
+    ln -sf $(echo openacs-4/[a-z]*) .
+    cd ${oacs_dir}/packages
+    cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_tag} xotcl-all
+    cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_tag} xowf
+    cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_tag} acs-developer-support ajaxhelper
+
+    if [ $install_dotlrn = "1" ] ; then
+	cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_tag} dotlrn-all
     fi
+elif [ "${xdcpm}" = "xdcpm" ] ; then
+    git clone https://github.com/${xdcpm}/openacs-core.git
+    mv openacs-core ${oacs_core_dir}
+    
+    if [ "$dev_p" = "1" ] ; then
+        git clone http:://github.com/tekbasse/hosting-farm.git
+        git clone https://github.com/tekbasse/accounts-receivables.git
+        git clone https://github.com/tekbasse/accounts-ledger.git
+        git clone https://github.com/tekbasse/q-wiki.git
+        git clone https://github.com/tekbasse/ref-us-states.git
+        git clone https://github.com/tekbasse/ref-us-counties.git
+        git clone https://github.com/tekbasse/customer-service.git
+        git clone https://github.com/tekbasse/ajaxhelper.git
+        git clone https://github.com/tekbasse/acs-datetime.git
+        git clone https://github.com/tekbasse/acs-events.git
+        git clone https://github.com/tekbasse/spreadsheet.git
+        git clone https://github.com/tekbasse/q-forms.git
+        git clone https://github.com/tekbasse/accounts-finance.git
+    else
+        git clone https://github.com/${xdcpm}/ajaxhelper.git
+        git clone https://github.com/${xdcpm}/acs-datetime.git
+        git clone https://github.com/${xdcpm}/acs-events.git
+        git clone https://github.com/${xdcpm}/spreadsheet.git
+        git clone https://github.com/${xdcpm}/q-forms.git
+        git clone https://github.com/${xdcpm}/accounts-finance.git
+    fi
+    
+else
+    wget $oacs_tar_release_url -O ${oacs_tar_release}.tar.gz
+    tar zxvf ${oacs_tar_release}.tar.gz
+    ln -sf ${oacs_tar_release}/* .
 fi
-ln -sf $(echo ${oacs_core_dir}/[a-z]*) .
-cd packages
-#cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} xotcl-all
-#cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} acs-developer-support ajaxhelper
- git clone https://github.com/${xdcpm}/ajaxhelper.git
- git clone https://github.com/${xdcpm}/acs-datetime.git
- git clone https://github.com/${xdcpm}/acs-events.git
- git clone https://github.com/${xdcpm}/spreadsheet.git
- git clone https://github.com/${xdcpm}/q-forms.git
- git clone https://github.com/${xdcpm}/accounts-finance.git
-if [ "$dev_p" = "1" ] ; then
-  git clone http:://github.com/tekbasse/hosting-farm.git
-  git clone https://github.com/tekbasse/accounts-receivables.git
-  git clone https://github.com/tekbasse/accounts-ledger.git
-  git clone https://github.com/tekbasse/q-wiki.git
-  git clone https://github.com/tekbasse/ref-us-states.git
-  git clone https://github.com/tekbasse/ref-us-counties.git
-  git clone https://github.com/tekbasse/customer-service.git
-fi
-
-if [ "$install_dotlrn" = "1" ] ; then
-    cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_version} dotlrn-all
-fi
-
-# install xowf
-if [ ! -d "./xowf" ] ; then
-    git clone git://alice.wu.ac.at/xowf
-fi
-cd xowf
-git pull
-cd ..
 
 # install nsstats
 mkdir -p ${oacs_dir}/www/admin/

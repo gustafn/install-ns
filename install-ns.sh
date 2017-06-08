@@ -23,39 +23,36 @@ done
 echo "------------------------ Settings ---------------------------------------"
 # Installation directory and software versions to be installed
 
-# set dev_p to 0 for release versions, 1 for head and developer related configuration options
-dev_p=0
-build_dir="/usr/local/src"
+build_dir=/usr/local/src
 #build_dir=/usr/local/src/oo2
-ns_install_dir="/usr/local/ns"
+ns_install_dir=/usr/local/ns
 #ns_install_dir=/usr/local/oo2
-version_ns="4.99.14"
+version_ns=4.99.14
 #version_ns=HEAD
-version_modules="4.99.14"
+version_modules=4.99.14
 #version_modules=HEAD
-version_tcl="8.5.19"
-version_tcl_major="8.5"
-version_tcllib="1.18"
-tcllib_dirname="tcllib"
-version_thread="2.7.3"
-version_xotcl="2.0.0"
+version_tcl=8.5.19
+version_tcl_major=8.5
+version_tcllib=1.18
+tcllib_dirname=tcllib
+version_thread=2.7.3
+version_xotcl=2.0.0
 #version_xotcl=HEAD
-#version_tdom=0.8.3
-version_tdom="GIT"
-ns_user="nsadmin"
-ns_group="nsadmin"
-with_mongo="0"
-with_postgres="1"
+version_tdom=GIT
+ns_user=nsadmin
+ns_group=nsadmin
+with_mongo=0
+with_postgres=1
 #
 # the pg_* variables should be the path leading to the include and
 # library file of postgres to be used in this build.  In particular,
 # "libpg-fe.h" and "libpq.so" are typically needed.
-pg_incl="/usr/include/postgresql"
-pg_lib="/usr/lib"
-pg_user="postgres"
+pg_incl=/usr/include/postgresql
+pg_lib=/usr/lib
+pg_user=postgres
 
-export LANG="en_US.UTF-8"
-export LC_ALL="en_US.UTF-8"
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
 
 echo "------------------------ Check System ----------------------------"
 debian=0
@@ -131,12 +128,9 @@ else
         freebsd=1
         make="gmake"
         type="type"
-        ns_user=openacs
-        ns_group=openacs
         group_addcmd="pw groupadd ${ns_group}"
         ns_user_addcmd="pw useradd ${ns_user} -g ${ns_group}"
         # adjust following to local gcc version:
-        # In tcsh: setenv CC=clang
         export CC=clang
 	    if [ $with_postgres = "1" ] ; then
             # for freebsd10, file is: /usr/local/include/postgresql/internal/postgres_fe.h so:
@@ -149,6 +143,17 @@ else
         echo "verify bash is installed."
         pkg install bash
     fi
+fi
+
+SCRIPT_PATH=$(dirname "$0")
+custom_settings="${SCRIPT_PATH}/custom-local-settings.sh"
+echo "Checking for existence of '${custom_settings}'"
+if [[ -e "${custom_settings}" ]]; then
+    source ${custom_settings}
+    echo "Loaded local definitions from ${custom_settings}"
+    custom_p=1
+else
+    custom_p=0
 fi
 
 echo "
@@ -251,8 +256,8 @@ fi
 echo "------------------------ Save config variables in ${ns_install_dir}/lib/nsConfig.sh"
 mkdir -p ${ns_install_dir}/lib
 cat << EOF > ${ns_install_dir}/lib/nsConfig.sh
-build_dir=${build_dir}
-ns_install_dir=${ns_install_dir}
+build_dir="${build_dir}"
+ns_install_dir="${ns_install_dir}"
 version_ns=${version_ns}
 version_modules=${version_modules}
 version_tcl=${version_tcl}
@@ -265,17 +270,16 @@ pg_user=${pg_user}
 ns_group=${ns_group}
 with_mongo=${with_mongo}
 with_postgres=${with_postgres}
-pg_incl=${pg_incl}
-pg_lib=${pg_lib}
-make=${make}
-type=${type}
+pg_incl="${pg_incl}"
+pg_lib="${pg_lib}"
+make="${make}"
+type="${type}"
 debian=${debian}
 redhat=${redhat}
 macosx=${macosx}
 sunos=${sunos}
 freebsd=${freebsd}
 dev_p=${dev_p}
-cvs_p=${cvs_p}
 EOF
 
 echo "------------------------ Check User and Group --------------------"
@@ -293,7 +297,7 @@ if [ $? != "0" ] ; then
 	    echo "creating user ${ns_user} with command ${ns_user_addcmd}"
 	    eval ${ns_user_addcmd}
     else
-	    echo "User ${ns_user} does not exist; you might add it with something like"
+	    echo "User ${ns_user} does not exist; you might add it with a command like"
 	    echo "  sudo ${ns_user_addcmd}"
 	    exit
     fi
@@ -322,8 +326,8 @@ fi
 
 if [ $debian = "1" ] ; then
     # On Debian/Ubuntu, make sure we have zlib installed, otherwise
-    # Naviserver cannot provide compression support
-    apt-get install make ${autoconf} gcc zlib1g-dev curl zip unzip wget openssl ${pg_packages} ${mercurial} ${git} ${mongodb}
+    # NaviServer can't provide compression support
+    apt-get install make ${autoconf} gcc zlib1g-dev wget curl zip unzip openssl ${pg_packages} ${mercurial} ${git} ${mongodb}
 fi
 if [ $redhat = "1" ] ; then
     # packages for FC/RHL
@@ -373,10 +377,8 @@ fi
 # tcllib-1.16 was named a while Tcllib-1.16 (capital T), but has been renamed later
 # to the standard naming conventions. tcllib-1.17 is fine again.
 if [ ! -f tcllib-${version_tcllib}.tar.bz2 ] ; then
-    tcllib_dirname=tcllib
     echo wget https://downloads.sourceforge.net/sourceforge/tcllib/${tcllib_dirname}-${version_tcllib}.tar.bz2
     wget https://downloads.sourceforge.net/sourceforge/tcllib/${tcllib_dirname}-${version_tcllib}.tar.bz2
-
 fi
 
 if [ ! ${version_ns} = "HEAD" ] ; then
@@ -449,7 +451,7 @@ fi
 
 if [ $with_mongo = "1" ] ; then
     if [ ! -d mongo-c-driver ] ; then
-	    git clone https://github.com/mongodb/mongo-c-driver-legacy
+	    git clone https://github.com/mongodb/mongo-c-driver
     else
 	    cd mongo-c-driver
 	    git pull
@@ -511,7 +513,7 @@ cd ${tcllib_dirname}-${version_tcllib}
 ${make} install
 cd ..
 
-echo "------------------------ Installing Naviserver ---------------------------"
+echo "------------------------ Installing NaviServer ---------------------------"
 
 cd ${build_dir}
 
@@ -549,7 +551,7 @@ cd ../..
 
 echo "------------------------ Installing Thread ------------------------------"
 
-#tar xfz thread${version_thread}.tar.gz
+tar xfz thread${version_thread}.tar.gz
 cd thread${version_thread}/unix/
 ../configure --enable-threads --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-naviserver=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
 make
@@ -599,13 +601,15 @@ if [ ${version_tdom} = "GIT" ] ; then
     git checkout 'master@{2014-11-01 00:00:00}'
     cd unix
 else
-    tar xfz tDOM-${version_tdom}.tgz
+    #tar xfz tDOM-${version_tdom}.tgz
     cd tDOM-${version_tdom}/unix
 fi
 ../configure --enable-threads --disable-tdomalloc --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
 ${make} install
 
 cd ../..
+
+echo "------------------------ Set permissions --------------------------------"
 
 # set up minimal permissions in ${ns_install_dir}
 chgrp -R ${ns_group} ${ns_install_dir}
@@ -624,4 +628,4 @@ or you might want to use the server with OpenACS (search for /install-oacs.sh).
 Consult as a reference the alternate configuration files in ${ns_install_dir}/conf/
 
 "
-# EOF
+
