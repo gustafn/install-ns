@@ -142,10 +142,12 @@ echo "
 Installation Script for OpenACS
 
 This script configures a (pre-installed) PostgreSQL installation for
-OpenACS, installs OpenACS core, basic OpenACS packages, xowiki, xowf
-and optionally dotlrn and generates a config file and startup files
-(for Ubuntu and Fedora Core). The script assumes a pre-existing
-NaviServer installation, installed e.g. via install-ns.sh
+OpenACS, installs OpenACS core, basic OpenACS packages (and xowiki, 
+xowf and optionally dotlrn on CVS based installs; tar-based installs
+can install these packages via 'install from repository'). The script 
+generates a config file and startup files (for Ubuntu and Fedora Core). 
+The script  assumes a pre-existing NaviServer installation, 
+installed e.g. via install-ns.sh
 
 Tested on Ubuntu 12.04, 13.04, 14.04 Fedora Core 18, and CentOS 7, FreeBSD 10
 (c) 2013 Gustaf Neumann
@@ -184,7 +186,7 @@ if [ "${build}" = "0" ] ; then
     echo "
 WARNING    Check Settings AND Cleanup section before running this script!
            If you know what you're doing then call the call the script as
-              $0 build
+              bash $0 build
 "
 exit
 fi
@@ -208,6 +210,7 @@ if  [ "${macosx}" = "1" ] ; then
     group_addcmd="dscl . create /Groups/${oacs_group}"
     oacs_user_addcmd="dscl . create /Users/${oacs_user};dseditgroup -o edit -a ${oacs_user} -t user ${oacs_group}"
     pg_user_addcmd="dscl . create /Users/${pg_user};dscl . create /Users/${pg_user} UserShell /bin/bash"
+    pg_dir=/opt/local
 else
     group_listcmd="grep -o ${oacs_group} /etc/group"
     group_addcmd="groupadd ${oacs_group}"
@@ -423,22 +426,23 @@ Wants=postgresql.service
 [Service]
 Type=forking
 PIDFile=${oacs_dir}/log/nsd.pid
-Environment=LANG=en_US.UTF-8
+Environment="LANG=en_US.UTF-8"
+# In case, a site is using Google Perfortools malloc with the system-malloc patch for Tcl:
+# Environment="LD_PRELOAD=/usr/lib64/libtcmalloc.so"
 ExecStartPre=/bin/rm -f ${oacs_dir}/log/nsd.pid
 
 # standard startup (non-privileged port, like 8000)
 ExecStart=${ns_install_dir}/bin/nsd -u ${oacs_user} -g ${oacs_group} -t ${config_tcl_dir}/config-${oacs_service}.tcl
 
 # startup for privileged port, like 80
-# ExecStart=${ns_install_dir}/bin/nsd -u ${oacs_user} -g ${oacs_group} -t ${config_tcl_dir}/config-${oacs_service}.tcl -b YOUR.IP.ADRESS:80
+# ExecStart=${ns_install_dir}/bin/nsd -u ${oacs_user} -g ${oacs_group} -t ${config_tcl_dir}/config-${oacs_service}.tcl -b YOUR.IP.ADDRESS:80
 
-# Could be prone to fire if doing this on a private, unmonitored development server:
-#Restart=on-abnormal
-
+# Use "Restart=always" to make the instance start up again after it has stopped via ns_shutdown (e.g. /acs-admin/server-restart).
+Restart=on-abnormal
 KillMode=process
-PrivateTmp=true
 
 [Install]
+# Uncomment this if the service should start automatically after system reboots.
 #WantedBy=multi-user.target
 EOF
 elif [ "${debian}" = "1" ] ; then
@@ -459,10 +463,18 @@ pre-start script
   until sudo -u ${pg_user} ${pg_dir}/bin/psql -l ; do sleep 1; done
 end script
 
-exec ${ns_install_dir}/bin/nsd -i -t ${config_tcl_dir}/config-${oacs_service}.tcl -u ${oacs_user} -g ${oacs_group}
+script
 
-# startup for privileged port, like 80
-#exec /usr/local/oo2/bin/nsd -i -t /usr/local/oo2/config-wi1.tcl -u ${oacs_user} -g ${oacs_group} -b YOUR.IP.ADRESS:80
+  # In case, a site is using Google Perfortools malloc with the system-malloc patch for Tcl:
+  # export LD_PRELOAD="/usr/lib/libtcmalloc.so"
+
+  # standard startup (non-privileged port, like 8000)
+  exec ${ns_install_dir}/bin/nsd -i -t ${config_tcl_dir}/config-${oacs_service}.tcl -u ${oacs_user} -g ${oacs_group}
+
+  # startup for privileged port, like 80
+  #exec /usr/local/oo2/bin/nsd -i -t /usr/local/oo2/config-wi1.tcl -u ${oacs_user} -g ${oacs_group} -b YOUR.IP.ADDRESS:80
+
+end script
 EOF
 elif [ "${freebsd}" = "1" ] ; then
     cat <<EOF > /usr/local/etc/rc.d/${hostname}-${oacs_service}.sh
@@ -525,9 +537,10 @@ or you can manage your installation with an rc.d script. In this case,
 fi
 
 echo "
-To use OpenACS, point your browser to http://localhost:8000/
-The configuration file is ${ns_install_dir}/config-${oacs_service}.tcl
-and might be tailored to your needs. The access.log and error.log of
-this instance are in ${oacs_dir}/log
+After starting the server, you can use OpenACS by loading
+http://localhost:8000/ from a browser. The NaviServer 
+configuration file  is ${config_tcl_dir}/config-${oacs_service}.tcl 
+and might be  tailored to your needs. The access.log and error.log 
+of this instance are in ${oacs_dir}/log
 
 "
