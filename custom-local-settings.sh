@@ -1,3 +1,7 @@
+hostname=or97.net
+ip_address=188.227.186.70
+pg_user=pgsql
+
 if [ "${dev_p}" = "1" ] ; then
     oacs_core_dir=openacs-4
     oacs_tar_release_url=

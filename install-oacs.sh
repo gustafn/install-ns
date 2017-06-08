@@ -38,7 +38,7 @@ install_dotlrn=0
 pg_user=postgres
 #pg_dir=/usr
 pg_dir=/usr/local
-#pg_dir=/usr/local/pgsql
+
 
 if [ "${oacs_core_version}" = "HEAD" ] ; then
     oacs_service=oacs-${oacs_core_version}

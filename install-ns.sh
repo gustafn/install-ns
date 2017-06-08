@@ -135,8 +135,6 @@ else
         ns_group=openacs
         group_addcmd="pw groupadd ${ns_group}"
         ns_user_addcmd="pw useradd ${ns_user} -g ${ns_group}"
-        pg_user=pgsql
-        #pg_user=postgres
         # adjust following to local gcc version:
         # In tcsh: setenv CC=clang
         export CC=clang
