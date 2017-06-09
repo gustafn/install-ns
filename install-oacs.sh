@@ -118,7 +118,7 @@ export LC_ALL=en_US.UTF-8
 
 # Settings can be overridden by adding settings to custom-local-settings.sh
 hostname=localhost
-ip_address=0.0.0.0
+ip_address=127.0.0.1
 httpport=8000
 httpsport=8443
 # Depending on if OpenACS code originates from cvs or github
@@ -126,8 +126,8 @@ oacs_core_dir=openacs-core
 config_tcl_dir=${oacs_dir}
 
 
-SCRIPT_PATH=$(dirname "$0")
-custom_settings="${SCRIPT_PATH}/custom-local-settings.sh"
+current_dir="$(realpath .)"
+custom_settings="${current_dir}/custom-local-settings.sh"
 echo "Checking for existence of '${custom_settings}'"
 if [[ -e "${custom_settings}" ]]; then
     source ${custom_settings}
@@ -179,6 +179,8 @@ SETTINGS   OpenACS version              ${oacs_core_tag}
            values from custom source    ${custom_p}
            hostname                     ${hostname}
            ip_address                   ${ip_address}
+           httpport                     ${httpport}
+           httpsport                    ${httpsport}
 "
 
 if [ "${build}" = "0" ] ; then
@@ -358,6 +360,8 @@ if [ "$oacs_tar_release_url" = "" ] ; then
 elif [ "${xdcpm}" = "xdcpm" ] ; then
     git clone https://github.com/${xdcpm}/openacs-core.git
     mv openacs-core ${oacs_core_dir}
+    ln -sf $(echo ${oacs_core_dir}/[a-z]*) .
+    cd ${oacs_dir}/packages
     
     if [ "$dev_p" = "1" ] ; then
         git clone http:://github.com/tekbasse/hosting-farm.git
@@ -401,14 +405,16 @@ chmod -R g+w ${oacs_dir}
 echo "Writing ${ns_install_dir}/config-${oacs_service}.tcl"
 cp ${ns_src_dir}/openacs-config.tcl ${config_tcl_dir}/config-${oacs_service}.tcl
 cat << EOF > /tmp/subst.tcl
- set fn1 ${ns_install_dir}/config-${oacs_service}.tcl
+ set fn1 ${ns_src_dir}/openacs-config.tcl
  set fn2 ${config_tcl_dir}/config-${oacs_service}.tcl
  set file [open \$fn1]; set c [read \$file] ; close \$file
  regsub -- {localhost} \$c {"${hostname}"} c
- regsub -- {0.0.0.0  ;#} \$c {${ip_address}  ;#} c
- regsub -- {set db_name        } \$c {set db_name ${db_name}  ;# was}
+ regsub -- {127.0.0.1} \$c {${ip_address}} c
+ regsub -- {8000} \$c {"${httpport}"} c
+ regsub -- {8443} \$c {"${httpsport}"} c
  regsub -all -- {"openacs"} \$c {"${oacs_service}"} c
- regsub -all -- ${ns_install_dir} \$c {${ns_install_dir}} c
+ regsub -all -- {/usr/local/ns} \$c {${ns_install_dir}} c
+ regsub -all -- {set\\s+db_name\\s+\\\$server} \$c {set db_name ${db_name}} c
  regsub -all -- {set\\s+db_user\\s+\\\$server} \$c {set db_user ${oacs_user}} c
  set file [open \$fn2 w]; puts -nonewline \$file \$c; close \$file
 EOF
@@ -538,7 +544,7 @@ fi
 
 echo "
 After starting the server, you can use OpenACS by loading
-http://localhost:8000/ from a browser. The NaviServer 
+http://${hostname}:${httpport}/ from a browser. The NaviServer 
 configuration file  is ${config_tcl_dir}/config-${oacs_service}.tcl 
 and might be  tailored to your needs. The access.log and error.log 
 of this instance are in ${oacs_dir}/log

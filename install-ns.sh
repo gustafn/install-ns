@@ -378,9 +378,11 @@ if [ $sunos = "1" ] ; then
 fi
 
 #if [ $freebsd = "1" ] ; then
-    # Just give a message in the main screen about these dependencies.
-    # Not all FreeBSD systems use pkg. Portmaster is another way for example.
-    #pkg install gmake clang38 openssl automake wget curl zip unzip ${pg_packages} ${autoconf} ${mercurial} ${git} ${mongodb}
+# Just give a message in the main screen about these dependencies.
+# FreeBSD offers multiple package managers. Portmaster, ports, binaries..
+
+#portmaster -D --no-confirm devel/gmake lang/clang38 security/openssl devel/automake ftp/wget ftp/curl archivers/zip archivers/unzip devel/autoconf devel/git devel/cvs devel/mercurial ${pg_packages} ${mongodb}
+# portmaster -aD --no-confirm
 #fi
 
 echo "------------------------ Downloading sources ----------------------------"
