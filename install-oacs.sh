@@ -149,6 +149,11 @@ generates a config file and startup files (for Ubuntu and Fedora Core).
 The script  assumes a pre-existing NaviServer installation, 
 installed e.g. via install-ns.sh
 
+To override settings in this script, create a file 
+called 'custom-local-settings.sh' in this directory, 
+and set variables using standard bash syntax like this:
+  example_dir=/var/mtp
+
 Tested on Ubuntu 12.04, 13.04, 14.04 Fedora Core 18, and CentOS 7, FreeBSD 10
 (c) 2013 Gustaf Neumann
 

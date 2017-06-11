@@ -180,6 +180,11 @@ NaviServer modules, tcllib, libthread, XOTcl and tDOM
 from scratch by obtaining the sources from the actual
 releases and compiling it.
 
+To override settings in this script, create a file 
+called 'custom-local-settings.sh' in this directory, 
+and set variables using standard bash syntax like this:
+  example_dir=/var/mtp
+
 The script has a long heritage:
 (c) 2008      Malte Sussdorff, Nima Mazloumi
 (c) 2012-2016 Gustaf Neumann
