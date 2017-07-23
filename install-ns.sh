@@ -171,7 +171,7 @@ SETTINGS   Build-Dir             ${build_dir}
            Type command          ${type}
            With Mongo            ${with_mongo}
            With PostgreSQL       ${with_postgres}"
-if [ ${with_postgres} = "1" ] ; then
+if [ $with_postgres = "1" ] ; then
     echo "
            PostgreSQL user       ${pg_user}
            postgres/include      ${pg_incl}
@@ -353,7 +353,7 @@ if [ ! -f tcllib-${version_tcllib}.tar.bz2 ] ; then
     tcllib_dirname=Tcllib
 fi
 
-if [ ! ${version_ns} = "HEAD" ] ; then
+if [ ! $version_ns = "HEAD" ] ; then
     if [ ! -f naviserver-${version_ns}.tar.gz ] ; then
 	wget https://downloads.sourceforge.net/sourceforge/naviserver/naviserver-${version_ns}.tar.gz
     fi
@@ -427,7 +427,7 @@ if [ $with_mongo = "1" ] ; then
     fi
 fi
 
-if [ ! ${version_tdom} = "GIT" ] ; then
+if [ ! $version_tdom = "GIT" ] ; then
     if [ ! -f tDOM-${version_tdom}.tgz ] ; then
 	#wget --no-check-certificate https://cloud.github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
 	#curl -L -O  https://github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
@@ -483,7 +483,7 @@ echo "------------------------ Installing Naviserver ---------------------------
 
 cd ${build_dir}
 
-if [ ! ${version_ns} = "HEAD" ] ; then
+if [ ! $version_ns = "HEAD" ] ; then
     tar zxvf naviserver-${version_ns}.tar.gz
     cd naviserver-${version_ns}
     ./configure --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir}
@@ -497,7 +497,7 @@ else
 fi
 ${make}
 
-if [ ${version_ns} = "HEAD" ] ; then
+if [ $version_ns = "HEAD" ] ; then
     ${make} "DTPLITE=${ns_install_dir}/bin/tclsh $ns_install_dir/bin/dtplite" build-doc
 fi
 ${make} install
@@ -561,7 +561,7 @@ cd ..
 
 echo "------------------------ Installing tDOM --------------------------------"
 
-if [ ${version_tdom} = "GIT" ] ; then
+if [ $version_tdom = "GIT" ] ; then
     cd tdom
     git checkout 'master@{2014-11-01 00:00:00}'
     cd unix
