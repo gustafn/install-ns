@@ -285,7 +285,7 @@ else
     git=
 fi
 
-if [  $version_ns = "HEAD" ] ; then
+if [ $version_ns = "HEAD" ] ; then
     mercurial=mercurial
     autoconf=autoconf
 else
