@@ -371,6 +371,8 @@ if [ $debian = "1" ] ; then
 	if dpkg --compare-versions "$DISTRIB_RELEASE" "ge" "15.04" ; then
 	    systemd=1
 	fi
+    elif [ -d "/lib/systemd/system" ] ; then
+	systemd=1
     fi
 fi
 
