@@ -47,7 +47,7 @@ ns_install_dir=/usr/local/ns
 #
 # For tar releases, one should
 
-oacs_version=5-9
+oacs_version=5-9-1
 #oacs_version=HEAD
 
 #oacs_core_tag=HEAD
@@ -69,13 +69,7 @@ oacs_tar_release=openacs-5.9.1
 oacs_tar_release_url=http://openacs.org/projects/openacs/download/download/${oacs_tar_release}.tar.gz?revision_id=5373766
 #oacs_tar_release_url=
 
-
-if [ ${oacs_version} = "HEAD" ] ; then
-    oacs_service=oacs-${oacs_version}
-else
-    oacs_service=${oacs_version}
-fi
-
+oacs_service=oacs-${oacs_version}
 oacs_dir=/var/www/${oacs_service}
 db_name=${oacs_service}
 install_dotlrn=0
