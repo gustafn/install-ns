@@ -65,8 +65,8 @@ oacs_packages_tag=openacs-5-9-compat
 # cvs. When oacs_tar_release is non-empty, it is used and the CVS tags
 # are ignored.
 #
-oacs_tar_release=openacs-5.9.0
-oacs_tar_release_url=http://openacs.org/projects/openacs/download/download/${oacs_tar_release}.tar.gz?revision_id=4869825
+oacs_tar_release=openacs-5.9.1
+oacs_tar_release_url=http://openacs.org/projects/openacs/download/download/${oacs_tar_release}.tar.gz?revision_id=5373766
 #oacs_tar_release_url=
 
 
