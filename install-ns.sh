@@ -296,7 +296,7 @@ fi
 if [ $debian = "1" ] ; then
     # On Debian/Ubuntu, make sure we have zlib installed, otherwise
     # NaviServer can't provide compression support
-    apt-get install make ${autoconf} gcc zlib1g-dev wget curl zip unzip openssl ${pg_packages} ${mercurial} ${git} ${mongodb}
+    apt-get install make ${autoconf} gcc zlib1g-dev wget curl zip unzip openssl libssl-dev ${pg_packages} ${mercurial} ${git} ${mongodb}
 fi
 if [ $redhat = "1" ] ; then
     # packages for FC/RHL
@@ -445,6 +445,7 @@ else
     # get the newest version of tDOM
     #
     rm -rf tdom
+    echo "get  tDOM via: git clone https://github.com/tDOM/tdom.git" 
     git clone https://github.com/tDOM/tdom.git
     # cd tdom
     # git checkout 'master@{2012-12-31 00:00:00}'
