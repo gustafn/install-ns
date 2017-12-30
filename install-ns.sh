@@ -26,14 +26,15 @@ build_dir=/usr/local/src
 #build_dir=/usr/local/src/oo2
 ns_install_dir=/usr/local/ns
 #ns_install_dir=/usr/local/oo2
-version_ns=4.99.15
+version_ns=4.99.16
 #version_ns=HEAD
-version_modules=4.99.15
+version_modules=4.99.16
 #version_modules=HEAD
-version_tcl=8.5.19
+#version_tcl=8.5.19
+version_tcl=8.6.8
 version_tcllib=1.18
 tcllib_dirname=tcllib
-version_thread=2.7.3
+version_thread=2.8.2
 version_xotcl=2.1.0
 #version_xotcl=HEAD
 version_tdom=GIT
@@ -135,6 +136,11 @@ else
 	fi
 	# make sure that bash is installed here, such that the recommendation for bash works below
 	pkg install bash
+    elif [ $uname = "OpenBSD" ] ; then
+        make="gmake"
+        setenv LIBS=-lpthread
+        pg_incl=/usr/local/include/postgresql
+        pg_lib=/usr/local/lib
     fi
     group_listcmd="grep ${ns_group} /etc/group"
     group_addcmd="groupadd ${ns_group}"
