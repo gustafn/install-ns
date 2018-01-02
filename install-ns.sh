@@ -38,6 +38,7 @@ version_thread=2.8.2
 version_xotcl=2.1.0
 #version_xotcl=HEAD
 version_tdom=GIT
+version_tdom_git="master@{2014-11-01 00:00:00}"
 ns_user=nsadmin
 ns_group=nsadmin
 with_mongo=0
@@ -49,7 +50,7 @@ wget_options=""
 #
 # the pg_* variables should be the path leading to the include and
 # library file of postgres to be used in this build.  In particular,
-# "libpg-fe.h" and "libpq.so" are typically needed.
+# "libpq-fe.h" and "libpq.so" are typically needed.
 pg_incl=/usr/include/postgresql
 pg_lib=/usr/lib
 pg_user=postgres
@@ -451,15 +452,18 @@ if [ ! $version_tdom = "GIT" ] ; then
 	mv tDOM-tdom-4be49b7 tDOM-${version_tdom}
     fi
 else
-    #
-    # get the newest version of tDOM
-    #
-    rm -rf tdom
-    echo "get  tDOM via: git clone https://github.com/tDOM/tdom.git" 
-    git clone https://github.com/tDOM/tdom.git
-    # cd tdom
-    # git checkout 'master@{2012-12-31 00:00:00}'
-    # cd ..
+    echo "check if tdom/${version_tdom_git} exists in" `pdw`
+    if [ ! -f "tdom/${version_tdom_git}" ] ; then
+	#
+	# get the newest version of tDOM
+	#
+	rm -rf tdom
+	echo "get  tDOM via: git clone https://github.com/tDOM/tdom.git"
+	git clone https://github.com/tDOM/tdom.git
+	# cd tdom
+	# git checkout 'master@{2012-12-31 00:00:00}'
+	# cd ..
+    fi
 fi
 
 
@@ -574,7 +578,10 @@ echo "------------------------ Installing tDOM --------------------------------"
 
 if [ $version_tdom = "GIT" ] ; then
     cd tdom
-    git checkout 'master@{2014-11-01 00:00:00}'
+    if [ ! -f "${version_tdom_git}" ] ; then
+	git checkout "${version_tdom_git}"
+	echo > "${version_tdom_git}"
+    fi
     cd unix
 else
     #tar xfz tDOM-${version_tdom}.tgz
