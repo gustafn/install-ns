@@ -452,7 +452,6 @@ if [ ! $version_tdom = "GIT" ] ; then
 	mv tDOM-tdom-4be49b7 tDOM-${version_tdom}
     fi
 else
-    echo "check if tdom/${version_tdom_git} exists in" `pdw`
     if [ ! -f "tdom/${version_tdom_git}" ] ; then
 	#
 	# get the newest version of tDOM
