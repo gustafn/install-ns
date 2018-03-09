@@ -37,8 +37,11 @@ tcllib_dirname=tcllib
 version_thread=2.8.2
 version_xotcl=2.1.0
 #version_xotcl=HEAD
-version_tdom=GIT
+#version_tdom=GIT
+version_tdom=0.9.0
 version_tdom_git="master@{2014-11-01 00:00:00}"
+tdom_base=tdom-${version_tdom}
+tdom_tar=${tdom_base}-src.tgz
 ns_user=nsadmin
 ns_group=nsadmin
 with_mongo=0
@@ -203,6 +206,7 @@ WARNING    Check Settings AND Cleanup section before running this script!
 fi
 
 echo "------------------------ Cleanup -----------------------------------------"
+
 # First we clean up
 
 # The cleanup on the installation dir is optional, since it might
@@ -226,7 +230,7 @@ if [ $do_clean = 1 ] ; then
     #rm    nsf${version_xotcl}.tar.gz
     rm -rf nsf${version_xotcl}
     #rm  -f tDOM-${version_tdom}.tgz
-    rm -rf tDOM-${version_tdom}
+    rm -rf ${tdom_base}
 fi
 
 # just clean?
@@ -439,17 +443,19 @@ if [ $with_mongo = "1" ] ; then
 fi
 
 if [ ! $version_tdom = "GIT" ] ; then
-    if [ ! -f tDOM-${version_tdom}.tgz ] ; then
+    if [ ! -f ${tdom_tar} ] ; then
 	#wget --no-check-certificate https://cloud.github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
 	#curl -L -O  https://github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
 	#
 	# Get a version of tdom, which is compatible with Tcl
 	# 8.6. Unfortunately, the released version is not.
 	#
-	rm  -rf tDOM-${version_tdom} tDOM-${version_tdom}.tgz
-	curl -L -O https://github.com/tDOM/tdom/tarball/4be49b70cabea18c90504d1159fd63994b323234
-	tar zxvf 4be49b70cabea18c90504d1159fd63994b323234
-	mv tDOM-tdom-4be49b7 tDOM-${version_tdom}
+	rm  -rf ${tdom_base} ${tdom_tar} 
+	#curl -L -O https://github.com/tDOM/tdom/tarball/4be49b70cabea18c90504d1159fd63994b323234
+	#tar zxvf 4be49b70cabea18c90504d1159fd63994b323234
+	#mv tDOM-tdom-4be49b7 tDOM-${version_tdom}
+	curl -L -O http://tdom.org/downloads/${tdom_tar}
+	tar zxvf ${tdom_tar}
     fi
 else
     if [ ! -f "tdom/${version_tdom_git}" ] ; then
@@ -584,7 +590,7 @@ if [ $version_tdom = "GIT" ] ; then
     cd unix
 else
     #tar xfz tDOM-${version_tdom}.tgz
-    cd tDOM-${version_tdom}/unix
+    cd ${tdom_base}/unix
 fi
 ../configure --enable-threads --disable-tdomalloc --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
 ${make} install
