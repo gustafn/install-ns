@@ -28,17 +28,17 @@ ns_install_dir=/usr/local/ns
 #ns_install_dir=/usr/local/oo2
 version_ns=4.99.16
 #version_ns=HEAD
-version_modules=4.99.16
+version_modules=${version_ns}
 #version_modules=HEAD
 #version_tcl=8.5.19
 version_tcl=8.6.8
-version_tcllib=1.18
+version_tcllib=1.19
 tcllib_dirname=tcllib
 version_thread=2.8.2
 version_xotcl=2.1.0
 #version_xotcl=HEAD
 #version_tdom=GIT
-version_tdom=0.9.0
+version_tdom=0.9.1
 version_tdom_git="master@{2014-11-01 00:00:00}"
 tdom_base=tdom-${version_tdom}
 tdom_tar=${tdom_base}-src.tgz
@@ -86,7 +86,7 @@ if [ $uname = "Darwin" ] ; then
     newid=$((maxid+1))
 
     #
-    # In OS X Yosemite (Mac OS X 10.10.*) sysadminctl was added for creating users
+    # In OS X Yosemite (macOS 10.10.*) sysadminctl was added for creating users
     #
     if [ ${osxversion} -ge 10 ]; then
 	ns_user_addcmd="sysadminctl -addUser ${ns_user} -UID ${newid}; dseditgroup -o edit -a ${ns_user} -t user ${ns_group}"
@@ -164,7 +164,7 @@ The script has a long heritage:
 (c) 2008      Malte Sussdorff, Nima Mazloumi
 (c) 2012-2016 Gustaf Neumann
 
-Tested under Mac OS X, Ubuntu 12.04, 13.04, 14.04, Fedora Core 18, and CentOS 7 (pg 9.4.5)
+Tested under macOS, Ubuntu 12.04, 13.04, 14.04, 16.04, Fedora Core 18, and CentOS 7 (pg 9.4.5)
 
 LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
            This is free software, and you are welcome to redistribute it under certain conditions;
@@ -179,7 +179,7 @@ SETTINGS   Build-Dir             ${build_dir}
            NSF/NX/XOTcl          ${version_xotcl}
            Tcl                   ${version_tcl}
            tDOM                  ${version_tdom}
-           NaviSever user        ${ns_user}
+           NaviServer user       ${ns_user}
            NaviServer group      ${ns_group}
            Make command          ${make}
            Type command          ${type}
