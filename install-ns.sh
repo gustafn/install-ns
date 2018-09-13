@@ -35,8 +35,8 @@ version_tcl=8.6.8
 version_tcllib=1.19
 tcllib_dirname=tcllib
 version_thread=2.8.2
-version_xotcl=2.1.0
-#version_xotcl=HEAD
+#version_xotcl=2.2.0
+version_xotcl=HEAD
 #version_tdom=GIT
 version_tdom=0.9.1
 version_tdom_git="master@{2014-11-01 00:00:00}"
@@ -45,11 +45,23 @@ tdom_tar=${tdom_base}-src.tgz
 ns_user=nsadmin
 ns_group=nsadmin
 with_mongo=0
-with_postgres=1
-wget_options=""
+
 #
-# some old versions need this (e.g. CentOS 5.11)
+# The setting "with_postgres=1" means that we want to install a fresh
+# packaged PostgeSQL.
+#
+# The setting "with_postgres_driver=1" means that we want to install
+# NaviServer with the nsdbpg driver (this requires that a at least a
+# postgres client library is installed).
+#
+with_postgres=1
+with_postgres_driver=1
+
+#
+# some old versions of wget (e.g. inn CentOS 5.11) need the no-check flag
+wget_options=""
 #wget_options="--no-check-certificate"
+
 #
 # the pg_* variables should be the path leading to the include and
 # library file of postgres to be used in this build.  In particular,
@@ -289,7 +301,7 @@ fi
 
 echo "------------------------ System dependencies ---------------------------------"
 if [ $with_mongo = "1" ] ; then
-    mongodb="mongodb libtool autoconf"
+    mongodb="mongodb libtool autoconf cmake"
 else
     mongodb=
 fi
@@ -434,7 +446,7 @@ fi
 
 if [ $with_mongo = "1" ] ; then
     if [ ! -d mongo-c-driver ] ; then
-      git clone https://github.com/mongodb/mongo-c-driver
+	git clone https://github.com/mongodb/mongo-c-driver
     else
 	cd mongo-c-driver
 	git pull
@@ -523,18 +535,20 @@ fi
 ${make} install
 cd ..
 
-echo "------------------------ Installing Modules/nsdbpg ----------------------"
-cd ${build_dir}
-if [ ! ${version_modules} = "HEAD" ] ; then
-    tar zxvf naviserver-${version_modules}-modules.tar.gz
+if [ $with_postgres_driver = "1" ] ; then
+
+    echo "------------------------ Installing Modules/nsdbpg ----------------------"
+    cd ${build_dir}
+    if [ ! ${version_modules} = "HEAD" ] ; then
+	tar zxvf naviserver-${version_modules}-modules.tar.gz
+    fi
+    cd modules/nsdbpg
+    ${make} PGLIB=${pg_lib} PGINCLUDE=${pg_incl} NAVISERVER=${ns_install_dir}
+    ${make} NAVISERVER=${ns_install_dir} install
+    cd ../..
 fi
-cd modules/nsdbpg
-${make} PGLIB=${pg_lib} PGINCLUDE=${pg_incl} NAVISERVER=${ns_install_dir}
-${make} NAVISERVER=${ns_install_dir} install
-cd ../..
 
-
-echo "------------------------ Installing Thread ------------------------------"
+echo "------------------------ Installing Tcl Thread library -----------------------"
 
 tar xfz thread${version_thread}.tar.gz
 cd thread${version_thread}/unix/
@@ -547,19 +561,19 @@ if [ $with_mongo = "1" ] ; then
     echo "------------------------ MongoDB-driver ----------------------------------"
 
     cd mongo-c-driver
-    bash autogen.sh
+    cmake .
     ${make}
     ${make} install
-    if  [ $debian = "1" ] ; then
+    if [ $debian = "1" ] ; then
 	ldconfig -v
     fi
-    if  [ $redhat = "1" ] ; then
+    if [ $redhat = "1" ] ; then
 	ldconfig -v
     fi
     cd ..
 fi
 
-echo "------------------------ Installing XOTcl 2.0 ----------------------------"
+echo "------------------------ Installing XOTcl 2.* (with_mongo $with_mongo) -----------------"
 
 if [ ! ${version_xotcl} = "HEAD" ] ; then
     tar xvfz nsf${version_xotcl}.tar.gz
@@ -570,9 +584,16 @@ fi
 #export CC=gcc
 
 if [ $with_mongo = "1" ] ; then
-    ./configure --enable-threads --enable-symbols --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib --with-mongoc=${build_dir}/mongo-c-driver/src/mongoc/,${build_dir}/mongo-c-driver/.libs --with-bson=${build_dir}/mongo-c-driver/src/libbson/src/bson
+    echo "------------------------ WITH MONGO"
+
+    ./configure --enable-threads --enable-symbols \
+		--prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib \
+		--with-nsf=../../ \
+		--with-mongoc=/usr/local/include/libmongoc-1.0/,/usr/local/lib/ \
+		--with-bson=/usr/local/include/libbson-1.0,/usr/local/lib/
 else
-    ./configure --enable-threads --enable-symbols --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
+    ./configure --enable-threads --enable-symbols \
+		--prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
 fi
 
 ${make}
