@@ -174,7 +174,7 @@ releases and compiling it.
 
 The script has a long heritage:
 (c) 2008      Malte Sussdorff, Nima Mazloumi
-(c) 2012-2016 Gustaf Neumann
+(c) 2012-2018 Gustaf Neumann
 
 Tested under macOS, Ubuntu 12.04, 13.04, 14.04, 16.04, Fedora Core 18, and CentOS 7 (pg 9.4.5)
 
@@ -182,21 +182,23 @@ LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
            This is free software, and you are welcome to redistribute it under certain conditions;
            For details see http://www.gnu.org/licenses.
 
-SETTINGS   Build-Dir             ${build_dir}
-           Install-Dir           ${ns_install_dir}
-           NaviServer            ${version_ns}
-           NaviServer Modules    ${version_modules}
-           Tcllib                ${version_tcllib}
-           Thread                ${version_thread}
-           NSF/NX/XOTcl          ${version_xotcl}
-           Tcl                   ${version_tcl}
-           tDOM                  ${version_tdom}
-           NaviServer user       ${ns_user}
-           NaviServer group      ${ns_group}
-           Make command          ${make}
-           Type command          ${type}
-           With Mongo            ${with_mongo}
-           With PostgreSQL       ${with_postgres}"
+SETTINGS   Build-Dir              ${build_dir}
+           Install-Dir            ${ns_install_dir}
+           NaviServer             ${version_ns}
+           NaviServer Modules     ${version_modules}
+           Tcllib                 ${version_tcllib}
+           Thread                 ${version_thread}
+           NSF/NX/XOTcl           ${version_xotcl}
+           Tcl                    ${version_tcl}
+           tDOM                   ${version_tdom}
+           NaviServer user        ${ns_user}
+           NaviServer group       ${ns_group}
+           Make command           ${make}
+           Type command           ${type}
+           With Mongo             ${with_mongo}
+           Install PostgreSQL DB  ${with_postgres}
+           With PostgreSQL driver ${with_postgres_driver}"
+
 if [ $with_postgres = "1" ] ; then
     echo "
            PostgreSQL user       ${pg_user}
@@ -219,8 +221,6 @@ fi
 
 echo "------------------------ Cleanup -----------------------------------------"
 
-# First we clean up
-
 # The cleanup on the installation dir is optional, since it might
 # delete something else not from our installation.
 #rm -rf ${ns_install_dir}
@@ -241,8 +241,7 @@ if [ $do_clean = 1 ] ; then
     rm -r thread${version_thread}
     #rm    nsf${version_xotcl}.tar.gz
     rm -rf nsf${version_xotcl}
-    #rm  -f tDOM-${version_tdom}.tgz
-    rm -rf ${tdom_base}
+    rm  -rf ${tdom_base} ${tdom_tar} tdom
 fi
 
 # just clean?
