@@ -82,6 +82,7 @@ freebsd=0
 
 make="make"
 type="type -a"
+tar="tar"
 
 pg_packages=
 
@@ -176,7 +177,7 @@ The script has a long heritage:
 (c) 2008      Malte Sussdorff, Nima Mazloumi
 (c) 2012-2018 Gustaf Neumann
 
-Tested under macOS, Ubuntu 12.04, 13.04, 14.04, 16.04, Fedora Core 18, and CentOS 7 (pg 9.4.5)
+Tested under macOS, Ubuntu 12.04, 13.04, 14.04, 16.04, 18.04, Fedora Core 18, and CentOS 7 (pg 9.4.5)
 
 LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
            This is free software, and you are welcome to redistribute it under certain conditions;
@@ -351,9 +352,11 @@ if [ $sunos = "1" ] ; then
 	developer/library/lint \
 	developer/build/gnu-make \
 	system/header \
-	system/library/math/header-math
+	system/library/math/header-math \
+	archiver/gnu-tar
 
     ln -s /opt/gcc-4.8.1/bin/gcc /bin/gcc
+    tar="gtar"
 fi
 
 if [ $freebsd = "1" ] ; then
@@ -463,10 +466,10 @@ if [ ! $version_tdom = "GIT" ] ; then
 	#
 	rm  -rf ${tdom_base} ${tdom_tar} 
 	#curl -L -O https://github.com/tDOM/tdom/tarball/4be49b70cabea18c90504d1159fd63994b323234
-	#tar zxvf 4be49b70cabea18c90504d1159fd63994b323234
+	#${tar} zxvf 4be49b70cabea18c90504d1159fd63994b323234
 	#mv tDOM-tdom-4be49b7 tDOM-${version_tdom}
 	curl -L -O http://tdom.org/downloads/${tdom_tar}
-	tar zxvf ${tdom_tar}
+	${tar} zxvf ${tdom_tar}
     fi
 else
     if [ ! -f "tdom/${version_tdom_git}" ] ; then
@@ -487,7 +490,7 @@ fi
 echo "------------------------ Installing TCL ---------------------------------"
 set -o errexit
 
-tar xfz tcl${version_tcl}-src.tar.gz
+${tar} xfz tcl${version_tcl}-src.tar.gz
 cd tcl${version_tcl}/unix
 ./configure --enable-threads --prefix=${ns_install_dir}
 ${make}
@@ -504,7 +507,7 @@ cd ../..
 
 echo "------------------------ Installing TCLLib ------------------------------"
 
-tar xvfj ${tcllib_dirname}-${version_tcllib}.tar.bz2
+${tar} xvfj ${tcllib_dirname}-${version_tcllib}.tar.bz2
 cd ${tcllib_dirname}-${version_tcllib}
 ./configure --prefix=${ns_install_dir}
 ${make} install
@@ -515,7 +518,7 @@ echo "------------------------ Installing Naviserver ---------------------------
 cd ${build_dir}
 
 if [ ! $version_ns = "HEAD" ] ; then
-    tar zxvf naviserver-${version_ns}.tar.gz
+    ${tar} zxvf naviserver-${version_ns}.tar.gz
     cd naviserver-${version_ns}
     ./configure --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir}
 else
@@ -539,7 +542,7 @@ if [ $with_postgres_driver = "1" ] ; then
     echo "------------------------ Installing Modules/nsdbpg ----------------------"
     cd ${build_dir}
     if [ ! ${version_modules} = "HEAD" ] ; then
-	tar zxvf naviserver-${version_modules}-modules.tar.gz
+	${tar} zxvf naviserver-${version_modules}-modules.tar.gz
     fi
     cd modules/nsdbpg
     ${make} PGLIB=${pg_lib} PGINCLUDE=${pg_incl} NAVISERVER=${ns_install_dir}
@@ -549,7 +552,7 @@ fi
 
 echo "------------------------ Installing Tcl Thread library -----------------------"
 
-tar xfz thread${version_thread}.tar.gz
+${tar} xfz thread${version_thread}.tar.gz
 cd thread${version_thread}/unix/
 ../configure --enable-threads --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-naviserver=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
 make
@@ -575,7 +578,7 @@ fi
 echo "------------------------ Installing XOTcl 2.* (with_mongo $with_mongo) -----------------"
 
 if [ ! ${version_xotcl} = "HEAD" ] ; then
-    tar xvfz nsf${version_xotcl}.tar.gz
+    ${tar} xvfz nsf${version_xotcl}.tar.gz
     cd nsf${version_xotcl}
 else
     cd nsf
@@ -609,7 +612,7 @@ if [ $version_tdom = "GIT" ] ; then
     fi
     cd unix
 else
-    #tar xfz tDOM-${version_tdom}.tgz
+    #${tar} xfz tDOM-${version_tdom}.tgz
     cd ${tdom_base}/unix
 fi
 ../configure --enable-threads --disable-tdomalloc --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
