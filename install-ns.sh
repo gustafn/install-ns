@@ -177,7 +177,8 @@ The script has a long heritage:
 (c) 2008      Malte Sussdorff, Nima Mazloumi
 (c) 2012-2018 Gustaf Neumann
 
-Tested under macOS, Ubuntu 12.04, 13.04, 14.04, 16.04, 18.04, Fedora Core 18, and CentOS 7 (pg 9.4.5)
+Tested under macOS, Ubuntu 12.04, 13.04, 14.04, 16.04, 18.04, Raspbian 9.4,
+OmniOS r151014, OpenBSD 4.2, Fedora Core 18, and CentOS 7 (pg 9.4.5)
 
 LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
            This is free software, and you are welcome to redistribute it under certain conditions;
@@ -196,7 +197,7 @@ SETTINGS   Build-Dir              ${build_dir}
            NaviServer group       ${ns_group}
            Make command           ${make}
            Type command           ${type}
-           With Mongo             ${with_mongo}
+           With MongoDB           ${with_mongo}
            Install PostgreSQL DB  ${with_postgres}
            With PostgreSQL driver ${with_postgres_driver}"
 
@@ -343,7 +344,7 @@ fi
 
 if [ $sunos = "1" ] ; then
     # packages for OpenSolaris/OmniOS
-    pkg install pkg://omnios/developer/versioning/git mercurial ${autoconf} automake gcc48 zlib wget \
+    pkg install pkg://omnios/developer/versioning/git mercurial ${autoconf} automake /developer/gcc51 zlib wget \
 	curl compress/zip compress/unzip \
 	${pg_packages} ${mercurial} ${mongodb}
     pkg install \
@@ -355,7 +356,7 @@ if [ $sunos = "1" ] ; then
 	system/library/math/header-math \
 	archiver/gnu-tar
 
-    ln -s /opt/gcc-4.8.1/bin/gcc /bin/gcc
+    #ln -s /opt/gcc-4.8.1/bin/gcc /bin/gcc
     tar="gtar"
 fi
 
