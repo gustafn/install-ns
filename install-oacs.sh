@@ -4,15 +4,15 @@ clean=0
 build=0
 while [ x"$1" != x ] ; do
     case $1 in
-        clean) clean=1
-            shift
-            continue;;
-        build) build=1
-            shift
-            continue;;
-        *)  echo "argument '$1' ignored"
-            shift
-            continue;;
+	clean) clean=1
+	    shift
+	    continue;;
+	build) build=1
+	    shift
+	    continue;;
+	*)  echo "argument '$1' ignored"
+	    shift
+	    continue;;
     esac
 done
 
@@ -45,7 +45,10 @@ ns_install_dir=/usr/local/ns
 #      released (similar to a tar file produced at the time of
 #      a release of the main OpenACS packages).
 #
-# For tar releases, one should
+# When the parameter "oacs_tar_release_url" is non-empty, the tar
+# release is installed.  Otherwise, a checkout from CVS is used based
+# on "oacs_core_tag" and "oacs_packages_tag".
+#
 
 oacs_version=5-9-1
 #oacs_version=HEAD
@@ -66,8 +69,8 @@ oacs_packages_tag=openacs-5-9-compat
 # are ignored.
 #
 oacs_tar_release=openacs-5.9.1
-oacs_tar_release_url=http://openacs.org/projects/openacs/download/download/${oacs_tar_release}.tar.gz?revision_id=5373766
-#oacs_tar_release_url=
+oacs_tar_release_url=https://openacs.org/projects/openacs/download/download/${oacs_tar_release}.tar.gz?revision_id=5373766
+oacs_tar_release_url=
 
 oacs_service=oacs-${oacs_version}
 oacs_dir=/var/www/${oacs_service}
@@ -89,7 +92,7 @@ echo "Loaded definitions from ${ns_install_dir}/lib/nsConfig.sh"
 #
 #build_dir=/usr/local/src
 #with_postgres=1
-#ns_src_dir=/usr/local/src/naviserver-4.99.6
+#ns_src_dir=/usr/local/src/naviserver-4.99.17
 
 oacs_user=${ns_user}
 oacs_group=${ns_group}
@@ -108,44 +111,44 @@ echo "
 Installation Script for OpenACS
 
 This script configures a (pre-installed) PostgreSQL installation for
-OpenACS, installs OpenACS core, basic OpenACS packages (and xowiki, 
+OpenACS, installs OpenACS core, basic OpenACS packages (and xowiki,
 xowf and optionally dotlrn on CVS based installs; tar-based installs
-can install these packages via 'install from repository'). The script 
-generates a config file and startup files (for Ubuntu and Fedora Core). 
-The script  assumes a pre-existing NaviServer installation, 
+can install these packages via 'install from repository'). The script
+generates a config file and startup files (for Ubuntu and Fedora Core).
+The script  assumes a pre-existing NaviServer installation,
 installed e.g. via install-ns.sh
 
 Tested on Ubuntu 12.04, 13.04, 14.04 Fedora Core 18, and CentOS 7
 (c) 2013 Gustaf Neumann
 
 LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
-           This is free software, and you are welcome to redistribute it under certain conditions;
-           For details see http://www.gnu.org/licenses.
+	   This is free software, and you are welcome to redistribute it under certain conditions;
+	   For details see http://www.gnu.org/licenses.
 
 SETTINGS   OpenACS version              ${oacs_core_tag}
-           OpenACS packages             ${oacs_packages_tag}
-           OpenACS tar release URL      ${oacs_tar_release_url}
-           OpenACS directory            ${oacs_dir}
-           OpenACS service              ${oacs_service}
-           OpenACS user                 ${oacs_user}
-           OpenACS group                ${oacs_group}
-           PostgreSQL directory         ${pg_dir}
-           Database name                ${db_name}
-           NaviServer install directory ${ns_install_dir}
-           NaviServer src directory     ${ns_src_dir}
-           NaviServer modules directory ${modules_src_dir}
-           Install DotLRN               ${install_dotlrn}
-           With PostgreSQL              ${with_postgres}
-           PostgreSQL user              ${pg_user}
-           Make command                 ${make}
-           Type command                 ${type}
+	   OpenACS packages             ${oacs_packages_tag}
+	   OpenACS tar release URL      ${oacs_tar_release_url}
+	   OpenACS directory            ${oacs_dir}
+	   OpenACS service              ${oacs_service}
+	   OpenACS user                 ${oacs_user}
+	   OpenACS group                ${oacs_group}
+	   PostgreSQL directory         ${pg_dir}
+	   Database name                ${db_name}
+	   NaviServer install directory ${ns_install_dir}
+	   NaviServer src directory     ${ns_src_dir}
+	   NaviServer modules directory ${modules_src_dir}
+	   Install DotLRN               ${install_dotlrn}
+	   With PostgreSQL              ${with_postgres}
+	   PostgreSQL user              ${pg_user}
+	   Make command                 ${make}
+	   Type command                 ${type}
 "
 
 if [ $build = "0" ] ; then
     echo "
 WARNING    Check Settings AND Cleanup section before running this script!
-           If you know what you're doing then call the call the script as
-              bash $0 build
+	   If you know what you're doing then call the call the script as
+	      bash $0 build
 "
 exit
 fi
@@ -186,9 +189,9 @@ if [ $redhat = "1" ] ; then
     if [ -x "/usr/bin/dnf" ] ; then
 	pkgmanager=/usr/bin/dnf
     else
-	pkgmanager=yum	
+	pkgmanager=yum
     fi
-    
+
     if [ $with_postgres = "1" ] ; then
 	${pkgmanager} install postgresql-server
     fi
@@ -209,7 +212,7 @@ elif  [ $sunos = "1" ] ; then
     if [ $with_postgres = "1" ] ; then
 	running=$(ps ax|fgrep "/postgres ")
 	if [ "$running" = "" ] ; then
-            echo "Postgres is NOT running. Please start the PostgreSQL server first"
+	    echo "Postgres is NOT running. Please start the PostgreSQL server first"
 	fi
     fi
 fi
@@ -312,15 +315,34 @@ cd ${oacs_dir}
 if [ "$oacs_tar_release_url" = "" ] ; then
 
     cvs -q -d:pserver:anonymous@cvs.openacs.org:/cvsroot checkout -r ${oacs_core_tag} acs-core
-    ln -sf $(echo openacs-4/[a-z]*) .
+    if [ ! -d "www" ] ; then
+	ln -sf $(echo openacs-4/[a-z]*) .
+    fi
+
     cd ${oacs_dir}/packages
     cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_tag} xotcl-all
     cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_tag} xowf
     cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_tag} acs-developer-support ajaxhelper
 
+    if [ ! -d "richtext-ckeditor4" ] ; then
+	cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_tag} openacs-4/packages/richtext-ckeditor4
+	mv  openacs-4/packages/richtext-ckeditor4 .
+	rm -rf openacs-4/packages
+    else
+	cd richtext-ckeditor4
+	cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q up
+	cd ..
+    fi
+
     if [ $install_dotlrn = "1" ] ; then
 	cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_tag} dotlrn-all
     fi
+    cd ${oacs_dir}
+
+    cp ${oacs_dir}/packages/acs-bootstrap-installer/installer/www/*.* ${oacs_dir}/www/
+    mkdir -p ${oacs_dir}/www/SYSTEM/
+    cp ${oacs_dir}/packages/acs-bootstrap-installer/installer/www/SYSTEM/*.* ${oacs_dir}/www/SYSTEM
+    cp ${oacs_dir}/packages/acs-bootstrap-installer/installer/tcl/*.* ${oacs_dir}/tcl/
 else
     wget $oacs_tar_release_url -O ${oacs_tar_release}.tar.gz
     tar zxvf ${oacs_tar_release}.tar.gz
@@ -332,7 +354,22 @@ fi
 mkdir -p ${oacs_dir}/www/admin/
 cp ${modules_src_dir}/nsstats/nsstats.tcl ${oacs_dir}/www/admin/
 
-
+#
+# add self-signed certificate
+#
+certfile=${oacs_dir}/etc/certfile.pem
+echo "check for certfile ${certfile}"
+if [ ! -f "${certfile}" ] ; then
+    echo "certfile ${certfile} does not exist"
+    cd /tmp
+    openssl genrsa 1024 > host.key
+    openssl req -new -x509 -nodes -sha1 -days 365 -key host.key -subj /CN=localhost > host.cert
+    cat host.cert host.key > server.pem
+    rm -rf host.cert host.key
+    #openssl dhparam 2048 >> server.pem
+    mv server.pem ${certfile}
+    cd ${oacs_dir}
+fi
 
 chown -R ${oacs_user}:${oacs_group} ${oacs_dir}
 chmod -R g+w ${oacs_dir}
@@ -464,9 +501,9 @@ fi
 
 echo "
 After starting the server, you can use OpenACS by loading
-http://localhost:8000/ from a browser. The NaviServer 
-configuration file  is ${ns_install_dir}/config-${oacs_service}.tcl 
-and might be  tailored to your needs. The access.log and error.log 
+http://localhost:8000/ from a browser. The NaviServer
+configuration file  is ${ns_install_dir}/config-${oacs_service}.tcl
+and might be tailored to your needs. The access.log and error.log
 of this instance are in ${oacs_dir}/log
 
 "
