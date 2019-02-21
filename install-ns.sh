@@ -32,9 +32,11 @@ version_modules=${version_ns}
 #version_modules=HEAD
 #version_tcl=8.5.19
 version_tcl=8.6.8
+#version_tcl=8.6.9
 version_tcllib=1.19
 tcllib_dirname=tcllib
 version_thread=2.8.2
+#version_thread=2.8.4
 version_xotcl=2.2.0
 #version_xotcl=HEAD
 #version_tdom=GIT
@@ -45,6 +47,8 @@ tdom_tar=${tdom_base}-src.tgz
 ns_user=nsadmin
 ns_group=nsadmin
 with_mongo=0
+with_system_malloc=0
+
 
 #
 # The setting "with_postgres=1" means that we want to install a fresh
@@ -199,7 +203,8 @@ SETTINGS   Build-Dir              ${build_dir}
            Type command           ${type}
            With MongoDB           ${with_mongo}
            Install PostgreSQL DB  ${with_postgres}
-           With PostgreSQL driver ${with_postgres_driver}"
+           With PostgreSQL driver ${with_postgres_driver}
+           Tcl with system malloc ${with_system_malloc}"
 
 if [ $with_postgres = "1" ] ; then
     echo "
@@ -492,6 +497,122 @@ echo "------------------------ Installing TCL ---------------------------------"
 set -o errexit
 
 ${tar} xfz tcl${version_tcl}-src.tar.gz
+
+if [ $with_system_malloc = "1" ] ; then
+    cd tcl${version_tcl}
+    cat <<EOF > tcl86-system-malloc.patch
+Index: generic/tclThreadAlloc.c
+==================================================================
+--- generic/tclThreadAlloc.c
++++ generic/tclThreadAlloc.c
+@@ -305,11 +305,19 @@
+  * Side effects:
+  *	May allocate more blocks for a bucket.
+  *
+  *----------------------------------------------------------------------
+  */
+-
++#define SYSTEM_MALLOC 1
++#if defined(SYSTEM_MALLOC)
++char *
++TclpAlloc(
++    unsigned int numBytes)     /* Number of bytes to allocate. */
++{
++    return (char*) malloc(numBytes);
++}
++#else 
+ char *
+ TclpAlloc(
+     unsigned int reqSize)
+ {
+     Cache *cachePtr;
+@@ -366,10 +374,11 @@
+     if (blockPtr == NULL) {
+ 	return NULL;
+     }
+     return Block2Ptr(blockPtr, bucket, reqSize);
+ }
++#endif
+ 
+ /*
+  *----------------------------------------------------------------------
+  *
+  * TclpFree --
+@@ -382,11 +391,19 @@
+  * Side effects:
+  *	May move blocks to shared cache.
+  *
+  *----------------------------------------------------------------------
+  */
+-
++#if defined(SYSTEM_MALLOC)
++void
++TclpFree(
++    char *ptr)         /* Pointer to memory to free. */
++{
++    free(ptr);
++    return;
++}
++#else 
+ void
+ TclpFree(
+     char *ptr)
+ {
+     Cache *cachePtr;
+@@ -425,10 +442,11 @@
+     if (cachePtr != sharedPtr &&
+ 	    cachePtr->buckets[bucket].numFree > bucketInfo[bucket].maxBlocks) {
+ 	PutBlocks(cachePtr, bucket, bucketInfo[bucket].numMove);
+     }
+ }
++#endif
+ 
+ /*
+  *----------------------------------------------------------------------
+  *
+  * TclpRealloc --
+@@ -441,11 +459,19 @@
+  * Side effects:
+  *	Previous memory, if any, may be freed.
+  *
+  *----------------------------------------------------------------------
+  */
+-
++#if defined(SYSTEM_MALLOC)
++char *
++TclpRealloc(
++    char *oldPtr,              /* Pointer to alloced block. */
++    unsigned int numBytes)     /* New size of memory. */
++{
++    return realloc(oldPtr, numBytes);
++}
++#else
+ char *
+ TclpRealloc(
+     char *ptr,
+     unsigned int reqSize)
+ {
+@@ -519,10 +545,11 @@
+ 	memcpy(newPtr, ptr, reqSize);
+ 	TclpFree(ptr);
+     }
+     return newPtr;
+ }
++#endif
+ 
+ /*
+  *----------------------------------------------------------------------
+  *
+  * TclThreadAllocObj --
+
+
+EOF
+    echo "patching Tcl with SYSTEM malloc patch ..."
+    patch -p0 < tcl86-system-malloc.patch
+    echo "patching Tcl with SYSTEM malloc patch DONE"
+    cd ..
+fi
+
 cd tcl${version_tcl}/unix
 ./configure --enable-threads --prefix=${ns_install_dir}
 ${make}
