@@ -55,11 +55,13 @@ oacs_version=5-9-1
 
 #oacs_core_tag=HEAD
 #oacs_core_tag=oacs-5-9
+#oacs_core_tag=oacs-5-10
 oacs_core_tag=openacs-5-9-compat
 #oacs_core_tag=openacs-5-9-0-final
 
 #oacs_packages_tag=HEAD
 #oacs_packages_tag=oacs-5-9
+#oacs_packages_tag=oacs-5-10
 oacs_packages_tag=openacs-5-9-compat
 #oacs_packages_tag=openacs-5-9-0-final
 
@@ -259,7 +261,7 @@ echo "Checking if oacs_user ${oacs_user} exists in db."
 dbuser_exists=$(su ${pg_user} -c "${pg_dir}/bin/psql template1 -tAc \"SELECT 1 FROM pg_roles WHERE rolname='${oacs_user}'\"")
 if [ "$dbuser_exists" != "1" ] ; then
     echo "Creating oacs_user ${oacs_user}."
-    su ${pg_user} -c "${pg_dir}/bin/createuser -a -d ${oacs_user}"
+    su ${pg_user} -c "${pg_dir}/bin/createuser -s -d ${oacs_user}"
 fi
 
 echo "Checking if db ${db_name} exists."
