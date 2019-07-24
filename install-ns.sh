@@ -163,9 +163,14 @@ else
         pg_incl=/usr/local/include/postgresql
         pg_lib=/usr/local/lib
     fi
+    if [ $uname = "FreeBSD" ] ; then
+	group_addcmd="pw groupadd ${ns_group}"
+	ns_user_addcmd="pw useradd ${ns_user} -G ${ns_group} "
+    else
+	group_addcmd="groupadd ${ns_group}"
+	ns_user_addcmd="useradd -g ${ns_group} ${ns_user}"
+    fi
     group_listcmd="grep ${ns_group} /etc/group"
-    group_addcmd="groupadd ${ns_group}"
-    ns_user_addcmd="useradd -g ${ns_group} ${ns_user}"
     ns_user_addgroup_hint="sudo usermod -G ${ns_group} YOUR_USERID"
 fi
 
@@ -366,7 +371,7 @@ if [ $sunos = "1" ] ; then
 fi
 
 if [ $freebsd = "1" ] ; then
-     pkg install gmake clang38 openssl automake wget curl zip unzip ${pg_packages} ${autoconf} ${mercurial} ${git} ${mongodb}
+     pkg install gmake llvm openssl automake wget curl zip unzip ${pg_packages} ${autoconf} ${mercurial} ${git} ${mongodb}
 fi
 
 echo "------------------------ Downloading sources ----------------------------"
@@ -419,7 +424,7 @@ else
 	nsexample nsgdchart nssavi nssys nszlib nsaspell \
 	nsclamav nsexpat nsimap nssip nstftpd \
 	nssyslogd nsldapd nsradiusd nsphp nsstats nsconf \
-	nsdhcpd nsrtsp nsauthpam nsmemcache nsssl \
+	nsdhcpd nsrtsp nsauthpam nsmemcache \
 	nsvfs nsdbi nsdbipg nsdbilite nsdbimy
     do
 	if [ ! -d $d ] ; then
@@ -619,11 +624,11 @@ ${make}
 ${make} install
 
 # Make sure, we have a tclsh in ns/bin
-if [ -f $ns_install_dir/bin/tclsh ] ; then
-    rm $ns_install_dir/bin/tclsh
+if [ -f ${ns_install_dir}/bin/tclsh ] ; then
+    rm ${ns_install_dir}/bin/tclsh
 fi
-source $ns_install_dir/lib/tclConfig.sh
-ln -sf $ns_install_dir/bin/tclsh${TCL_VERSION} $ns_install_dir/bin/tclsh
+source ${ns_install_dir}/lib/tclConfig.sh
+ln -sf ${ns_install_dir}/bin/tclsh${TCL_VERSION} ${ns_install_dir}/bin/tclsh
 
 cd ../..
 
@@ -639,21 +644,21 @@ echo "------------------------ Installing Naviserver ---------------------------
 
 cd ${build_dir}
 
-if [ ! $version_ns = "HEAD" ] ; then
+if [ ! ${version_ns} = "HEAD" ] ; then
     ${tar} zxvf naviserver-${version_ns}.tar.gz
     cd naviserver-${version_ns}
     ./configure --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir}
 else
     cd naviserver
     if [ ! -f naviserver/configure ] ; then
-	bash autogen.sh --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir}
+	bash autogen.sh --enable-threads --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir}
     else
-	./configure --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir}
+	./configure --enable-threads --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir}
     fi
 fi
 ${make}
 
-if [ $version_ns = "HEAD" ] ; then
+if [ ${version_ns} = "HEAD" ] ; then
     ${make} "DTPLITE=${ns_install_dir}/bin/tclsh $ns_install_dir/bin/dtplite" build-doc
 fi
 ${make} install
