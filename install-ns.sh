@@ -586,7 +586,7 @@ Index: generic/tclThreadAlloc.c
 +#if defined(SYSTEM_MALLOC)
 +char *
 +TclpRealloc(
-+    char *oldPtr,              /* Pointer to alloced block. */
++    char *oldPtr,              /* Pointer to allocated block. */
 +    unsigned int numBytes)     /* New size of memory. */
 +{
 +    return realloc(oldPtr, numBytes);
