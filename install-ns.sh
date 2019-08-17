@@ -35,8 +35,8 @@ version_modules=${version_ns}
 version_tcl=8.6.9
 version_tcllib=1.19
 tcllib_dirname=tcllib
-version_thread=2.8.2
-#version_thread=2.8.4
+#version_thread=2.8.2
+version_thread=2.8.4
 version_xotcl=2.3.0
 #version_xotcl=HEAD
 #version_tdom=GIT
@@ -619,7 +619,7 @@ EOF
 fi
 
 cd tcl${version_tcl}/unix
-./configure --enable-threads --prefix=${ns_install_dir}
+./configure --enable-threads --prefix=${ns_install_dir} --with-naviserver=${ns_install_dir}
 ${make}
 ${make} install
 
