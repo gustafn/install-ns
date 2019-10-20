@@ -127,11 +127,9 @@ LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
 	   This is free software, and you are welcome to redistribute it under certain conditions;
 	   For details see http://www.gnu.org/licenses.
 
-SETTINGS   OpenACS version              ${oacs_core_tag}
-	   OpenACS packages             ${oacs_packages_tag}
-	   OpenACS tar release URL      ${oacs_tar_release_url}
-	   OpenACS core tag             ${oacs_core_tag}
+SETTINGS   OpenACS version tag          ${oacs_core_tag}
 	   OpenACS packages tag         ${oacs_packages_tag}
+	   OpenACS tar release URL      ${oacs_tar_release_url}
 	   OpenACS directory            ${oacs_dir}
 	   OpenACS service              ${oacs_service}
 	   OpenACS user                 ${oacs_user}
@@ -492,7 +490,7 @@ Congratulations, you have installed OpenACS with NaviServer on your machine.
 You might start the server manually with
 
     sudo ${ns_install_dir}/bin/nsd -t ${ns_install_dir}/config-${oacs_service}.tcl -u ${oacs_user} -g ${oacs_group}"
-if [ $redhat = "1" ] ; then
+if [ $systemd = "1" ] ; then
 echo "
 or you can manage your installation with systemd (RedHat, Fedora Core). In this case,
 you might use the following commands
@@ -501,7 +499,7 @@ you might use the following commands
     systemctl start ${oacs_service}
     systemctl stop ${oacs_service}
 "
-elif [ $debian = "1" ] ; then
+elif [ $upstart = "1" ] ; then
 echo "
 or you can manage your installation with upstart (Ubuntu/Debian). In this case,
 you might use the following commands
