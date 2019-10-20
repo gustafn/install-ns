@@ -312,6 +312,7 @@ if [ "$oacs_tar_release_url" = "" ] ; then
 fi
 
 mkdir -p ${oacs_dir}
+mkdir -p ${oacs_dir}/log
 cd ${oacs_dir}
 
 if [ "$oacs_tar_release_url" = "" ] ; then
@@ -376,7 +377,9 @@ fi
 chown -R ${oacs_user}:${oacs_group} ${oacs_dir}
 chmod -R g+w ${oacs_dir}
 
-# install and adapt NaviServer config file
+#
+# Install and adapt NaviServer config file.
+#
 echo "Writing ${ns_install_dir}/config-${oacs_service}.tcl"
 cp ${ns_src_dir}/openacs-config.tcl ${ns_install_dir}/config-${oacs_service}.tcl
 cat << EOF > /tmp/subst.tcl
@@ -492,7 +495,7 @@ You might start the server manually with
     sudo ${ns_install_dir}/bin/nsd -t ${ns_install_dir}/config-${oacs_service}.tcl -u ${oacs_user} -g ${oacs_group}"
 if [ $systemd = "1" ] ; then
 echo "
-or you can manage your installation with systemd (RedHat, Fedora Core). In this case,
+or you can manage your installation with systemd. In this case,
 you might use the following commands
 
     systemctl status ${oacs_service}
