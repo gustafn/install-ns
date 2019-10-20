@@ -45,12 +45,13 @@ ns_install_dir=/usr/local/ns
 #      released (similar to a tar file produced at the time of
 #      a release of the main OpenACS packages).
 #
-# When the parameter "oacs_tar_release_url" is non-empty, the tar
-# release is installed.  Otherwise, a checkout from CVS is used based
+# One can obtain the OpenACS sources either via tar file or via
+# cvs. When "oacs_tar_release_url" is non-empty, it is used and the CVS tags
+# are ignored. Otherwise, a checkout from CVS is used based
 # on "oacs_core_tag" and "oacs_packages_tag".
 #
-
 oacs_version=5-9-1
+#oacs_version=5-10-0
 #oacs_version=HEAD
 
 #oacs_core_tag=HEAD
@@ -65,11 +66,6 @@ oacs_core_tag=openacs-5-9-compat
 oacs_packages_tag=openacs-5-9-compat
 #oacs_packages_tag=openacs-5-9-0-final
 
-#
-# One can obtain the OpenACS sources either via tar file or via
-# cvs. When oacs_tar_release is non-empty, it is used and the CVS tags
-# are ignored.
-#
 oacs_tar_release=openacs-5.9.1
 oacs_tar_release_url=https://openacs.org/projects/openacs/download/download/${oacs_tar_release}.tar.gz?revision_id=5373766
 oacs_tar_release_url=
@@ -81,6 +77,10 @@ install_dotlrn=0
 
 pg_dir=/usr/
 #pg_dir=/usr/local/pgsql
+
+#
+# End of configuration block.
+#
 
 source ${ns_install_dir}/lib/nsConfig.sh
 if [ "$ns_user" = "" ] ; then
@@ -130,6 +130,8 @@ LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
 SETTINGS   OpenACS version              ${oacs_core_tag}
 	   OpenACS packages             ${oacs_packages_tag}
 	   OpenACS tar release URL      ${oacs_tar_release_url}
+	   OpenACS core tag             ${oacs_core_tag}
+	   OpenACS packages tag         ${oacs_packages_tag}
 	   OpenACS directory            ${oacs_dir}
 	   OpenACS service              ${oacs_service}
 	   OpenACS user                 ${oacs_user}
@@ -397,8 +399,17 @@ if [ $redhat = "1" ] ; then
 fi
 
 if [ $debian = "1" ] ; then
-    upstart=1
+    #
+    # Check, if the debian release still has /etc/init. If so, on can
+    # generate the upstart file.
+    #
+    if [ -d "/etc/init" ] ; then
+        upstart=1
+    fi
 
+    #
+    # Nowadays, most debian releases support systemd.
+    #
     if [ -f "/etc/lsb-release" ] ; then
 	. /etc/lsb-release
 	if dpkg --compare-versions "$DISTRIB_RELEASE" "ge" "15.04" ; then
