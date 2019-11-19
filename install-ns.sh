@@ -619,7 +619,8 @@ EOF
 fi
 
 cd tcl${version_tcl}/unix
-./configure --enable-threads --prefix=${ns_install_dir} --with-naviserver=${ns_install_dir}
+./configure --enable-threads --prefix=${ns_install_dir}
+#./configure --enable-threads --prefix=${ns_install_dir} --with-naviserver=${ns_install_dir}
 ${make}
 ${make} install
 
