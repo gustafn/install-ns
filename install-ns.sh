@@ -32,8 +32,8 @@ version_modules=${version_ns}
 #version_modules=HEAD
 #version_tcl=8.5.19
 #version_tcl=8.6.8
-version_tcl=8.6.9
-version_tcllib=1.19
+version_tcl=8.6.10
+version_tcllib=1.20
 tcllib_dirname=tcllib
 #version_thread=2.8.2
 version_thread=2.8.4
@@ -159,9 +159,9 @@ else
 	pkg install bash
     elif [ $uname = "OpenBSD" ] ; then
         make="gmake"
-        setenv LIBS=-lpthread
         pg_incl=/usr/local/include/postgresql
         pg_lib=/usr/local/lib
+	openbsd=1
     fi
     if [ $uname = "FreeBSD" ] ; then
 	group_addcmd="pw groupadd ${ns_group}"
@@ -184,7 +184,7 @@ releases and compiling it.
 
 The script has a long heritage:
 (c) 2008      Malte Sussdorff, Nima Mazloumi
-(c) 2012-2018 Gustaf Neumann
+(c) 2012-2019 Gustaf Neumann
 
 Tested under macOS, Ubuntu 12.04, 13.04, 14.04, 16.04, 18.04, Raspbian 9.4,
 OmniOS r151014, OpenBSD 4.2, Fedora Core 18, and CentOS 7 (pg 9.4.5)
@@ -374,6 +374,14 @@ if [ $freebsd = "1" ] ; then
      pkg install gmake llvm openssl automake wget curl zip unzip ${pg_packages} ${autoconf} ${mercurial} ${git} ${mongodb}
 fi
 
+if [ $openbsd = "1" ] ; then
+    export PKG_PATH=https://ftp.eu.openbsd.org/pub/OpenBSD/6.3/packages/`machine -a`/
+    export AUTOCONF_VERSION=2.69
+    export AUTOMAKE_VERSION=1.15
+    pkg_add gcc openssl wget ${git} curl zip unzip bash gmake ${mercurial} ${mongodb} ${pg_packages} autoconf-2.69p2 automake-1.15.1
+fi
+
+
 echo "------------------------ Downloading sources ----------------------------"
 set -o errexit
 
@@ -428,7 +436,7 @@ else
 	nsvfs nsdbi nsdbipg nsdbilite nsdbimy
     do
 	if [ ! -d $d ] ; then
-	    hg clone http://bitbucket.org/naviserver/$d
+	    hg clone https://bitbucket.org/naviserver/$d
 	else
 	    cd $d
 	    hg pull
@@ -498,7 +506,7 @@ fi
 
 
 #exit
-echo "------------------------ Installing TCL ---------------------------------"
+echo "------------------------ Installing Tcl ---------------------------------"
 set -o errexit
 
 ${tar} xfz tcl${version_tcl}-src.tar.gz
@@ -633,7 +641,7 @@ ln -sf ${ns_install_dir}/bin/tclsh${TCL_VERSION} ${ns_install_dir}/bin/tclsh
 
 cd ../..
 
-echo "------------------------ Installing TCLLib ------------------------------"
+echo "------------------------ Installing Tcllib ------------------------------"
 
 ${tar} xvfj ${tcllib_dirname}-${version_tcllib}.tar.bz2
 cd ${tcllib_dirname}-${version_tcllib}
@@ -641,7 +649,7 @@ cd ${tcllib_dirname}-${version_tcllib}
 ${make} install
 cd ..
 
-echo "------------------------ Installing Naviserver ---------------------------"
+echo "------------------------ Installing NaviServer ---------------------------"
 
 cd ${build_dir}
 
