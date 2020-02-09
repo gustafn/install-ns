@@ -316,19 +316,18 @@ else
     mongodb=
 fi
 
-if [ $with_mongo = "1" ] || [ $version_xotcl = "HEAD" ] || [ $version_tdom = "GIT" ] ; then
+if [ $with_mongo = "1" ] || [ $version_xotcl = "HEAD" ] || [ $version_tdom = "GIT" ] || [ $version_ns = "HEAD" ]; then
     git=git
 else
     git=
 fi
 
 if [ $version_ns = "HEAD" ] ; then
-    mercurial=mercurial
     autoconf=autoconf
 else
-    mercurial=
     autoconf=
 fi
+mercurial=
 
 if [ $debian = "1" ] ; then
     # On Debian/Ubuntu, make sure we have zlib installed, otherwise
@@ -355,7 +354,7 @@ if [ $sunos = "1" ] ; then
     # packages for OpenSolaris/OmniOS
     pkg install pkg://omnios/developer/versioning/git mercurial ${autoconf} automake /developer/gcc51 zlib wget \
 	curl compress/zip compress/unzip \
-	${pg_packages} ${mercurial} ${mongodb}
+	${pg_packages} ${mercurial} ${git} ${mongodb}
     pkg install \
 	developer/object-file \
 	developer/linker \
@@ -377,7 +376,7 @@ if [ $openbsd = "1" ] ; then
     export PKG_PATH=https://ftp.eu.openbsd.org/pub/OpenBSD/6.3/packages/`machine -a`/
     export AUTOCONF_VERSION=2.69
     export AUTOMAKE_VERSION=1.15
-    pkg_add gcc openssl wget ${git} curl zip unzip bash gmake ${mercurial} ${mongodb} ${pg_packages} autoconf-2.69p2 automake-1.15.1
+    pkg_add gcc openssl wget curl zip unzip bash gmake ${mercurial} ${git} ${mongodb} ${pg_packages} autoconf-2.69p2 automake-1.15.1
 fi
 
 
@@ -406,11 +405,10 @@ if [ ! $version_ns = "HEAD" ] ; then
     fi
 else
     if [ ! -d naviserver ] ; then
-	hg clone https://bitbucket.org/naviserver/naviserver
+	git clone https://bitbucket.org/naviserver/naviserver
     else
 	cd naviserver
-	hg pull
-	hg update
+	git pull
 	cd ..
     fi
 fi
@@ -435,11 +433,10 @@ else
 	nsvfs nsdbi nsdbipg nsdbilite nsdbimy
     do
 	if [ ! -d $d ] ; then
-	    hg clone https://bitbucket.org/naviserver/$d
+	    git clone https://bitbucket.org/naviserver/$d
 	else
 	    cd $d
-	    hg pull
-	    hg update
+	    git pull
 	    cd ..
 	fi
     done
