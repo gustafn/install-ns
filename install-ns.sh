@@ -113,10 +113,10 @@ if [ $uname = "Darwin" ] ; then
     ns_user_addgroup_hint="dseditgroup -o edit -a YOUR_USERID -t user ${ns_group}"
 
     if [ $with_postgres = "1" ] ; then
-	# Preconfigured for PostgreSQL 9.6 installed via mac ports
-	pg_incl=/opt/local/include/postgresql96/
-	pg_lib=/opt/local/lib/postgresql96/
-	pg_packages="postgresql96 postgresql96-server"
+	# Preconfigured for PostgreSQL 12 installed via MacPorts
+	pg_incl=/opt/local/include/postgresql12/
+	pg_lib=/opt/local/lib/postgresql12/
+	pg_packages="postgresql12 postgresql12-server"
     fi
 else
     #
@@ -343,7 +343,7 @@ if [ $redhat = "1" ] ; then
 	pkgmanager=yum	
     fi
 
-    ${pkgmanager} install make ${autoconf} gcc zlib zlib-devel wget curl zip unzip openssl openssl-devel ${pg_packages} ${mercurial} ${git} ${mongodb}
+    ${pkgmanager} install make ${autoconf} automake gcc zlib zlib-devel wget curl zip unzip openssl openssl-devel ${pg_packages} ${mercurial} ${git} ${mongodb}
 fi
 
 if [ $macosx = "1" ] ; then
