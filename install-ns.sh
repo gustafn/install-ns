@@ -183,10 +183,10 @@ releases and compiling it.
 
 The script has a long heritage:
 (c) 2008      Malte Sussdorff, Nima Mazloumi
-(c) 2012-2019 Gustaf Neumann
+(c) 2012-2020 Gustaf Neumann
 
 Tested under macOS, Ubuntu 12.04, 13.04, 14.04, 16.04, 18.04, Raspbian 9.4,
-OmniOS r151014, OpenBSD 4.2, Fedora Core 18, and CentOS 7 (pg 9.4.5)
+OmniOS r151014, OpenBSD 6.1, 6.3, 6.6, Fedora Core 18, and CentOS 7 (pg 9.4.5)
 
 LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
            This is free software, and you are welcome to redistribute it under certain conditions;
@@ -373,9 +373,14 @@ if [ $freebsd = "1" ] ; then
 fi
 
 if [ $openbsd = "1" ] ; then
-    export PKG_PATH=https://ftp.eu.openbsd.org/pub/OpenBSD/6.3/packages/`machine -a`/
+    #export PKG_PATH=https://ftp.eu.openbsd.org/pub/OpenBSD/6.3/packages/`machine -a`/
     export AUTOCONF_VERSION=2.69
     export AUTOMAKE_VERSION=1.15
+    #
+    # OpenBSD does not require a build with OpenSSL (libreSSL works as
+    # well), but NaviServer gets more functionality by using recent
+    # versions of OpenSSL.
+    #
     pkg_add gcc openssl wget curl zip unzip bash gmake ${mercurial} ${git} ${mongodb} ${pg_packages} autoconf-2.69p2 automake-1.15.1
 fi
 
