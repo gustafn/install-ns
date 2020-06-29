@@ -82,6 +82,7 @@ redhat=0
 macosx=0
 sunos=0
 freebsd=0
+openbsd=0
 
 make="make"
 type="type -a"
