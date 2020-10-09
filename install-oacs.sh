@@ -46,7 +46,7 @@ ns_install_dir=/usr/local/ns
 #      a release of the main OpenACS packages).
 #
 # One can obtain the OpenACS sources either via tar file or via
-# cvs. When "oacs_tar_release_url" is non-empty, it is used and the CVS tags
+# cvs. When "oacs_tar_release_url" is nonempty, it is used and the CVS tags
 # are ignored. Otherwise, a checkout from CVS is used based
 # on "oacs_core_tag" and "oacs_packages_tag".
 #
@@ -325,17 +325,7 @@ if [ "$oacs_tar_release_url" = "" ] ; then
     cd ${oacs_dir}/packages
     cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_tag} xotcl-all
     cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_tag} xowf
-    cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_tag} acs-developer-support ajaxhelper
-
-    if [ ! -d "richtext-ckeditor4" ] ; then
-	cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_tag} openacs-4/packages/richtext-ckeditor4
-	mv  openacs-4/packages/richtext-ckeditor4 .
-	rm -rf openacs-4/packages
-    else
-	cd richtext-ckeditor4
-	cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q up
-	cd ..
-    fi
+    cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_tag} acs-developer-support ajaxhelper attachments richtext-ckeditor4
 
     if [ $install_dotlrn = "1" ] ; then
 	cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_tag} dotlrn-all
