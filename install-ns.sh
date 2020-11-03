@@ -163,7 +163,7 @@ else
         if [ $with_postgres = "1" ] ; then
             if [ $with_postgres_driver = "1" ] ; then
                 pg_packages="postgresql-client postgresql-server"
-            elif
+            else
                 pg_packages="postgresql-server"
             fi
             pg_incl=/usr/local/include/postgresql
