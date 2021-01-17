@@ -26,12 +26,12 @@ build_dir=/usr/local/src
 #build_dir=/usr/local/src/oo2
 ns_install_dir=/usr/local/ns
 #ns_install_dir=/usr/local/oo2
-version_ns=4.99.19
+version_ns=4.99.20
 #version_ns=HEAD
 version_modules=${version_ns}
 #version_modules=HEAD
 #version_tcl=8.5.19
-version_tcl=8.6.10
+version_tcl=8.6.11
 version_tcllib=1.20
 tcllib_dirname=tcllib
 #version_thread=2.8.2
@@ -320,7 +320,7 @@ fi
 
 echo "------------------------ System dependencies ---------------------------------"
 if [ $with_mongo = "1" ] ; then
-    mongodb="mongodb libtool autoconf cmake"
+    mongodb="libtool autoconf cmake mongodb"
 else
     mongodb=
 fi
