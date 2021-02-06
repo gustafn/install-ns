@@ -551,7 +551,7 @@ Index: generic/tclThreadAlloc.c
      Cache *cachePtr;
 @@ -366,10 +374,11 @@
      if (blockPtr == NULL) {
-        return NULL;
+ 	return NULL;
      }
      return Block2Ptr(blockPtr, bucket, reqSize);
  }
@@ -584,8 +584,8 @@ Index: generic/tclThreadAlloc.c
      Cache *cachePtr;
 @@ -425,10 +442,11 @@
      if (cachePtr != sharedPtr &&
-            cachePtr->buckets[bucket].numFree > bucketInfo[bucket].maxBlocks) {
-        PutBlocks(cachePtr, bucket, bucketInfo[bucket].numMove);
+ 	    cachePtr->buckets[bucket].numFree > bucketInfo[bucket].maxBlocks) {
+ 	PutBlocks(cachePtr, bucket, bucketInfo[bucket].numMove);
      }
  }
 +#endif
@@ -604,7 +604,7 @@ Index: generic/tclThreadAlloc.c
 +#if defined(SYSTEM_MALLOC)
 +char *
 +TclpRealloc(
-+    char *oldPtr,              /* Pointer to allocated block. */
++    char *oldPtr,              /* Pointer to alloced block. */
 +    unsigned int numBytes)     /* New size of memory. */
 +{
 +    return realloc(oldPtr, numBytes);
@@ -616,8 +616,8 @@ Index: generic/tclThreadAlloc.c
      unsigned int reqSize)
  {
 @@ -519,10 +545,11 @@
-        memcpy(newPtr, ptr, reqSize);
-        TclpFree(ptr);
+ 	memcpy(newPtr, ptr, reqSize);
+ 	TclpFree(ptr);
      }
      return newPtr;
  }
