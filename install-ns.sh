@@ -30,6 +30,7 @@ version_ns=4.99.20
 #version_ns=HEAD
 version_modules=${version_ns}
 #version_modules=HEAD
+
 #version_tcl=8.5.19
 version_tcl=8.6.11
 version_tcllib=1.20
@@ -158,8 +159,9 @@ else
         # make sure that bash is installed here, such that the recommendation for bash works below
         pkg install bash
     elif [ $uname = "OpenBSD" ] ; then
-        make="gmake"
+        make="gmake CC=clang"
         openbsd=1
+        export CC=clang
         if [ $with_postgres = "1" ] ; then
             if [ $with_postgres_driver = "1" ] ; then
                 pg_packages="postgresql-client postgresql-server"
@@ -391,6 +393,7 @@ if [ $openbsd = "1" ] ; then
     # versions of OpenSSL.
     #
     pkg_add gcc openssl wget curl zip unzip bash gmake ${mercurial} ${git} ${mongodb} ${pg_packages} autoconf-2.69p2 automake-1.15.1
+    pkg_add autoconf-2.69p3
 fi
 
 
