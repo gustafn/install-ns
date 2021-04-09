@@ -20,13 +20,13 @@ done
 
 
 echo "------------------------ Settings ---------------------------------------"
-# Installation directory and software versions to be installed
+# Installation directory and software versions to be installed.
 
 build_dir=/usr/local/src
 #build_dir=/usr/local/src/oo2
 ns_install_dir=/usr/local/ns
 #ns_install_dir=/usr/local/oo2
-version_ns=4.99.20
+version_ns=4.99.21
 #version_ns=HEAD
 version_modules=${version_ns}
 #version_modules=HEAD
