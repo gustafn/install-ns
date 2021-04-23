@@ -36,7 +36,7 @@ version_tcl=8.6.11
 version_tcllib=1.20
 tcllib_dirname=tcllib
 #version_thread=2.8.2
-version_thread=2.8.5
+version_thread=2.8.6
 version_xotcl=2.3.0
 #version_xotcl=HEAD
 #version_tdom=GIT
@@ -638,6 +638,8 @@ EOF
     echo "patching Tcl with SYSTEM malloc patch DONE"
     cd ..
 fi
+
+# rm -rf  tcl${version_tcl}/pkgs/sqlit*
 
 cd tcl${version_tcl}/unix
 ./configure --enable-threads --prefix=${ns_install_dir}
