@@ -196,8 +196,8 @@ The script has a long heritage:
 (c) 2012-2020 Gustaf Neumann
 
 Tested under macOS, Ubuntu 12.04, 13.04, 14.04, 16.04, 18.04, 20.04, Raspbian 9.4,
-OmniOS r151014, OpenBSD 6.1, 6.3, 6.6, 6.8, FreeBSD 12.2, Fedora Core 18, 20,
-and CentOS 7
+OmniOS r151014, OpenBSD 6.1, 6.3, 6.6, 6.8, FreeBSD 12.2, 13-current,
+Fedora Core 18, 20, 32, CentOS 7, Roxy Linux 8.4
 
 LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
            This is free software, and you are welcome to redistribute it under certain conditions;
@@ -258,7 +258,7 @@ if [ $do_clean = 1 ] ; then
     #rm    naviserver-${version_ns}.tar.gz
     rm -rf naviserver-${version_ns}
     #rm    naviserver-${version_ns}-modules.tar.gz
-    rm -r modules
+    rm -rf modules modules-git
     #rm    thread${version_thread}.tar.gz
     rm -r thread${version_thread}
     #rm    nsf${version_xotcl}.tar.gz
@@ -432,22 +432,66 @@ fi
 
 cd ${build_dir}
 if [ ! ${version_modules} = "HEAD" ] ; then
+    modules_dir=modules
     if [ ! -f naviserver-${version_modules}-modules.tar.gz ] ; then
         wget ${wget_options} https://downloads.sourceforge.net/sourceforge/naviserver/naviserver-${version_modules}-modules.tar.gz
     fi
 else
-    if [ ! -d modules ] ; then
-        mkdir modules
+    modules_dir=modules-git
+    if [ ! -d ${modules_dir} ] ; then
+        mkdir ${modules_dir}
     fi
-    cd modules
-    for d in nsdbbdb nsdbtds nsdbsqlite nsdbpg nsdbmysql \
-        nsocaml nssmtpd nstk nsdns nsfortune \
-        nssnmp nsicmp nsudp nsaccess nschartdir \
-        nsexample nsgdchart nssavi nssys nszlib nsaspell \
-        nsclamav nsexpat nsimap nssip nstftpd \
-        nssyslogd nsldapd nsradiusd nsphp nsstats nsconf \
-        nsdhcpd nsrtsp nsauthpam nsmemcache \
-        nsvfs nsdbi nsdbipg nsdbilite nsdbimy
+    cd ${modules_dir}
+    for d in letsencrypt \
+                 nsaccess \
+                 nsaspell \
+                 nsauthpam \
+                 nschartdir \
+                 nsclamav \
+                 nscoap \
+                 nsconf \
+                 nsdbbdb \
+                 nsdbi \
+                 nsdbilite \
+                 nsdbimy \
+                 nsdbipg \
+                 nsdbmysql \
+                 nsdbpg \
+                 nsdbsqlite \
+                 nsdbtds \
+                 nsdhcpd \
+                 nsdns \
+                 nsexample \
+                 nsexpat \
+                 nsfortune \
+                 nsgdchart \
+                 nsicmp \
+                 nsimap \
+                 nsldap \
+                 nsldapd \
+                 nsloopctl \
+                 nsmemcache \
+                 nsocaml \
+                 nsoracle \
+                 nsphp \
+                 nsradiusd \
+                 nsrtsp \
+                 nssavi \
+                 nsshell \
+                 nssip \
+                 nssmtpd \
+                 nssnmp \
+                 nsstats \
+                 nssys \
+                 nssyslogd \
+                 nstftpd \
+                 nstk \
+                 nsudp \
+                 nsvfs \
+                 nswebpush \
+                 nszlib \
+                 revproxy \
+                 websocket
     do
         if [ ! -d $d ] ; then
             git clone https://bitbucket.org/naviserver/$d
@@ -695,7 +739,7 @@ if [ $with_postgres_driver = "1" ] ; then
     if [ ! ${version_modules} = "HEAD" ] ; then
         ${tar} zxvf naviserver-${version_modules}-modules.tar.gz
     fi
-    cd modules/nsdbpg
+    cd ${modules_dir}/nsdbpg
     ${make} PGLIB=${pg_lib} PGINCLUDE=${pg_incl} NAVISERVER=${ns_install_dir}
     ${make} NAVISERVER=${ns_install_dir} install
     cd ../..
