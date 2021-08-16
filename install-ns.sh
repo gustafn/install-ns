@@ -96,18 +96,22 @@ if [ $uname = "Darwin" ] ; then
     macosx=1
     group_listcmd="dscl . list /Groups | grep ${ns_group}"
     group_addcmd="dscl . create /Groups/${ns_group} PrimaryGroupID $((`dscl . -list /Groups PrimaryGroupID | awk '{print $2}' | sort -rn|head -1` + 1))"
-    ns_user_addcmd="dscl . create /Users/${ns_user};dseditgroup -o edit -a ${ns_user} -t user ${ns_group}"
+    ns_user_addcmd="dscl . create /Users/${ns_user}; dseditgroup -o edit -a ${ns_user} -t user ${ns_group}"
     ns_user_addgroup_hint="dseditgroup -o edit -a YOUR_USERID -t user ${ns_group}"
 
-    osxversion=$(sw_vers -productVersion | awk -F '.' '{print $2}')
     maxid=$(dscl . -list /Users UniqueID | awk '{print $2}' | sort -ug | tail -1)
     newid=$((maxid+1))
+
+    osxversionmajor=$(sw_vers -productVersion | awk -F '.' '{print $1}')
+    osxversionminor=$(sw_vers -productVersion | awk -F '.' '{print $2}')
 
     #
     # In OS X Yosemite (macOS 10.10.*) sysadminctl was added for creating users
     #
-    if [ ${osxversion} -ge 10 ]; then
-        ns_user_addcmd="sysadminctl -addUser ${ns_user} -UID ${newid}; dseditgroup -o edit -a ${ns_user} -t user ${ns_group}"
+    if [ ${osxversionmajor} -gt 10 ]; then
+        ns_user_addcmd="sysadminctl -addUser ${ns_user} -UID ${newid}; dseditgroup -o edit -a ${ns_user} -t user ${ns_group}; dscl . -create /Users/${ns_user} PrimaryGroupID `dscl . -read  /Groups/nsadmin PrimaryGroupID | awk '{print $2}'`"
+    elif [ ${osxversionminor} -ge 10 ]; then
+        ns_user_addcmd="sysadminctl -addUser ${ns_user} -UID ${newid}; dseditgroup -o edit -a ${ns_user} -t user ${ns_group}; dscl . -create /Users/${ns_user} PrimaryGroupID `dscl . -read  /Groups/nsadmin PrimaryGroupID | awk '{print $2}'`"
     else
         ns_user_addcmd="dscl . create /Users/${ns_user}; dscl . -create /Users/${ns_user} UniqueID ${newid}; dseditgroup -o edit -a ${ns_user} -t user ${ns_group}"
     fi
@@ -339,6 +343,7 @@ else
     autoconf=
 fi
 mercurial=
+with_openssl_configure_flag=
 
 if [ $debian = "1" ] ; then
     # On Debian/Ubuntu, make sure we have zlib installed, otherwise
@@ -358,7 +363,8 @@ if [ $redhat = "1" ] ; then
 fi
 
 if [ $macosx = "1" ] ; then
-    port install make ${autoconf} zlib wget curl zip unzip openssl ${pg_packages} ${mercurial} ${git} ${mongodb}
+    port install ${autoconf} automake zlib wget curl zip unzip openssl ${pg_packages} ${mercurial} ${git} ${mongodb}
+    with_openssl_configure_flag="--with-openssl=/opt/local"
 fi
 
 if [ $sunos = "1" ] ; then
@@ -715,13 +721,13 @@ cd ${build_dir}
 if [ ! ${version_ns} = "HEAD" ] ; then
     ${tar} zxvf naviserver-${version_ns}.tar.gz
     cd naviserver-${version_ns}
-    ./configure --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir}
+    ./configure --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir} ${with_openssl_configure_flag}
 else
     cd naviserver
     if [ ! -f naviserver/configure ] ; then
-        bash autogen.sh --enable-threads --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir}
+        bash autogen.sh --enable-threads --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir} ${with_openssl_configure_flag}
     else
-        ./configure --enable-threads --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir}
+        ./configure --enable-threads --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir} ${with_openssl_configure_flag}
     fi
 fi
 ${make}
