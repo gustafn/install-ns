@@ -26,7 +26,7 @@ build_dir=/usr/local/src
 #build_dir=/usr/local/src/oo2
 ns_install_dir=/usr/local/ns
 #ns_install_dir=/usr/local/oo2
-version_ns=4.99.21
+version_ns=4.99.22
 #version_ns=HEAD
 version_modules=${version_ns}
 #version_modules=HEAD
@@ -176,11 +176,14 @@ else
             pg_lib=/usr/local/lib
         fi
     fi
+
+    group_addcmd="groupadd ${ns_group}"
     if [ $uname = "FreeBSD" ] ; then
         group_addcmd="pw groupadd ${ns_group}"
         ns_user_addcmd="pw useradd ${ns_user} -G ${ns_group} "
+    elif [ $uname = "OpenBSD" ] ; then
+        ns_user_addcmd="useradd -m -g ${ns_group} ${ns_user}"
     else
-        group_addcmd="groupadd ${ns_group}"
         ns_user_addcmd="useradd -g ${ns_group} ${ns_user}"
     fi
     group_listcmd="grep ${ns_group} /etc/group"
