@@ -50,24 +50,24 @@ ns_install_dir=/usr/local/ns
 # are ignored. Otherwise, a checkout from CVS is used based
 # on "oacs_core_tag" and "oacs_packages_tag".
 #
-oacs_version=5-9-1
-#oacs_version=5-10-0
+#oacs_version=5-9-1
+oacs_version=5-10-0
 #oacs_version=HEAD
 
 #oacs_core_tag=HEAD
 #oacs_core_tag=oacs-5-9
 #oacs_core_tag=oacs-5-10
-oacs_core_tag=openacs-5-9-compat
+oacs_core_tag=openacs-5-10-compat
 #oacs_core_tag=openacs-5-9-0-final
 
 #oacs_packages_tag=HEAD
 #oacs_packages_tag=oacs-5-9
 #oacs_packages_tag=oacs-5-10
-oacs_packages_tag=openacs-5-9-compat
+oacs_packages_tag=openacs-5-10-compat
 #oacs_packages_tag=openacs-5-9-0-final
 
-oacs_tar_release=openacs-5.9.1
-oacs_tar_release_url=https://openacs.org/projects/openacs/download/download/${oacs_tar_release}.tar.gz?revision_id=5373766
+oacs_tar_release=openacs-5.10.0
+oacs_tar_release_url=https://openacs.org/projects/openacs/download/download/openacs-full-5.10.0.tar.gz?revision_id=5537440
 oacs_tar_release_url=
 
 oacs_service=oacs-${oacs_version}
