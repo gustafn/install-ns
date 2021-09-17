@@ -387,7 +387,7 @@ ${ns_install_dir}/bin/tclsh /tmp/subst.tcl
 systemd=0
 upstart=0
 
-if [ $redhat = "1" ] ; then
+if [ $redhat = "1" ] || [ $archlinux = "1" ] ; then
     systemd=1
 fi
 
