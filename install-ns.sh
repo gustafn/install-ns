@@ -50,6 +50,9 @@ with_mongo=0
 with_system_malloc=0
 
 
+#tcllib_tar=${tcllib_dirname}-${version_tcllib}.tar.bz2
+tcllib_tar=${tcllib_dirname}-${version_tcllib}.tar.gz
+
 #
 # The setting "with_postgres=1" means that we want to install a fresh
 # packaged PostgeSQL.
@@ -84,6 +87,7 @@ macosx=0
 sunos=0
 freebsd=0
 openbsd=0
+archlinux=0
 
 make="make"
 type="type -a"
@@ -137,6 +141,11 @@ else
         redhat=1
         if [ $with_postgres = "1" ] ; then
             pg_packages="postgresql postgresql-devel"
+        fi
+    elif [ -f "/etc/arch-release" ] ; then
+        archlinux=1
+        if [ $with_postgres = "1" ] ; then
+            pg_packages="postgresql"
         fi
     elif [ $uname = 'SunOS' ] ; then
         sunos=1
@@ -204,7 +213,7 @@ The script has a long heritage:
 
 Tested under macOS, Ubuntu 12.04, 13.04, 14.04, 16.04, 18.04, 20.04, Raspbian 9.4,
 OmniOS r151014, OpenBSD 6.1, 6.3, 6.6, 6.8, FreeBSD 12.2, 13-current,
-Fedora Core 18, 20, 32, CentOS 7, Roxy Linux 8.4
+Fedora Core 18, 20, 32, CentOS 7, Roxy Linux 8.4, ArchLinux
 
 LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
            This is free software, and you are welcome to redistribute it under certain conditions;
@@ -260,7 +269,7 @@ cd ${build_dir}
 if [ $do_clean = 1 ] ; then
     #rm    tcl${version_tcl}-src.tar.gz
     rm -r tcl${version_tcl}
-    #rm    ${tcllib_dirname}-${version_tcllib}.tar.bz2
+    #rm    ${tcllib_tar}
     rm -r ${tcllib_dirname}-${version_tcllib}
     #rm    naviserver-${version_ns}.tar.gz
     rm -rf naviserver-${version_ns}
@@ -304,6 +313,7 @@ redhat=${redhat}
 macosx=${macosx}
 sunos=${sunos}
 freebsd=${freebsd}
+archlinux=${archlinux}
 EOF
 
 echo "------------------------ Check User and Group --------------------"
@@ -317,7 +327,7 @@ fi
 
 id=$(id -u ${ns_user})
 if [ $? != "0" ] ; then
-    if  [ $debian = "1" ] || [ $macosx = "1" ] ; then
+    if [ $debian = "1" ] || [ $macosx = "1" ] || [ $archlinux = "1" ]; then
         echo "creating user ${ns_user} with command ${ns_user_addcmd}"
         eval ${ns_user_addcmd}
     else
@@ -363,6 +373,8 @@ if [ $redhat = "1" ] ; then
     fi
 
     ${pkgmanager} install make ${autoconf} automake gcc zlib zlib-devel wget curl zip unzip openssl openssl-devel ${pg_packages} ${mercurial} ${git} ${mongodb}
+elif [ $archlinux = "1" ] ; then
+    pacman -Sy --noconfirm wget gcc make ${pg_packages}
 fi
 
 if [ $macosx = "1" ] ; then
@@ -413,14 +425,14 @@ if [ ! -f tcl${version_tcl}-src.tar.gz ] ; then
     echo wget ${wget_options} https://downloads.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
     wget ${wget_options} https://downloads.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
 fi
-if [ ! -f ${tcllib_dirname}-${version_tcllib}.tar.bz2 ] ; then
-    wget ${wget_options} https://downloads.sourceforge.net/sourceforge/tcllib/${tcllib_dirname}-${version_tcllib}.tar.bz2
+if [ ! -f ${tcllib_tar} ] ; then
+    wget ${wget_options} https://downloads.sourceforge.net/sourceforge/tcllib/${tcllib_tar}
 fi
 
 # All versions of tcllib up to 1.15 were named tcllib-*.
 # tcllib-1.16 was named a while Tcllib-1.16 (capital T), but has been renamed later
 # to the standard naming conventions. tcllib-1.17 is fine again.
-if [ ! -f tcllib-${version_tcllib}.tar.bz2 ] ; then
+if [ ! -f ${tcllib_tar} ] ; then
     wget ${wget_options} https://downloads.sourceforge.net/sourceforge/tcllib/Tcllib-${version_tcllib}.tar.bz2
     tcllib_dirname=Tcllib
 fi
@@ -692,7 +704,7 @@ EOF
     cd ..
 fi
 
-# rm -rf  tcl${version_tcl}/pkgs/sqlit*
+rm -rf  tcl${version_tcl}/pkgs/sqlit*
 
 cd tcl${version_tcl}/unix
 ./configure --enable-threads --prefix=${ns_install_dir}
@@ -711,7 +723,8 @@ cd ../..
 
 echo "------------------------ Installing Tcllib ------------------------------"
 
-${tar} xvfj ${tcllib_dirname}-${version_tcllib}.tar.bz2
+#${tar} xvfj ${tcllib_tar}
+${tar} xvf ${tcllib_tar}
 cd ${tcllib_dirname}-${version_tcllib}
 ./configure --prefix=${ns_install_dir}
 ${make} install

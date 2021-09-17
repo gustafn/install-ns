@@ -292,6 +292,8 @@ if [ "$oacs_tar_release_url" = "" ] ; then
 	    apt-get install cvs
 	elif [ $redhat = "1" ] ; then
 	    ${pkgmanager} install cvs
+	elif [ $archlinux = "1" ] ; then
+	    pacman -Sy --noconfirm cvs
 	elif [ $sunos = "1" ] ; then
 	    # why is there no CVS available via "pkg install" ?
 	    cd ${build_dir}
