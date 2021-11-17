@@ -123,10 +123,10 @@ if [ $uname = "Darwin" ] ; then
     ns_user_addgroup_hint="dseditgroup -o edit -a YOUR_USERID -t user ${ns_group}"
 
     if [ $with_postgres = "1" ] ; then
-        # Preconfigured for PostgreSQL 12 installed via MacPorts
-        pg_incl=/opt/local/include/postgresql12/
-        pg_lib=/opt/local/lib/postgresql12/
-        pg_packages="postgresql12 postgresql12-server"
+        # Preconfigured for PostgreSQL 14 installed via MacPorts
+        pg_incl=/opt/local/include/postgresql14/
+        pg_lib=/opt/local/lib/postgresql14/
+        pg_packages="postgresql14 postgresql14-server"
     fi
 else
     #
