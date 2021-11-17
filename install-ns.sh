@@ -338,10 +338,35 @@ if [ $? != "0" ] ; then
 fi
 
 echo "------------------------ System dependencies ---------------------------------"
+
+function version_greater_equal()
+{
+    printf '%s\n%s\n' "$2" "$1" | sort --check=quiet --version-sort
+}
+
+mongodb=
 if [ $with_mongo = "1" ] ; then
-    mongodb="libtool autoconf cmake mongodb"
-else
-    mongodb=
+    debian10=0
+    # Avoid Ubuntu, which has /etc/lsb-release
+    if [ $debian = "1" ] && [ ! -f /etc/lsb-release ] ; then
+        debian_version=`cat /etc/debian_version`
+        if version_greater_equal $debian_version 10 ; then
+            debian10=1
+        fi
+    fi
+    if [ $debian10 = "1" ] ; then
+        PKG_OK=$(dpkg-query -W --showformat='${Status}\n' mongodb-org|grep "install ok installed")
+        if [ "" = "$PKG_OK" ]; then
+            sudo apt-get install gnupg
+            wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | sudo apt-key add -
+            echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/5.0 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-5.0.list
+            sudo apt-get update
+            sudo apt-get install -y mongodb-org
+        fi
+        mongodb="libtool autoconf cmake"
+    elif [ $debian = "1" ] ; then
+        mongodb="libtool autoconf cmake mongodb"
+   fi
 fi
 
 if [ $with_mongo = "1" ] || [ $version_xotcl = "HEAD" ] || [ $version_tdom = "GIT" ] || [ $version_ns = "HEAD" ]; then
