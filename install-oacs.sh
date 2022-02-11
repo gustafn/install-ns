@@ -206,7 +206,7 @@ if [ $redhat = "1" ] ; then
 	echo "and rerun this script"
 	exit
     fi
-elif  [ $debian = "1" ] ; then
+elif [ $debian = "1" ] ; then
     if [ $with_postgres = "1" ] ; then
 	apt-get install postgresql postgresql-contrib
     fi
@@ -237,14 +237,17 @@ if [ $? != "0" ] ; then
 	exit
     fi
 fi
-id=$(id -u ${pg_user})
-if [ $? != "0" ] ; then
-    echo "User ${pg_user} does not exist; you should add it via installing postgres"
-    echo "like e.g. under Ubuntu with "
-    echo "     apt-get install postgresql postgresql-contrib"
-    echo "alternatively you might create the use with e.g."
-    echo "     ${pg_user_addcmd}"
-    exit
+
+if [ ${with_postgres} != "0" ] ; then
+    id=$(id -u ${pg_user})
+    if [ $? != "0" ] ; then
+        echo "User ${pg_user} does not exist; you should add it via installing postgres"
+        echo "like e.g. under Ubuntu with "
+        echo "     apt-get install postgresql postgresql-contrib"
+        echo "alternatively you might create the use with e.g."
+        echo "     ${pg_user_addcmd}"
+        exit
+    fi
 fi
 
 echo "------------------------ Setup Database ----------------------------"
@@ -253,30 +256,32 @@ echo "------------------------ Setup Database ----------------------------"
 # Here we assume, the postgres is installed and already running on port 5432,
 # and users ${pg_user} and ${oacs_user} and group ${oacs_group} are created
 #
+if [ ${with_postgres} != "0" ] ; then
 
-cd /tmp
-set -o errexit
+    cd /tmp
+    set -o errexit
 
-echo "Checking if oacs_user ${oacs_user} exists in db."
-dbuser_exists=$(su ${pg_user} -c "${pg_dir}/bin/psql template1 -tAc \"SELECT 1 FROM pg_roles WHERE rolname='${oacs_user}'\"")
-if [ "$dbuser_exists" != "1" ] ; then
-    echo "Creating oacs_user ${oacs_user}."
-    su ${pg_user} -c "${pg_dir}/bin/createuser -s -d ${oacs_user}"
-fi
+    echo "Checking if oacs_user ${oacs_user} exists in db."
+    dbuser_exists=$(su ${pg_user} -c "${pg_dir}/bin/psql template1 -tAc \"SELECT 1 FROM pg_roles WHERE rolname='${oacs_user}'\"")
+    if [ "$dbuser_exists" != "1" ] ; then
+        echo "Creating oacs_user ${oacs_user}."
+        su ${pg_user} -c "${pg_dir}/bin/createuser -s -d ${oacs_user}"
+    fi
 
-echo "Checking if db ${db_name} exists."
-db_exists=$(su ${pg_user} -c "${pg_dir}/bin/psql template1 -tAc \"SELECT 1 FROM pg_database WHERE datname='${db_name}'\"")
-if [ "$db_exists" != "1" ] ; then
-    echo "Creating db ${db_name}."
-    su ${pg_user} -c "${pg_dir}/bin/createdb -E UNICODE ${db_name}"
-    #
-    # The preferred way is to install via create extension
-    #
-    #hstoreSql=${pg_dir}/share/postgresql/contrib/hstore.sql
-    #if [ -f ${hstoreSql} ] ; then
-    #	su ${pg_user} -c "${pg_dir}/bin/psql -d ${db_name} -f ${hstoreSql}"
-    #fi
-    su ${pg_user} -c "${pg_dir}/bin/psql -d ${db_name} -tAc \"create extension hstore\""
+    echo "Checking if db ${db_name} exists."
+    db_exists=$(su ${pg_user} -c "${pg_dir}/bin/psql template1 -tAc \"SELECT 1 FROM pg_database WHERE datname='${db_name}'\"")
+    if [ "$db_exists" != "1" ] ; then
+        echo "Creating db ${db_name}."
+        su ${pg_user} -c "${pg_dir}/bin/createdb -E UNICODE ${db_name}"
+        #
+        # The preferred way is to install via create extension
+        #
+        #hstoreSql=${pg_dir}/share/postgresql/contrib/hstore.sql
+        #if [ -f ${hstoreSql} ] ; then
+        #	su ${pg_user} -c "${pg_dir}/bin/psql -d ${db_name} -f ${hstoreSql}"
+        #fi
+        su ${pg_user} -c "${pg_dir}/bin/psql -d ${db_name} -tAc \"create extension hstore\""
+    fi
 fi
 
 echo "------------------------ Download OpenACS ----------------------------"
