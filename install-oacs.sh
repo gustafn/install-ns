@@ -384,7 +384,7 @@ cat << EOF > /tmp/subst.tcl
  set file [open \$fn]; set c [read \$file] ; close \$file
  regsub -all {"openacs"} \$c {"${oacs_service}"} c
  regsub -all {/usr/local/ns} \$c {${ns_install_dir}} c
- regsub -all {set\\s+db_user\\s+\\\$server} \$c {set db_user ${oacs_user}} c
+ regsub -all {\\s+db_user\\s+\\\$server} \$c {set db_user ${oacs_user}} c
  set file [open \$fn w]; puts -nonewline \$file \$c; close \$file
 EOF
 ${ns_install_dir}/bin/tclsh /tmp/subst.tcl
