@@ -26,7 +26,7 @@ build_dir=/usr/local/src
 #build_dir=/usr/local/src/oo2
 ns_install_dir=/usr/local/ns
 #ns_install_dir=/usr/local/oo2
-version_ns=4.99.23
+version_ns=4.99.24
 #version_ns=HEAD
 version_modules=${version_ns}
 #version_modules=HEAD
@@ -35,8 +35,9 @@ version_modules=${version_ns}
 version_tcl=8.6.11
 version_tcllib=1.20
 tcllib_dirname=tcllib
+version_thread=""
 #version_thread=2.8.2
-version_thread=2.8.6
+#version_thread=2.8.6
 version_xotcl=2.3.0
 #version_xotcl=HEAD
 #version_tdom=GIT
@@ -550,8 +551,10 @@ else
 fi
 
 cd ${build_dir}
-if [ ! -f thread${version_thread}.tar.gz ] ; then
-    wget ${wget_options} https://downloads.sourceforge.net/sourceforge/tcl/thread${version_thread}.tar.gz
+if [ ! "$version_thread" = ""] ; then
+    if [ ! -f thread${version_thread}.tar.gz ] ; then
+        wget ${wget_options} https://downloads.sourceforge.net/sourceforge/tcl/thread${version_thread}.tar.gz
+    fi
 fi
 
 if [ ! ${version_xotcl} = "HEAD" ] ; then
@@ -730,10 +733,12 @@ EOF
 fi
 
 rm -rf  tcl${version_tcl}/pkgs/sqlit*
+#rm -rf tcl${version_tcl}/pkgs/thread*
 
 cd tcl${version_tcl}/unix
 ./configure --enable-threads --prefix=${ns_install_dir}
 #./configure --enable-threads --prefix=${ns_install_dir} --with-naviserver=${ns_install_dir}
+
 ${make}
 ${make} install
 
@@ -744,7 +749,16 @@ fi
 source ${ns_install_dir}/lib/tclConfig.sh
 ln -sf ${ns_install_dir}/bin/tclsh${TCL_VERSION} ${ns_install_dir}/bin/tclsh
 
-cd ../..
+echo "------------------------ Configure, compile and install libtthread for NaviServer ------------------"
+cd ../pkgs/thread*
+./configure --enable-threads --prefix=${ns_install_dir} --with-naviserver=${ns_install_dir}
+${make} clean
+${make} install
+#cd ../../unix
+#
+# Go back where you started from
+#
+cd ${build_dir}
 
 echo "------------------------ Installing Tcllib ------------------------------"
 
@@ -789,17 +803,33 @@ if [ $with_postgres_driver = "1" ] ; then
     cd ${modules_dir}/nsdbpg
     ${make} PGLIB=${pg_lib} PGINCLUDE=${pg_incl} NAVISERVER=${ns_install_dir}
     ${make} NAVISERVER=${ns_install_dir} install
-    cd ../..
+
+    cd ${build_dir}
 fi
 
-echo "------------------------ Installing Tcl Thread library -----------------------"
+if [ ! "$version_thread" = ""] ; then
+    echo "------------------------ Installing Tcl Thread library -----------------------"
 
-${tar} xfz thread${version_thread}.tar.gz
-cd thread${version_thread}/unix/
-../configure --enable-threads --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-naviserver=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
-make
-${make} install
-cd ../..
+    ${tar} xfz thread${version_thread}.tar.gz
+    cd thread${version_thread}/unix/
+    ../configure --enable-threads --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-naviserver=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
+    make
+    ${make} install
+    #
+    # Copy installed naviserver flavor of libthread to a special name.
+    # Use for the time being "cp" instead of "mv" to keep old
+    # configuration (not expecting the suffix) files working.
+    #
+    # thread2.8.6/libthread2.8.6.so -> thread2.8.6/libthread-ns2.8.6.so
+    #binary=${ns_install_dir}/lib/thread${version_thread}/libthread${version_thread}.so
+    #if [ -f "$binary" ] ; then
+    #    cp $binary ${ns_install_dir}/lib/thread${version_thread}/libthread-ns${version_thread}.so
+    #else
+    #    binary=${ns_install_dir}/lib/thread${version_thread}/libthread${version_thread}.dylib
+    #    cp $binary ${ns_install_dir}/lib/thread${version_thread}/libthread-ns${version_thread}.dylib
+    #fi
+    cd ${build_dir}
+fi
 
 if [ $with_mongo = "1" ] ; then
     echo "------------------------ MongoDB-driver ----------------------------------"
@@ -814,7 +844,7 @@ if [ $with_mongo = "1" ] ; then
     if [ $redhat = "1" ] ; then
         ldconfig -v
     fi
-    cd ..
+    cd ${build_dir}
 fi
 
 echo "------------------------ Installing XOTcl 2.* (with_mongo $with_mongo) -----------------"
