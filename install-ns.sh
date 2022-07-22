@@ -473,7 +473,6 @@ else
     else
         cd naviserver
         git pull
-        cd ..
     fi
 fi
 
@@ -545,7 +544,7 @@ else
         else
             cd $d
             git pull
-            cd ..
+            cd ${build_dir}
         fi
     done
 fi
@@ -567,7 +566,7 @@ else
     else
         cd nsf
         git pull
-        cd ..
+        cd ${build_dir}
     fi
 fi
 
@@ -577,7 +576,7 @@ if [ $with_mongo = "1" ] ; then
     else
         cd mongo-c-driver
         git pull
-        cd ..
+        cd ${build_dir}
     fi
 fi
 
@@ -606,7 +605,7 @@ else
         git clone https://github.com/tDOM/tdom.git
         # cd tdom
         # git checkout 'master@{2012-12-31 00:00:00}'
-        # cd ..
+        # cd ${build_dir}
     fi
 fi
 
@@ -749,16 +748,11 @@ fi
 source ${ns_install_dir}/lib/tclConfig.sh
 ln -sf ${ns_install_dir}/bin/tclsh${TCL_VERSION} ${ns_install_dir}/bin/tclsh
 
-echo "------------------------ Configure, compile and install libtthread for NaviServer ------------------"
-cd ../pkgs/thread*
-./configure --enable-threads --prefix=${ns_install_dir} --with-naviserver=${ns_install_dir}
-${make} clean
-${make} install
-#cd ../../unix
 #
 # Go back where you started from
 #
 cd ${build_dir}
+
 
 echo "------------------------ Installing Tcllib ------------------------------"
 
@@ -807,7 +801,16 @@ if [ $with_postgres_driver = "1" ] ; then
     cd ${build_dir}
 fi
 
-if [ ! "$version_thread" = ""] ; then
+if [ "$version_thread" = ""] ; then
+
+    echo "------------------------ Configure, compile and install libthread for NaviServer ------------------"
+    cd ${build_dir}/tcl${version_tcl}/pkgs/thread*
+    ./configure --enable-threads --prefix=${ns_install_dir} --with-naviserver=${ns_install_dir}
+    ${make} clean
+    ${make} install
+    cd ${build_dir}
+
+else
     echo "------------------------ Installing Tcl Thread library -----------------------"
 
     ${tar} xfz thread${version_thread}.tar.gz
