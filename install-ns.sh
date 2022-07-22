@@ -801,7 +801,7 @@ if [ $with_postgres_driver = "1" ] ; then
     cd ${build_dir}
 fi
 
-if [ "$version_thread" = ""] ; then
+if [ "$version_thread" = "" ] ; then
 
     echo "------------------------ Configure, compile and install libthread for NaviServer ------------------"
     cd ${build_dir}/tcl${version_tcl}/pkgs/thread*
