@@ -550,7 +550,7 @@ else
 fi
 
 cd ${build_dir}
-if [ ! "$version_thread" = ""] ; then
+if [ ! "$version_thread" = "" ] ; then
     if [ ! -f thread${version_thread}.tar.gz ] ; then
         wget ${wget_options} https://downloads.sourceforge.net/sourceforge/tcl/thread${version_thread}.tar.gz
     fi
