@@ -474,10 +474,11 @@ else
     if [ ! -d naviserver ] ; then
         git clone https://bitbucket.org/naviserver/naviserver
     else
-        cd naviserver
+        cd ${build_dir}/naviserver
         git pull
     fi
     if [ ! ${git_branch_ns} = "" ] ; then
+        cd ${build_dir}/naviserver
         git checkout ${git_branch_ns}
     fi
 fi
