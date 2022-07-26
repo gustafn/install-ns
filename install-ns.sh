@@ -22,33 +22,35 @@ done
 echo "------------------------ Settings ---------------------------------------"
 # Installation directory and software versions to be installed.
 
-build_dir=/usr/local/src
+build_dir=${build_dir:-/usr/local/src}
 #build_dir=/usr/local/src/oo2
-ns_install_dir=/usr/local/ns
+ns_install_dir=${ns_install_dir:-/usr/local/ns}
 #ns_install_dir=/usr/local/oo2
-version_ns=4.99.24
-#version_ns=HEAD
-version_modules=${version_ns}
+
+version_ns=${version_ns:-4.99.24}
+#version_ns=GIT
+git_branch_ns=${git_branch_ns:-master}
+version_modules=${version_modules:${version_ns}}
 #version_modules=HEAD
 
 #version_tcl=8.5.19
-version_tcl=8.6.11
-version_tcllib=1.20
+version_tcl=${version_tcl:-8.6.12}
+version_tcllib=${version_tcllib:-1.20}
 tcllib_dirname=tcllib
 version_thread=""
 #version_thread=2.8.2
 #version_thread=2.8.6
-version_xotcl=2.3.0
+version_xotcl=${version_xotcl:-2.3.0}
 #version_xotcl=HEAD
 #version_tdom=GIT
-version_tdom=0.9.1
+version_tdom=${version_tdom:-0.9.1}
 version_tdom_git="master@{2014-11-01 00:00:00}"
 tdom_base=tdom-${version_tdom}
 tdom_tar=${tdom_base}-src.tgz
-ns_user=nsadmin
-ns_group=nsadmin
-with_mongo=0
-with_system_malloc=0
+ns_user=${ns_user:-nsadmin}
+ns_group=${ns_group:-nsadmin}
+with_mongo=${with_mongo:-0}
+with_system_malloc=${with_system_malloc:-0}
 
 
 #tcllib_tar=${tcllib_dirname}-${version_tcllib}.tar.bz2
@@ -62,8 +64,8 @@ tcllib_tar=${tcllib_dirname}-${version_tcllib}.tar.gz
 # NaviServer with the nsdbpg driver (this requires that a at least a
 # postgres client library is installed).
 #
-with_postgres=1
-with_postgres_driver=1
+with_postgres=${with_postgres:-1}
+with_postgres_driver=${with_postgres_driver:-1}
 
 #
 # some old versions of wget (e.g. inn CentOS 5.11) need the no-check flag
@@ -220,23 +222,24 @@ LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
            This is free software, and you are welcome to redistribute it under certain conditions;
            For details see http://www.gnu.org/licenses.
 
-SETTINGS   Build-Dir              ${build_dir}
-           Install-Dir            ${ns_install_dir}
-           NaviServer             ${version_ns}
-           NaviServer Modules     ${version_modules}
-           Tcllib                 ${version_tcllib}
-           Thread                 ${version_thread}
-           NSF/NX/XOTcl           ${version_xotcl}
-           Tcl                    ${version_tcl}
-           tDOM                   ${version_tdom}
-           NaviServer user        ${ns_user}
-           NaviServer group       ${ns_group}
-           Make command           ${make}
-           Type command           ${type}
-           With MongoDB           ${with_mongo}
-           Install PostgreSQL DB  ${with_postgres}
-           With PostgreSQL driver ${with_postgres_driver}
-           Tcl with system malloc ${with_system_malloc}"
+SETTINGS   build_dir              (Build directory)                 ${build_dir}
+           ns_install_dir         (Installation directory)          ${ns_install_dir}
+           version_ns             (Version of NaviServer)           ${version_ns}
+           git_branch_ns          (Branch for git checkout of ns)   ${git_branch_ns}
+           version_modules        (Version opf NaviServer Modules)  ${version_modules}
+           version_tcllib         (Version of Tcllib)               ${version_tcllib}
+                                  (Version Tcl thread library)      ${version_thread}
+           version_xotcl          (Version of NSF/NX/XOTcl)         ${version_xotcl}
+           version_tcl            (Version of Tcl)                  ${version_tcl}
+           version_tdom           (Version of tDOM)                 ${version_tdom}
+           ns_user                (NaviServer user)                 ${ns_user}
+           ns_group               (NaviServer group)                ${ns_group}
+                                  (Make command)                    ${make}
+                                  (Type command)                    ${type}
+           with_mongo             (Add MongoDB client and server)   ${with_mongo}
+           with_postgres          (Install PostgreSQL DB server)    ${with_postgres}
+           with_postgres_driver   (Add PostgreSQL driver support)   ${with_postgres_driver}
+           with_system_malloc     (Tcl compiled with system malloc) ${with_system_malloc}"
 
 if [ $with_postgres = "1" ] ; then
     echo "
@@ -358,7 +361,7 @@ if [ $with_mongo = "1" ] ; then
     if [ $debian10 = "1" ] ; then
         PKG_OK=$(dpkg-query -W --showformat='${Status}\n' mongodb-org|grep "install ok installed")
         if [ "" = "$PKG_OK" ]; then
-            sudo apt-get install gnupg
+            sudo apt-get install -y gnupg
             wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | sudo apt-key add -
             echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/5.0 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-5.0.list
             sudo apt-get update
@@ -370,13 +373,13 @@ if [ $with_mongo = "1" ] ; then
    fi
 fi
 
-if [ $with_mongo = "1" ] || [ $version_xotcl = "HEAD" ] || [ $version_tdom = "GIT" ] || [ $version_ns = "HEAD" ]; then
+if [ $with_mongo = "1" ] || [ $version_xotcl = "HEAD" ] || [ $version_tdom = "GIT" ] || [ $version_ns = "HEAD" ] || [ $version_ns = "GIT" ]; then
     git=git
 else
     git=
 fi
 
-if [ $version_ns = "HEAD" ] ; then
+if [ $version_ns = "HEAD" ] || [ $version_ns = "GIT" ]; then
     autoconf=autoconf
 else
     autoconf=
@@ -387,7 +390,7 @@ with_openssl_configure_flag=
 if [ $debian = "1" ] ; then
     # On Debian/Ubuntu, make sure we have zlib installed, otherwise
     # NaviServer can't provide compression support
-    apt-get install make ${autoconf} gcc zlib1g-dev wget curl zip unzip openssl libssl-dev ${pg_packages} ${mercurial} ${git} ${mongodb}
+    apt-get install -y make ${autoconf} gcc zlib1g-dev wget curl zip unzip openssl libssl-dev ${pg_packages} ${mercurial} ${git} ${mongodb}
 fi
 if [ $redhat = "1" ] ; then
     # packages for FC/RHL
@@ -463,7 +466,7 @@ if [ ! -f ${tcllib_tar} ] ; then
     tcllib_dirname=Tcllib
 fi
 
-if [ ! $version_ns = "HEAD" ] ; then
+if [ ! $version_ns = "HEAD" ] &&  [ ! $version_ns = "GIT" ] ; then
     if [ ! -f naviserver-${version_ns}.tar.gz ] ; then
         wget ${wget_options} https://downloads.sourceforge.net/sourceforge/naviserver/naviserver-${version_ns}.tar.gz
     fi
@@ -473,6 +476,9 @@ else
     else
         cd naviserver
         git pull
+    fi
+    if [ ! ${git_branch_ns} = "" ] ; then
+        git checkout ${git_branch_ns}
     fi
 fi
 
@@ -767,7 +773,7 @@ echo "------------------------ Installing NaviServer ---------------------------
 
 cd ${build_dir}
 
-if [ ! ${version_ns} = "HEAD" ] ; then
+if [ ! ${version_ns} = "HEAD" ] &&  [ ! $version_ns = "GIT" ] ; then
     ${tar} zxvf naviserver-${version_ns}.tar.gz
     cd naviserver-${version_ns}
     ./configure --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir} ${with_openssl_configure_flag}
