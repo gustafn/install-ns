@@ -139,15 +139,19 @@ else
         debian=1
         if [ $with_postgres = "1" ] ; then
             pg_packages="postgresql libpq-dev"
+        elif [ $with_postgres_driver = "1" ] ; then
+            pg_packages="libpq-dev"
         fi
     elif [ -f "/etc/redhat-release" ] ; then
         redhat=1
         if [ $with_postgres = "1" ] ; then
             pg_packages="postgresql postgresql-devel"
+        elif [ $with_postgres_driver = "1" ] ; then
+            pg_packages="postgresql-devel"
         fi
     elif [ -f "/etc/arch-release" ] ; then
         archlinux=1
-        if [ $with_postgres = "1" ] ; then
+        if [ $with_postgres = "1" ] || [ $with_postgres_driver = "1" ]; then
             pg_packages="postgresql"
         fi
     elif [ $uname = 'SunOS' ] ; then
@@ -168,7 +172,7 @@ else
         if [ $with_postgres = "1" ] ; then
             # for freebsd10, file is: /usr/local/include/postgresql/internal/postgres_fe.h so:
             #pg_incl=/usr/local/include/postgresql/internal
-            pg_packages="postgresql96-client"
+            pg_packages="postgresql-client"
             pg_incl=/usr/local/include
             pg_lib=/usr/local/lib
         fi
