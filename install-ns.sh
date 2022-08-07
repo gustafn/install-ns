@@ -29,7 +29,7 @@ ns_install_dir=${ns_install_dir:-/usr/local/ns}
 
 version_ns=${version_ns:-4.99.24}
 #version_ns=GIT
-git_branch_ns=${git_branch_ns:-master}
+git_branch_ns=${git_branch_ns:-main}
 version_modules=${version_modules:${version_ns}}
 #version_modules=HEAD
 
