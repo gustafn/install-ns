@@ -394,7 +394,9 @@ with_openssl_configure_flag=
 if [ $debian = "1" ] ; then
     # On Debian/Ubuntu, make sure we have zlib installed, otherwise
     # NaviServer can't provide compression support
-    apt-get install -y make ${autoconf} gcc zlib1g-dev wget curl zip unzip openssl libssl-dev ${pg_packages} ${mercurial} ${git} ${mongodb}
+    apt-get install -y make ${autoconf} locales gcc zlib1g-dev wget curl zip unzip openssl libssl-dev ${pg_packages} ${mercurial} ${git} ${mongodb}
+    locale-gen en_US.UTF-8
+    update-locale LANG="en_US.UTF-8"
 fi
 if [ $redhat = "1" ] ; then
     # packages for FC/RHL
