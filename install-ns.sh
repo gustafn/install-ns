@@ -383,7 +383,7 @@ else
     git=
 fi
 
-if [ $version_ns = "HEAD" ] || [ $version_ns = "GIT" ]; then
+if [ $version_ns = "HEAD" ] || [ $version_ns = "GIT" ] || [ $version_ns = ".." ]; then
     autoconf=autoconf
 else
     autoconf=
@@ -394,10 +394,13 @@ with_openssl_configure_flag=
 if [ $debian = "1" ] ; then
     # On Debian/Ubuntu, make sure we have zlib installed, otherwise
     # NaviServer can't provide compression support
-    apt-get install -y make ${autoconf} locales gcc zlib1g-dev wget curl zip unzip openssl libssl-dev ${pg_packages} ${mercurial} ${git} ${mongodb}
+    apt-get install -y make ${autoconf} locales gcc zlib1g-dev \
+            wget curl zip unzip openssl libssl-dev \
+            ${pg_packages} ${mercurial} ${git} ${mongodb}
     locale-gen en_US.UTF-8
     update-locale LANG="en_US.UTF-8"
 fi
+
 if [ $redhat = "1" ] ; then
     # packages for FC/RHL
 
@@ -407,19 +410,27 @@ if [ $redhat = "1" ] ; then
         pkgmanager=yum
     fi
 
-    ${pkgmanager} install make ${autoconf} automake gcc zlib zlib-devel wget curl zip unzip openssl openssl-devel ${pg_packages} ${mercurial} ${git} ${mongodb}
-elif [ $archlinux = "1" ] ; then
+    ${pkgmanager} install make ${autoconf} automake gcc zlib zlib-devel \
+                  wget curl zip unzip openssl openssl-devel \
+                  ${pg_packages} ${mercurial} ${git} ${mongodb}
+    export LANG=en_US.UTF-8
+    localedef --verbose --force -i en_US -f UTF-8 en_US.UTF-8
+fi
+
+if [ $archlinux = "1" ] ; then
     pacman -Sy --noconfirm wget gcc make ${pg_packages}
 fi
 
 if [ $macosx = "1" ] ; then
-    port install ${autoconf} automake zlib wget curl zip unzip openssl ${pg_packages} ${mercurial} ${git} ${mongodb}
+    port install ${autoconf} automake zlib wget curl zip unzip openssl \
+         ${pg_packages} ${mercurial} ${git} ${mongodb}
     with_openssl_configure_flag="--with-openssl=/opt/local"
 fi
 
 if [ $sunos = "1" ] ; then
     # packages for OpenSolaris/OmniOS
-    pkg install pkg://omnios/developer/versioning/git mercurial ${autoconf} automake /developer/gcc51 zlib wget \
+    pkg install pkg://omnios/developer/versioning/git mercurial \
+        ${autoconf} automake /developer/gcc51 zlib wget \
         curl compress/zip compress/unzip \
         ${pg_packages} ${mercurial} ${git} ${mongodb}
     pkg install \
@@ -436,7 +447,8 @@ if [ $sunos = "1" ] ; then
 fi
 
 if [ $freebsd = "1" ] ; then
-     pkg install gmake llvm openssl automake wget curl zip unzip ${pg_packages} ${autoconf} ${mercurial} ${git} ${mongodb}
+    pkg install gmake llvm openssl automake wget curl zip unzip \
+        ${pg_packages} ${autoconf} ${mercurial} ${git} ${mongodb}
 fi
 
 if [ $openbsd = "1" ] ; then
@@ -448,7 +460,8 @@ if [ $openbsd = "1" ] ; then
     # well), but NaviServer gets more functionality by using recent
     # versions of OpenSSL.
     #
-    pkg_add gcc openssl wget curl zip unzip bash gmake ${mercurial} ${git} ${mongodb} ${pg_packages} autoconf-2.69p2 automake-1.15.1
+    pkg_add gcc openssl wget curl zip unzip bash gmake \
+            ${mercurial} ${git} ${mongodb} ${pg_packages} autoconf-2.69p2 automake-1.15.1
     pkg_add autoconf-2.69p3
 fi
 
@@ -472,25 +485,27 @@ if [ ! -f ${tcllib_tar} ] ; then
     tcllib_dirname=Tcllib
 fi
 
-if [ ! $version_ns = "HEAD" ] &&  [ ! $version_ns = "GIT" ] ; then
-    if [ ! -f naviserver-${version_ns}.tar.gz ] ; then
-        wget ${wget_options} https://downloads.sourceforge.net/sourceforge/naviserver/naviserver-${version_ns}.tar.gz
-    fi
-else
-    if [ ! -d naviserver ] ; then
-        git clone https://bitbucket.org/naviserver/naviserver
+if [ ! $version_ns = ".." ] ; then
+    if [ ! $version_ns = "HEAD" ] &&  [ ! $version_ns = "GIT" ] ; then
+        if [ ! -f naviserver-${version_ns}.tar.gz ] ; then
+            wget ${wget_options} https://downloads.sourceforge.net/sourceforge/naviserver/naviserver-${version_ns}.tar.gz
+        fi
     else
-        cd ${build_dir}/naviserver
-        git pull
-    fi
-    if [ ! ${git_branch_ns} = "" ] ; then
-        cd ${build_dir}/naviserver
-        git checkout ${git_branch_ns}
+        if [ ! -d naviserver ] ; then
+            git clone https://bitbucket.org/naviserver/naviserver
+        else
+            cd ${build_dir}/naviserver
+            git pull
+        fi
+        if [ ! ${git_branch_ns} = "" ] ; then
+            cd ${build_dir}/naviserver
+            git checkout ${git_branch_ns}
+        fi
     fi
 fi
 
 cd ${build_dir}
-if [ ! ${version_modules} = "HEAD" ] ; then
+if [ ! ${version_modules} = "HEAD" ] && [ ! $version_modules = "GIT" ] ; then
     modules_dir=modules
     if [ ! -f naviserver-${version_modules}-modules.tar.gz ] ; then
         wget ${wget_options} https://downloads.sourceforge.net/sourceforge/naviserver/naviserver-${version_modules}-modules.tar.gz
@@ -782,12 +797,16 @@ echo "------------------------ Installing NaviServer ---------------------------
 
 cd ${build_dir}
 
-if [ ! ${version_ns} = "HEAD" ] &&  [ ! $version_ns = "GIT" ] ; then
+if [ ! ${version_ns} = "HEAD" ] && [ ! $version_ns = "GIT" ] && [ ! $version_ns = ".." ] ; then
     ${tar} zxvf naviserver-${version_ns}.tar.gz
     cd naviserver-${version_ns}
     ./configure --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir} ${with_openssl_configure_flag}
 else
-    cd naviserver
+    if [ $version_ns = ".." ] ; then
+        cd ..
+    else
+        cd naviserver
+    fi
     if [ ! -f naviserver/configure ] ; then
         bash autogen.sh --enable-threads --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir} ${with_openssl_configure_flag}
     else
@@ -796,7 +815,7 @@ else
 fi
 ${make}
 
-if [ ${version_ns} = "HEAD" ] ; then
+if [ ${version_ns} = "HEAD" ] || [ ${version_ns} = "GIT" ] || [ ${version_ns} = ".." ]; then
     ${make} "DTPLITE=${ns_install_dir}/bin/tclsh $ns_install_dir/bin/dtplite" build-doc
 fi
 ${make} install
