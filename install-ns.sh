@@ -500,8 +500,7 @@ else
     if [ ! -d ${modules_dir} ] ; then
         mkdir ${modules_dir}
     fi
-    cd ${modules_dir}
-    for d in letsencrypt \
+    modules=letsencrypt \
                  nsaccess \
                  nsaspell \
                  nsauthpam \
@@ -551,6 +550,9 @@ else
                  nszlib \
                  revproxy \
                  websocket
+    modules=nsdbpg
+    cd ${modules_dir}
+    for d in ${modules}
     do
         if [ ! -d $d ] ; then
             git clone https://bitbucket.org/naviserver/$d
