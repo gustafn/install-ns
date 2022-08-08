@@ -822,13 +822,13 @@ if [ ${version_ns} = "HEAD" ] || [ ${version_ns} = "GIT" ] || [ ${version_ns} = 
     ${make} "DTPLITE=${ns_install_dir}/bin/tclsh $ns_install_dir/bin/dtplite" build-doc
 fi
 ${make} install
-cd ..
+cd ${build_dir}
 
 if [ $with_postgres_driver = "1" ] ; then
 
     echo "------------------------ Installing Modules/nsdbpg ----------------------"
     cd ${build_dir}
-    if [ ! ${version_modules} = "HEAD" ] ; then
+    if [ ! ${version_modules} = "HEAD" ] && [ ! ${version_modules} = "GIT" ] ; then
         ${tar} zxvf naviserver-${version_modules}-modules.tar.gz
     fi
     cd ${modules_dir}/nsdbpg
