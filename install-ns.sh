@@ -21,6 +21,7 @@ done
 
 echo "------------------------ Settings ---------------------------------------"
 # Installation directory and software versions to be installed.
+start_dir=`pwd`
 
 build_dir=${build_dir:-/usr/local/src}
 #build_dir=/usr/local/src/oo2
@@ -805,7 +806,7 @@ if [ ! ${version_ns} = "HEAD" ] && [ ! $version_ns = "GIT" ] && [ ! $version_ns 
     ./configure --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir} ${with_openssl_configure_flag}
 else
     if [ $version_ns = ".." ] ; then
-        cd ..
+        cd ${start_dir}/..
     else
         cd naviserver
     fi
