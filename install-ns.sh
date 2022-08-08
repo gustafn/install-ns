@@ -515,56 +515,58 @@ else
     if [ ! -d ${modules_dir} ] ; then
         mkdir ${modules_dir}
     fi
-    modules=letsencrypt \
-                 nsaccess \
-                 nsaspell \
-                 nsauthpam \
-                 nschartdir \
-                 nsclamav \
-                 nscoap \
-                 nsconf \
-                 nsdbbdb \
-                 nsdbi \
-                 nsdbilite \
-                 nsdbimy \
-                 nsdbipg \
-                 nsdbmysql \
-                 nsdbpg \
-                 nsdbsqlite \
-                 nsdbtds \
-                 nsdhcpd \
-                 nsdns \
-                 nsexample \
-                 nsexpat \
-                 nsfortune \
-                 nsgdchart \
-                 nsicmp \
-                 nsimap \
-                 nsldap \
-                 nsldapd \
-                 nsloopctl \
-                 nsmemcache \
-                 nsocaml \
-                 nsoracle \
-                 nsphp \
-                 nsradiusd \
-                 nsrtsp \
-                 nssavi \
-                 nsshell \
-                 nssip \
-                 nssmtpd \
-                 nssnmp \
-                 nsstats \
-                 nssys \
-                 nssyslogd \
-                 nstftpd \
-                 nstk \
-                 nsudp \
-                 nsvfs \
-                 nswebpush \
-                 nszlib \
-                 revproxy \
-                 websocket
+    modules='
+        letsencrypt 
+        nsaccess 
+        nsaspell 
+        nsauthpam 
+        nschartdir 
+        nsclamav 
+        nscoap 
+        nsconf 
+        nsdbbdb 
+        nsdbi 
+        nsdbilite 
+        nsdbimy 
+        nsdbipg 
+        nsdbmysql 
+        nsdbpg 
+        nsdbsqlite 
+        nsdbtds 
+        nsdhcpd 
+        nsdns 
+        nsexample 
+        nsexpat 
+        nsfortune 
+        nsgdchart 
+        nsicmp 
+        nsimap 
+        nsldap 
+        nsldapd 
+        nsloopctl 
+        nsmemcache 
+        nsocaml 
+        nsoracle 
+        nsphp 
+        nsradiusd 
+        nsrtsp
+        nssavi 
+        nsshell 
+        nssip 
+        nssmtpd 
+        nssnmp 
+        nsstats 
+        nssys 
+        nssyslogd 
+        nstftpd 
+        nstk 
+        nsudp 
+        nsvfs 
+        nswebpush 
+        nszlib 
+        revproxy 
+        websocket
+    '
     modules=nsdbpg
     cd ${modules_dir}
     for d in ${modules}
