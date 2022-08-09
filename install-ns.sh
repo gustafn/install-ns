@@ -46,8 +46,6 @@ version_xotcl=${version_xotcl:-2.3.0}
 #version_tdom=GIT
 version_tdom=${version_tdom:-0.9.1}
 version_tdom_git="master@{2014-11-01 00:00:00}"
-tdom_src_dir=tdom-${version_tdom}
-tdom_tar=${tdom_src_dir}-src.tgz
 ns_user=${ns_user:-nsadmin}
 ns_group=${ns_group:-nsadmin}
 with_mongo=${with_mongo:-0}
@@ -149,6 +147,20 @@ else
         thread_url=""
         thread_src_dir=${tcl_src_dir}/pkgs/thread
     fi
+fi
+
+if [ ! "${version_tdom}" = "GIT" ] ; then
+    if [ "${version_tdom}" = "0.9.0" ] || [ "${version_tdom}" = "0.9.1" ] ; then
+        tdom_src_dir=tdom-${version_tdom}
+    else
+        #
+        # Newer versions of tdom have "-src" as root directory.
+        #
+        tdom_src_dir=tdom-${version_tdom}-src
+    fi
+    tdom_tar=tdom-${version_tdom}-src.tgz
+else
+    tdom_src_dir=tdom
 fi
 
 
@@ -548,14 +560,20 @@ fi
 
 if [ ! -f ${tcl_tar} ] ; then
     #https://github.com/tcltk/tcl/archive/refs/tags/core-8-6-12.tar.gz
-    echo "Downloading ${tcl_tar} ..."
+    echo "Must fetch ${tcl_tar} ..."
     curl -L -s -k -o ${tcl_tar} ${tcl_url}
     #wget ${wget_options} https://downloads.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
+else
+    echo "No need to fetch ${tcl_tar} (already available)"
 fi
 
-if [ ! "${thread_tar}" = "" ] && [ ! -f ${thread_tar} ] ; then
-    echo "Downloading ${thread_tar} ..."
-    curl -L -s -k -o ${thread_tar} ${thread_url}
+if [ ! "${thread_tar}" = "" ] ; then
+    if [ ! -f ${thread_tar} ] ; then
+        echo "Downloading ${thread_tar} ..."
+        curl -L -s -k -o ${thread_tar} ${thread_url}
+    else
+        echo "No need to fetch ${thread_tar} (already available)"
+    fi
 fi
 
 
@@ -695,6 +713,7 @@ fi
 
 if [ ! $version_tdom = "GIT" ] ; then
     if [ ! -f ${tdom_tar} ] ; then
+        echo "No ${tdom_tar}, must fetch it from http://tdom.org/downloads/"
         #wget --no-check-certificate https://cloud.github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
         #curl -L -O  https://github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
         #
@@ -706,8 +725,10 @@ if [ ! $version_tdom = "GIT" ] ; then
         #${tar} zxf 4be49b70cabea18c90504d1159fd63994b323234
         #mv tDOM-tdom-4be49b7 tDOM-${version_tdom}
         curl -s -L -O http://tdom.org/downloads/${tdom_tar}
-        ${tar} zxf ${tdom_tar}
+    else
+        echo "No need to fetch ${tdom_tar} (already available)"
     fi
+    ${tar} zxf ${tdom_tar}
 else
     if [ ! -f "tdom/${version_tdom_git}" ] ; then
         #
@@ -941,6 +962,8 @@ else
         curl -L -s -k -o tclconfig.tar.gz $url
         tar xf tclconfig.tar.gz
         ln -s ${build_dir}/tclconfig ${thread_src_dir}/tclconfig
+    else
+        echo "No need to fetch tclconfig (already available)"
     fi
 
     cd ${thread_src_dir}/unix/
