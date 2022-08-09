@@ -701,12 +701,12 @@ if [ ! $version_tdom = "GIT" ] ; then
         # Get a version of tdom, which is compatible with Tcl
         # 8.6. Unfortunately, the released version is not.
         #
-        rm  -rf ${tdom_base} ${tdom_tar}
+        rm -rf ${tdom_base} ${tdom_tar}
         #curl -L -O https://github.com/tDOM/tdom/tarball/4be49b70cabea18c90504d1159fd63994b323234
         #${tar} zxf 4be49b70cabea18c90504d1159fd63994b323234
         #mv tDOM-tdom-4be49b7 tDOM-${version_tdom}
         curl -L -O http://tdom.org/downloads/${tdom_tar}
-        ${tar} zvf ${tdom_tar}
+        ${tar} zxf ${tdom_tar}
     fi
 else
     if [ ! -f "tdom/${version_tdom_git}" ] ; then
