@@ -721,7 +721,7 @@ if [ ! $version_tdom = "GIT" ] ; then
         # 8.6. Unfortunately, the released version is not.
         #
         rm -rf ${tdom_src_dir} ${tdom_tar}
-        curl -L -s -k -o ${tdom_tar} ${tcl_url} http://tdom.org/downloads/${tdom_tar}
+        curl -L -s -k -o ${tdom_tar} http://tdom.org/downloads/${tdom_tar}
         echo "... download from http://tdom.org/downloads/${tdom_tar} finished."
     else
         echo "No need to fetch ${tdom_tar} (already available)"
