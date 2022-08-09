@@ -585,7 +585,7 @@ fi
 # tcllib-1.16 was named a while Tcllib-1.16 (capital T), but has been renamed later
 # to the standard naming conventions. tcllib-1.17 is fine again.
 if [ ! -f ${tcllib_tar} ] ; then
-    wget ${wget_options} https://downloads.sourceforge.net/sourceforge/tcllib/Tcllib-${version_tcllib}.tar.bz2
+    curl -L -s -k -o ${tcllib_tar} https://downloads.sourceforge.net/sourceforge/tcllib/Tcllib-${version_tcllib}.tar.bz2
     tcllib_dirname=Tcllib
 fi
 
@@ -721,10 +721,8 @@ if [ ! $version_tdom = "GIT" ] ; then
         # 8.6. Unfortunately, the released version is not.
         #
         rm -rf ${tdom_src_dir} ${tdom_tar}
-        #curl -L -O https://github.com/tDOM/tdom/tarball/4be49b70cabea18c90504d1159fd63994b323234
-        #${tar} zxf 4be49b70cabea18c90504d1159fd63994b323234
-        #mv tDOM-tdom-4be49b7 tDOM-${version_tdom}
-        curl -s -L -O http://tdom.org/downloads/${tdom_tar}
+        curl -L -s -k -o ${tdom_tar} ${tcl_url} http://tdom.org/downloads/${tdom_tar}
+        echo "... download from http://tdom.org/downloads/${tdom_tar} finished."
     else
         echo "No need to fetch ${tdom_tar} (already available)"
     fi
