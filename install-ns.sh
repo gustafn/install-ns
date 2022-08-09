@@ -747,7 +747,8 @@ if [ ! "${version_tdom}" = "GIT" ] ; then
     if [ ! -f ${tdom_tar} ] ; then
         echo "Must fetch ${tdom_tar} from http://tdom.org/downloads/"
         rm -rf ${tdom_src_dir} ${tdom_tar}
-        curl --max-time 180 -L -s -k -o ${tdom_tar} http://tdom.org/downloads/${tdom_tar}
+        curl --max-time 300 --connection-timeout 300 --keepalive-time 300 \
+             -L -s -k -o ${tdom_tar} http://tdom.org/downloads/${tdom_tar}
         echo "... download from http://tdom.org/downloads/${tdom_tar} finished."
     else
         echo "No need to fetch ${tdom_tar} (already available)"
@@ -924,7 +925,7 @@ echo "------------------------ Installing NaviServer ---------------------------
 
 cd ${build_dir}
 
-if [ ! ${ns_tar} = "" ] ; then
+if [ ! "${ns_tar}" = "" ] ; then
     ${tar} zxvf ${ns_tar}
     cd ${ns_src_dir}
     ./configure --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir} ${with_openssl_configure_flag}
@@ -938,7 +939,7 @@ else
 fi
 ${make}
 
-if [ ${version_ns} = "HEAD" ] || [ ${version_ns} = "GIT" ] || [ ${version_ns} = ".." ] ; then
+if [ "${version_ns}" = "HEAD" ] || [ "${version_ns}" = "GIT" ] || [ "${version_ns}" = ".." ] ; then
     if [ ! "${with_ns_doc}" = "0" ] ; then
         ${make} "DTPLITE=${ns_install_dir}/bin/tclsh $ns_install_dir/bin/dtplite" build-doc
     fi
@@ -950,7 +951,7 @@ if [ "${with_postgres_driver}" = "1" ] ; then
 
     echo "------------------------ Installing Modules/nsdbpg ----------------------"
     cd ${build_dir}
-    if [ ! ${version_modules} = "HEAD" ] && [ ! ${version_modules} = "GIT" ] ; then
+    if [ ! "${version_modules}" = "HEAD" ] && [ ! "${version_modules}" = "GIT" ] ; then
         ${tar} zxvf naviserver-${version_modules}-modules.tar.gz
     fi
     cd ${modules_src_dir}/nsdbpg
@@ -960,7 +961,7 @@ if [ "${with_postgres_driver}" = "1" ] ; then
     cd ${build_dir}
 fi
 
-if [ "$thread_tar" = "" ] ; then
+if [ "${thread_tar}" = "" ] ; then
     # Use the thread library as distributed with Tcl
     echo "------------------------ Compile and install libthread from Tcl Sources ------------------"
     cd ${build_dir}/${tcl_src_dir}/pkgs/thread*
@@ -1023,7 +1024,7 @@ fi
 
 echo "------------------------ Installing XOTcl 2.* (with_mongo $with_mongo) -----------------"
 
-if [ ! ${version_xotcl} = "HEAD" ] ; then
+if [ ! "${version_xotcl}" = "HEAD" ] ; then
     ${tar} xfz ${nsf_tar}
 fi
 cd ${nsf_src_dir}
