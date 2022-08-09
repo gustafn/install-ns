@@ -46,8 +46,8 @@ version_xotcl=${version_xotcl:-2.3.0}
 #version_tdom=GIT
 version_tdom=${version_tdom:-0.9.1}
 version_tdom_git="master@{2014-11-01 00:00:00}"
-tdom_base=tdom-${version_tdom}
-tdom_tar=${tdom_base}-src.tgz
+tdom_src_dir=tdom-${version_tdom}
+tdom_tar=${tdom_src_dir}-src.tgz
 ns_user=${ns_user:-nsadmin}
 ns_group=${ns_group:-nsadmin}
 with_mongo=${with_mongo:-0}
@@ -97,7 +97,7 @@ pg_user=postgres
 #   - the thread library has to be obtained from
 #     thread_url https://core.tcl-lang.org/thread/tarball/thread.tar.gz?uuid=${THREADTAG}
 #   - the expanded tar file is named "thread"
-#   - potential THREADTAG: trunk thread-2-8-7 thread-2-7-3 thread-2-6-7
+#   - potential THREADTAG: trunk thread-2-8-branch thread-2-8-7 thread-2-7-3 thread-2-6-7
 #
 # When version name contains "." -> fetch from sourceforge
 # else
@@ -129,10 +129,10 @@ fi
 if [ "${version_thread}" = "" ] && [ ${tcl_fetch_from_core} = "1" ] ; then
     if [ ${version_tcl} = "trunk" ] ; then
         version_thread=trunk
-    elif [[ ${version_tcl} == *"8-6"* ]] || [[ ${version_tcl} == *"8-branch"* ]] ; then
-        version_thread=thread-2-8-branch
-    else
+    elif [[ ${version_tcl} == *"8-5"* ]] ; then
         version_thread=thread-2-6
+    else
+        version_thread=thread-2-8-branch
     fi
     thread_fetch_from_core=1
     thread_url=https://core.tcl-lang.org/thread/tarball/thread.tar.gz?uuid=${version_thread}
@@ -187,9 +187,9 @@ if [ $uname = "Darwin" ] ; then
     #
     # In OS X Yosemite (macOS 10.10.*) sysadminctl was added for creating users
     #
-    if [ ${osxversionmajor} -gt 10 ]; then
+    if [ ${osxversionmajor} -gt 10 ] ; then
         ns_user_addcmd="sysadminctl -addUser ${ns_user} -UID ${newid}; dseditgroup -o edit -a ${ns_user} -t user ${ns_group}; dscl . -create /Users/${ns_user} PrimaryGroupID `dscl . -read  /Groups/nsadmin PrimaryGroupID | awk '{print $2}'`"
-    elif [ ${osxversionminor} -ge 10 ]; then
+    elif [ ${osxversionminor} -ge 10 ] ; then
         ns_user_addcmd="sysadminctl -addUser ${ns_user} -UID ${newid}; dseditgroup -o edit -a ${ns_user} -t user ${ns_group}; dscl . -create /Users/${ns_user} PrimaryGroupID `dscl . -read  /Groups/nsadmin PrimaryGroupID | awk '{print $2}'`"
     else
         ns_user_addcmd="dscl . create /Users/${ns_user}; dscl . -create /Users/${ns_user} UniqueID ${newid}; dseditgroup -o edit -a ${ns_user} -t user ${ns_group}"
@@ -223,7 +223,7 @@ else
         fi
     elif [ -f "/etc/arch-release" ] ; then
         archlinux=1
-        if [ $with_postgres = "1" ] || [ $with_postgres_driver = "1" ]; then
+        if [ $with_postgres = "1" ] || [ $with_postgres_driver = "1" ] ; then
             pg_packages="postgresql"
         fi
     elif [ $uname = 'SunOS' ] ; then
@@ -360,7 +360,7 @@ if [ $do_clean = 1 ] ; then
     rm -r thread${version_thread}
     #rm    nsf${version_xotcl}.tar.gz
     rm -rf nsf${version_xotcl}
-    rm  -rf ${tdom_base} ${tdom_tar} tdom
+    rm  -rf ${tdom_src_dir} ${tdom_tar} tdom
 fi
 
 # just clean?
@@ -408,7 +408,7 @@ fi
 
 id=$(id -u ${ns_user})
 if [ $? != "0" ] ; then
-    if [ $debian = "1" ] || [ $macosx = "1" ] || [ $archlinux = "1" ]; then
+    if [ $debian = "1" ] || [ $macosx = "1" ] || [ $archlinux = "1" ] ; then
         echo "creating user ${ns_user} with command ${ns_user_addcmd}"
         eval ${ns_user_addcmd}
     else
@@ -437,7 +437,7 @@ if [ $with_mongo = "1" ] ; then
     fi
     if [ $debian10 = "1" ] ; then
         PKG_OK=$(dpkg-query -W --showformat='${Status}\n' mongodb-org|grep "install ok installed")
-        if [ "" = "$PKG_OK" ]; then
+        if [ "" = "$PKG_OK" ] ; then
             sudo apt-get install -y gnupg
             wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | sudo apt-key add -
             echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/5.0 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-5.0.list
@@ -450,13 +450,13 @@ if [ $with_mongo = "1" ] ; then
    fi
 fi
 
-if [ $with_mongo = "1" ] || [ $version_xotcl = "HEAD" ] || [ $version_tdom = "GIT" ] || [ $version_ns = "HEAD" ] || [ $version_ns = "GIT" ]; then
+if [ $with_mongo = "1" ] || [ $version_xotcl = "HEAD" ] || [ $version_tdom = "GIT" ] || [ $version_ns = "HEAD" ] || [ $version_ns = "GIT" ] ; then
     git=git
 else
     git=
 fi
 
-if [ $version_ns = "HEAD" ] || [ $version_ns = "GIT" ] || [ $version_ns = ".." ]; then
+if [ $version_ns = "HEAD" ] || [ $version_ns = "GIT" ] || [ $version_ns = ".." ] ; then
     autoconf=autoconf
 else
     autoconf=
@@ -701,17 +701,17 @@ if [ ! $version_tdom = "GIT" ] ; then
         # Get a version of tdom, which is compatible with Tcl
         # 8.6. Unfortunately, the released version is not.
         #
-        rm -rf ${tdom_base} ${tdom_tar}
+        rm -rf ${tdom_src_dir} ${tdom_tar}
         #curl -L -O https://github.com/tDOM/tdom/tarball/4be49b70cabea18c90504d1159fd63994b323234
         #${tar} zxf 4be49b70cabea18c90504d1159fd63994b323234
         #mv tDOM-tdom-4be49b7 tDOM-${version_tdom}
-        curl -L -O http://tdom.org/downloads/${tdom_tar}
+        curl -s -L -O http://tdom.org/downloads/${tdom_tar}
         ${tar} zxf ${tdom_tar}
     fi
 else
     if [ ! -f "tdom/${version_tdom_git}" ] ; then
         #
-        # get the newest version of tDOM
+        # Get the newest version of tDOM from git
         #
         rm -rf tdom
         echo "get  tDOM via: git clone https://github.com/tDOM/tdom.git"
@@ -906,7 +906,7 @@ fi
 ${make} install
 cd ${build_dir}
 
-if [ $with_postgres_driver = "1" ] ; then
+if [ "${with_postgres_driver}" = "1" ] ; then
 
     echo "------------------------ Installing Modules/nsdbpg ----------------------"
     cd ${build_dir}
@@ -1008,7 +1008,7 @@ cd ..
 
 echo "------------------------ Installing tDOM --------------------------------"
 
-if [ $version_tdom = "GIT" ] ; then
+if [ "${version_tdom}" = "GIT" ] ; then
     cd tdom
     if [ ! -f "${version_tdom_git}" ] ; then
         git checkout "${version_tdom_git}"
@@ -1017,7 +1017,7 @@ if [ $version_tdom = "GIT" ] ; then
     cd unix
 else
     #${tar} xfz tDOM-${version_tdom}.tgz
-    cd ${tdom_base}/unix
+    cd ${tdom_src_dir}/unix
 fi
 ../configure --enable-threads --disable-tdomalloc --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
 ${make} install
