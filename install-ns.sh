@@ -63,11 +63,6 @@ with_postgres=${with_postgres:-1}
 with_postgres_driver=${with_postgres_driver:-1}
 
 #
-# some old versions of wget (e.g. inn CentOS 5.11) need the no-check flag
-wget_options=""
-#wget_options="--no-check-certificate"
-
-#
 # the pg_* variables should be the path leading to the include and
 # library file of postgres to be used in this build.  In particular,
 # "libpq-fe.h" and "libpq.so" are typically needed.
@@ -179,12 +174,32 @@ else
     need_git=1
 fi
 
+ns_tar=""
+ns_url=""
 if [ "${version_ns}" = "HEAD" ] || [ "${version_ns}" = "GIT" ] ; then
     need_git=1
     need_autoconf=1
+    ns_src_dir=naviserver
 elif [ "${version_ns}" = ".." ] ; then
     need_autoconf=1
+    ns_src_dir=${start_dir}/..
+else
+    ns_tar=naviserver-${version_ns}.tar.gz
+    ns_url=https://downloads.sourceforge.net/sourceforge/naviserver/${ns_tar}
+    ns_src_dir=naviserver-${version_ns}
 fi
+
+if [ ! ${version_modules} = "HEAD" ] && [ ! $version_modules = "GIT" ] ; then
+    modules_src_dir=modules
+    modules_tar=naviserver-${version_modules}-modules.tar.gz
+    modules_url=https://downloads.sourceforge.net/sourceforge/naviserver/${modules_tar}
+else
+    modules_src_dir=modules-git
+    modules_tar=
+    modules_url=
+fi
+
+
 
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
@@ -468,7 +483,7 @@ if [ $with_mongo = "1" ] ; then
         PKG_OK=$(dpkg-query -W --showformat='${Status}\n' mongodb-org|grep "install ok installed")
         if [ "" = "$PKG_OK" ] ; then
             sudo apt-get install -y gnupg
-            wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | sudo apt-key add -
+            curl -s -L https://www.mongodb.org/static/pgp/server-5.0.asc | sudo apt-key add -
             echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/5.0 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-5.0.list
             sudo apt-get update
             sudo apt-get install -y mongodb-org
@@ -496,7 +511,7 @@ if [ $debian = "1" ] ; then
     # On Debian/Ubuntu, make sure we have zlib installed, otherwise
     # NaviServer can't provide compression support
     apt-get install -y make ${autoconf} locales gcc zlib1g-dev \
-            wget curl zip unzip openssl libssl-dev \
+            curl zip unzip openssl libssl-dev \
             ${pg_packages} ${git} ${mongodb}
     locale-gen en_US.UTF-8
     update-locale LANG="en_US.UTF-8"
@@ -512,18 +527,18 @@ if [ $redhat = "1" ] ; then
     fi
 
     ${pkgmanager} install make ${autoconf} automake gcc zlib zlib-devel \
-                  wget curl zip unzip openssl openssl-devel \
+                  curl zip unzip openssl openssl-devel \
                   ${pg_packages} ${git} ${mongodb}
     export LANG=en_US.UTF-8
     localedef --verbose --force -i en_US -f UTF-8 en_US.UTF-8
 fi
 
 if [ $archlinux = "1" ] ; then
-    pacman -Sy --noconfirm wget gcc make ${pg_packages}
+    pacman -Sy --noconfirm gcc make ${pg_packages}
 fi
 
 if [ $macosx = "1" ] ; then
-    port install ${autoconf} automake zlib wget curl zip unzip openssl \
+    port install ${autoconf} automake zlib curl zip unzip openssl \
          ${pg_packages} ${git} ${mongodb}
     with_openssl_configure_flag="--with-openssl=/opt/local"
 fi
@@ -531,7 +546,7 @@ fi
 if [ $sunos = "1" ] ; then
     # packages for OpenSolaris/OmniOS
     pkg install pkg://omnios/developer/versioning/git \
-        ${autoconf} automake /developer/gcc51 zlib wget \
+        ${autoconf} automake /developer/gcc51 zlib \
         curl compress/zip compress/unzip \
         ${pg_packages} ${git} ${mongodb}
     pkg install \
@@ -548,7 +563,7 @@ if [ $sunos = "1" ] ; then
 fi
 
 if [ $freebsd = "1" ] ; then
-    pkg install gmake llvm openssl automake wget curl zip unzip \
+    pkg install gmake llvm openssl automake curl zip unzip \
         ${pg_packages} ${autoconf} ${git} ${mongodb}
 fi
 
@@ -561,7 +576,7 @@ if [ $openbsd = "1" ] ; then
     # well), but NaviServer gets more functionality by using recent
     # versions of OpenSSL.
     #
-    pkg_add gcc openssl wget curl zip unzip bash gmake \
+    pkg_add gcc openssl curl zip unzip bash gmake \
             ${git} ${mongodb} ${pg_packages} autoconf-2.69p2 automake-1.15.1
     pkg_add autoconf-2.69p3
 fi
@@ -578,7 +593,6 @@ if [ ! -f ${tcl_tar} ] ; then
     #https://github.com/tcltk/tcl/archive/refs/tags/core-8-6-12.tar.gz
     echo "Must fetch ${tcl_tar} ..."
     curl -L -s -k -o ${tcl_tar} ${tcl_url}
-    #wget ${wget_options} https://downloads.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
 else
     echo "No need to fetch ${tcl_tar} (already available)"
 fi
@@ -607,9 +621,10 @@ fi
 #fi
 
 if [ ! $version_ns = ".." ] ; then
-    if [ ! $version_ns = "HEAD" ] &&  [ ! $version_ns = "GIT" ] ; then
-        if [ ! -f naviserver-${version_ns}.tar.gz ] ; then
-            wget ${wget_options} https://downloads.sourceforge.net/sourceforge/naviserver/naviserver-${version_ns}.tar.gz
+    if [ ! "${ns_tar}" = "" ] ; then
+        if [ ! -f ${ns_tar} ] ; then
+            echo "Downloading ${ns_tar} ..."
+            curl -L -s -k -o ${ns_tar} ${ns_url}
         fi
     else
         if [ ! -d naviserver ] ; then
@@ -626,15 +641,14 @@ if [ ! $version_ns = ".." ] ; then
 fi
 
 cd ${build_dir}
-if [ ! ${version_modules} = "HEAD" ] && [ ! $version_modules = "GIT" ] ; then
-    modules_dir=modules
-    if [ ! -f naviserver-${version_modules}-modules.tar.gz ] ; then
-        wget ${wget_options} https://downloads.sourceforge.net/sourceforge/naviserver/naviserver-${version_modules}-modules.tar.gz
+if [ ! "${modules_tar}" = "" ] ; then
+    if [ ! -f ${modules_tar} ] ; then
+        echo "Downloading ${modules_tar} ..."
+        curl -L -s -k -o ${modules_tar} ${modules_url}
     fi
 else
-    modules_dir=modules-git
-    if [ ! -d ${modules_dir} ] ; then
-        mkdir ${modules_dir}
+    if [ ! -d ${modules_src_dir} ] ; then
+        mkdir ${modules_src_dir}
     fi
     modules='
         letsencrypt
@@ -689,7 +703,7 @@ else
         websocket
     '
     modules=nsdbpg
-    cd ${modules_dir}
+    cd ${modules_src_dir}
     for d in ${modules}
     do
         if [ ! -d $d ] ; then
@@ -732,12 +746,6 @@ fi
 if [ ! $version_tdom = "GIT" ] ; then
     if [ ! -f ${tdom_tar} ] ; then
         echo "Must fetch ${tdom_tar} from http://tdom.org/downloads/"
-        #wget --no-check-certificate https://cloud.github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
-        #curl -L -O  https://github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
-        #
-        # Get a version of tdom, which is compatible with Tcl
-        # 8.6. Unfortunately, the released version is not.
-        #
         rm -rf ${tdom_src_dir} ${tdom_tar}
         curl --max-time 180 -L -s -k -o ${tdom_tar} http://tdom.org/downloads/${tdom_tar}
         echo "... download from http://tdom.org/downloads/${tdom_tar} finished."
@@ -916,17 +924,13 @@ echo "------------------------ Installing NaviServer ---------------------------
 
 cd ${build_dir}
 
-if [ ! ${version_ns} = "HEAD" ] && [ ! $version_ns = "GIT" ] && [ ! $version_ns = ".." ] ; then
-    ${tar} zxvf naviserver-${version_ns}.tar.gz
-    cd naviserver-${version_ns}
+if [ ! ${ns_tar} = "" ] ; then
+    ${tar} zxvf ${ns_tar}
+    cd ${ns_src_dir}
     ./configure --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir} ${with_openssl_configure_flag}
 else
-    if [ $version_ns = ".." ] ; then
-        cd ${start_dir}/..
-    else
-        cd naviserver
-    fi
-    if [ ! -f naviserver/configure ] ; then
+    cd ${ns_src_dir}
+    if [ ! -f configure ] ; then
         bash autogen.sh --enable-threads --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir} ${with_openssl_configure_flag}
     else
         ./configure --enable-threads --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir} ${with_openssl_configure_flag}
@@ -949,7 +953,7 @@ if [ "${with_postgres_driver}" = "1" ] ; then
     if [ ! ${version_modules} = "HEAD" ] && [ ! ${version_modules} = "GIT" ] ; then
         ${tar} zxvf naviserver-${version_modules}-modules.tar.gz
     fi
-    cd ${modules_dir}/nsdbpg
+    cd ${modules_src_dir}/nsdbpg
     ${make} PGLIB=${pg_lib} PGINCLUDE=${pg_incl} NAVISERVER=${ns_install_dir}
     ${make} NAVISERVER=${ns_install_dir} install
 
