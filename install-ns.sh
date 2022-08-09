@@ -37,7 +37,6 @@ version_modules=${version_modules:${version_ns}}
 #version_tcl=8.5.19
 version_tcl=${version_tcl:-8.6.12}
 version_tcllib=${version_tcllib:-1.20}
-tcllib_dirname=tcllib
 version_thread=""
 #version_thread=2.8.2
 #version_thread=2.8.6
@@ -51,10 +50,6 @@ ns_group=${ns_group:-nsadmin}
 with_mongo=${with_mongo:-0}
 with_system_malloc=${with_system_malloc:-0}
 with_ns_doc=${with_ns_doc:-1}
-
-
-#tcllib_tar=${tcllib_dirname}-${version_tcllib}.tar.bz2
-tcllib_tar=${tcllib_dirname}-${version_tcllib}.tar.gz
 
 #
 # The setting "with_postgres=1" means that we want to install a fresh
@@ -163,6 +158,9 @@ else
     tdom_src_dir=tdom
 fi
 
+tcllib_src_dir=tcllib-${version_tcllib}
+tcllib_tar=${tcllib_src_dir}.tar.gz
+tcllib_url=https://downloads.sourceforge.net/sourceforge/tcllib/${tcllib_tar}
 
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
@@ -363,7 +361,7 @@ if [ $do_clean = 1 ] ; then
     #rm    tcl${version_tcl}-src.tar.gz
     rm -r tcl${version_tcl}
     #rm    ${tcllib_tar}
-    rm -r ${tcllib_dirname}-${version_tcllib}
+    rm -r ${tcllib_src_dir}
     #rm    naviserver-${version_ns}.tar.gz
     rm -rf naviserver-${version_ns}
     #rm    naviserver-${version_ns}-modules.tar.gz
@@ -578,16 +576,17 @@ fi
 
 
 if [ ! -f ${tcllib_tar} ] ; then
-    wget ${wget_options} https://downloads.sourceforge.net/sourceforge/tcllib/${tcllib_tar}
+    echo "Downloading ${tcllib_tar} ..."
+    curl -L -s -k -o ${tcllib_tar} ${tcllib_url}
 fi
 
 # All versions of tcllib up to 1.15 were named tcllib-*.
 # tcllib-1.16 was named a while Tcllib-1.16 (capital T), but has been renamed later
 # to the standard naming conventions. tcllib-1.17 is fine again.
-if [ ! -f ${tcllib_tar} ] ; then
-    curl -L -s -k -o ${tcllib_tar} https://downloads.sourceforge.net/sourceforge/tcllib/Tcllib-${version_tcllib}.tar.bz2
-    tcllib_dirname=Tcllib
-fi
+#if [ ! -f ${tcllib_tar} ] ; then
+#    curl -L -s -k -o ${tcllib_tar} https://downloads.sourceforge.net/sourceforge/tcllib/Tcllib-${version_tcllib}.tar.bz2
+#    tcllib_src_dir=Tcllib
+#fi
 
 if [ ! $version_ns = ".." ] ; then
     if [ ! $version_ns = "HEAD" ] &&  [ ! $version_ns = "GIT" ] ; then
@@ -888,9 +887,8 @@ cd ${build_dir}
 
 echo "------------------------ Installing Tcllib ------------------------------"
 
-#${tar} xvfj ${tcllib_tar}
 ${tar} xf ${tcllib_tar}
-cd ${tcllib_dirname}-${version_tcllib}
+cd ${tcllib_src_dir}
 ./configure --prefix=${ns_install_dir}
 ${make} install
 cd ..
