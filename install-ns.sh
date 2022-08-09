@@ -31,7 +31,7 @@ ns_install_dir=${ns_install_dir:-/usr/local/ns}
 version_ns=${version_ns:-4.99.24}
 #version_ns=GIT
 git_branch_ns=${git_branch_ns:-main}
-version_modules=${version_modules:${version_ns}}
+version_modules=${version_modules:-${version_ns}}
 #version_modules=HEAD
 
 #version_tcl=8.5.19
@@ -114,7 +114,7 @@ else
     tcl_url=https://core.tcl-lang.org/tcl/tarball/tcl.tar.gz?uuid=${version_tcl}
     tcl_tar=tcl-${version_tcl}.tar.gz
     tcl_src_dir=tcl
-    if [[ ${version_tcl} == *"branch"* ]] || [ ${version_tcl} = "trunk" ] ; then
+    if [[ ${version_tcl} == *"branch"* ]] || [ "${version_tcl}" = "trunk" ] ; then
         tcl_fetch_always=1
     else
         tcl_fetch_always=0
@@ -122,7 +122,7 @@ else
 fi
 
 if [ "${version_thread}" = "" ] && [ ${tcl_fetch_from_core} = "1" ] ; then
-    if [ ${version_tcl} = "trunk" ] ; then
+    if [ "${version_tcl}" = "trunk" ] ; then
         version_thread=trunk
     elif [[ ${version_tcl} == *"8-5"* ]] ; then
         version_thread=thread-2-6
@@ -189,7 +189,7 @@ else
     ns_src_dir=naviserver-${version_ns}
 fi
 
-if [ ! ${version_modules} = "HEAD" ] && [ ! $version_modules = "GIT" ] ; then
+if [ ! "${version_modules}" = "HEAD" ] && [ ! "${version_modules}" = "GIT" ] ; then
     modules_src_dir=modules
     modules_tar=naviserver-${version_modules}-modules.tar.gz
     modules_url=https://downloads.sourceforge.net/sourceforge/naviserver/${modules_tar}
@@ -220,7 +220,7 @@ tar="tar"
 pg_packages=
 
 uname=$(uname)
-if [ $uname = "Darwin" ] ; then
+if [ "$uname" = "Darwin" ] ; then
     macosx=1
     group_listcmd="dscl . list /Groups | grep ${ns_group}"
     group_addcmd="dscl . create /Groups/${ns_group} PrimaryGroupID $((`dscl . -list /Groups PrimaryGroupID | awk '{print $2}' | sort -rn|head -1` + 1))"
@@ -275,7 +275,7 @@ else
         if [ $with_postgres = "1" ] || [ $with_postgres_driver = "1" ] ; then
             pg_packages="postgresql"
         fi
-    elif [ $uname = 'SunOS' ] ; then
+    elif [ "$uname" = 'SunOS' ] ; then
         sunos=1
         make="gmake"
         export CC="gcc -m64"
@@ -284,7 +284,7 @@ else
             pg_incl=/opt/pgsql960/include
             pg_lib=/opt/pgsql960/lib
         fi
-    elif [ $uname = "FreeBSD" ] ; then
+    elif [ "$uname" = "FreeBSD" ] ; then
         freebsd=1
         make="gmake"
         type="type"
@@ -299,7 +299,7 @@ else
         fi
         # make sure that bash is installed here, such that the recommendation for bash works below
         pkg install bash
-    elif [ $uname = "OpenBSD" ] ; then
+    elif [ "$uname" = "OpenBSD" ] ; then
         make="gmake CC=clang"
         openbsd=1
         export CC=clang
@@ -315,10 +315,10 @@ else
     fi
 
     group_addcmd="groupadd ${ns_group}"
-    if [ $uname = "FreeBSD" ] ; then
+    if [ "$uname" = "FreeBSD" ] ; then
         group_addcmd="pw groupadd ${ns_group}"
         ns_user_addcmd="pw useradd ${ns_user} -G ${ns_group} "
-    elif [ $uname = "OpenBSD" ] ; then
+    elif [ "$uname" = "OpenBSD" ] ; then
         ns_user_addcmd="useradd -m -g ${ns_group} ${ns_user}"
     else
         ns_user_addcmd="useradd -g ${ns_group} ${ns_user}"
@@ -351,7 +351,7 @@ SETTINGS   build_dir              (Build directory)                 ${build_dir}
            ns_install_dir         (Installation directory)          ${ns_install_dir}
            version_ns             (Version of NaviServer)           ${version_ns}
            git_branch_ns          (Branch for git checkout of ns)   ${git_branch_ns}
-           version_modules        (Version opf NaviServer Modules)  ${version_modules}
+           version_modules        (Version of NaviServer Modules)   ${version_modules}
            version_tcllib         (Version of Tcllib)               ${version_tcllib}
            version_thread         (Version Tcl thread library)      ${version_thread}
            version_xotcl          (Version of NSF/NX/XOTcl)         ${version_xotcl}
@@ -396,7 +396,7 @@ echo "------------------------ Cleanup -----------------------------------------
 mkdir -p ${build_dir}
 cd ${build_dir}
 
-if [ $do_clean = 1 ] ; then
+if [ "$do_clean" = "1" ] ; then
     rm -r ${tcl_src_dir}
     rm -r ${tcllib_src_dir}
     rm -rf naviserver-${version_ns}
@@ -407,7 +407,7 @@ if [ $do_clean = 1 ] ; then
 fi
 
 # just clean?
-if [ $clean_only = "1" ] ; then
+if [ "$clean_only" = "1" ] ; then
   exit
 fi
 
@@ -585,7 +585,7 @@ fi
 echo "------------------------ Downloading sources ----------------------------"
 set -o errexit
 
-if [ ${tcl_fetch_always} = 1 ] ; then
+if [ "${tcl_fetch_always}" = "1" ] ; then
     rm -f ${tcl_tar}
 fi
 
@@ -620,7 +620,7 @@ fi
 #    tcllib_src_dir=Tcllib
 #fi
 
-if [ ! $version_ns = ".." ] ; then
+if [ ! "${version_ns}" = ".." ] ; then
     if [ ! "${ns_tar}" = "" ] ; then
         if [ ! -f ${ns_tar} ] ; then
             echo "Downloading ${ns_tar} ..."
@@ -718,7 +718,7 @@ fi
 
 cd ${build_dir}
 
-if [ ! ${version_xotcl} = "HEAD" ] ; then
+if [ ! "${version_xotcl}" = "HEAD" ] ; then
     if [ ! -f ${nsf_tar} ] ; then
         echo "Downloading ${nsf_tar} ..."
         curl -L -s -k -o ${nsf_tar} ${nsf_url}
@@ -743,7 +743,7 @@ if [ $with_mongo = "1" ] ; then
     fi
 fi
 
-if [ ! $version_tdom = "GIT" ] ; then
+if [ ! "${version_tdom}" = "GIT" ] ; then
     if [ ! -f ${tdom_tar} ] ; then
         echo "Must fetch ${tdom_tar} from http://tdom.org/downloads/"
         rm -rf ${tdom_src_dir} ${tdom_tar}
