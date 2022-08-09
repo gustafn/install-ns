@@ -52,6 +52,7 @@ ns_user=${ns_user:-nsadmin}
 ns_group=${ns_group:-nsadmin}
 with_mongo=${with_mongo:-0}
 with_system_malloc=${with_system_malloc:-0}
+with_ns_doc=${with_ns_doc:-1}
 
 
 #tcllib_tar=${tcllib_dirname}-${version_tcllib}.tar.bz2
@@ -80,6 +81,76 @@ wget_options=""
 pg_incl=/usr/include/postgresql
 pg_lib=/usr/lib
 pg_user=postgres
+
+
+# When getting Tcl via sourceforge tar ball
+#   - the URL is https://downloads.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
+#   - the tarball is named tcl${version_tcl}-src.tar.gz
+#   - the tcl_dir is named tcl${version_tcl}
+#   - the thread library is included in the tar ball and placed in pkgs/thread
+#
+# When getting Tcl via tcl-lang.org
+#   - the tcl_url is https://core.tcl-lang.org/tcl/tarball/tcl.tar.gz?uuid=${TCLTAG}
+#   - the tcl_tarball is named tcl.tar.gz
+#   - the tcl_dir is named tcl
+#   - potential TCLTAG: trunk core-8-branch core-8-7-a5 core-8-6-branch core-8-6-12 core-8-5-19
+#   - the thread library has to be obtained from
+#     thread_url https://core.tcl-lang.org/thread/tarball/thread.tar.gz?uuid=${THREADTAG}
+#   - the expanded tar file is named "thread"
+#   - potential THREADTAG: trunk thread-2-8-7 thread-2-7-3 thread-2-6-7
+#
+# When version name contains "." -> fetch from sourceforge
+# else
+#    - if name contains "branch" or trunk fetch always
+#    - remove ${tcl_dir} before expanding tar
+#
+tcl_src_dir=tcl${version_tcl}
+
+if [[ ${version_tcl} == *"."* ]] ; then
+    echo "${version_tcl} contains a DOT -> fetch from sourceforge"
+    tcl_fetch_from_core=0
+    tcl_fetch_always=0
+    tcl_url=https://downloads.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
+    tcl_tar=tcl${version_tcl}-src.tar.gz
+    tcl_src_dir=tcl${version_tcl}
+else
+    echo "${version_tcl} contains NO DOT -> fetch from Tcl core repos"
+    tcl_fetch_from_core=1
+    tcl_url=https://core.tcl-lang.org/tcl/tarball/tcl.tar.gz?uuid=${version_tcl}
+    tcl_tar=tcl-${version_tcl}.tar.gz
+    tcl_src_dir=tcl
+    if [[ ${version_tcl} == *"branch"* ]] || [ ${version_tcl} = "trunk" ] ; then
+        tcl_fetch_always=1
+    else
+        tcl_fetch_always=0
+    fi
+fi
+
+if [ "${version_thread}" = "" ] && [ ${tcl_fetch_from_core} = "1" ] ; then
+    if [ ${version_tcl} = "trunk" ] ; then
+        version_thread=trunk
+    elif [[ ${version_tcl} == *"8-6"* ]] || [[ ${version_tcl} == *"8-branch"* ]] ; then
+        version_thread=thread-2-8-branch
+    else
+        version_thread=thread-2-6
+    fi
+    thread_fetch_from_core=1
+    thread_url=https://core.tcl-lang.org/thread/tarball/thread.tar.gz?uuid=${version_thread}
+    thread_tar=thread.tar.gz
+    thread_src_dir=thread
+else
+    thread_fetch_from_core=0
+    if [ ! "${version_thread}" = "" ] ; then
+        thread_tar=thread${version_thread}.tar.gz
+        thread_url=https://downloads.sourceforge.net/sourceforge/tcl/thread${version_thread}.tar.gz
+        thread_src_dir=thread${version_thread}
+    else
+        thread_tar=""
+        thread_url=""
+        thread_src_dir=${tcl_src_dir}/pkgs/thread
+    fi
+fi
+
 
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
@@ -233,7 +304,7 @@ SETTINGS   build_dir              (Build directory)                 ${build_dir}
            git_branch_ns          (Branch for git checkout of ns)   ${git_branch_ns}
            version_modules        (Version opf NaviServer Modules)  ${version_modules}
            version_tcllib         (Version of Tcllib)               ${version_tcllib}
-                                  (Version Tcl thread library)      ${version_thread}
+           version_thread         (Version Tcl thread library)      ${version_thread}
            version_xotcl          (Version of NSF/NX/XOTcl)         ${version_xotcl}
            version_tcl            (Version of Tcl)                  ${version_tcl}
            version_tdom           (Version of tDOM)                 ${version_tdom}
@@ -244,7 +315,8 @@ SETTINGS   build_dir              (Build directory)                 ${build_dir}
            with_mongo             (Add MongoDB client and server)   ${with_mongo}
            with_postgres          (Install PostgreSQL DB server)    ${with_postgres}
            with_postgres_driver   (Add PostgreSQL driver support)   ${with_postgres_driver}
-           with_system_malloc     (Tcl compiled with system malloc) ${with_system_malloc}"
+           with_system_malloc     (Tcl compiled with system malloc) ${with_system_malloc}
+           with_ns_doc            (NaviServer documentation)        ${with_ns_doc}"
 
 if [ $with_postgres = "1" ] ; then
     echo "
@@ -470,10 +542,23 @@ fi
 echo "------------------------ Downloading sources ----------------------------"
 set -o errexit
 
-if [ ! -f tcl${version_tcl}-src.tar.gz ] ; then
-    echo wget ${wget_options} https://downloads.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
-    wget ${wget_options} https://downloads.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
+if [ ${tcl_fetch_always} = 1 ] ; then
+    rm -f ${tcl_tar}
 fi
+
+if [ ! -f ${tcl_tar} ] ; then
+    #https://github.com/tcltk/tcl/archive/refs/tags/core-8-6-12.tar.gz
+    echo "Downloading ${tcl_tar} ..."
+    curl -L -s -k -o ${tcl_tar} ${tcl_url}
+    #wget ${wget_options} https://downloads.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
+fi
+
+if [ ! "${thread_tar}" = "" ] && [ ! -f ${thread_tar} ] ; then
+    echo "Downloading ${thread_tar} ..."
+    curl -L -s -k -o ${thread_tar} ${thread_url}
+fi
+
+
 if [ ! -f ${tcllib_tar} ] ; then
     wget ${wget_options} https://downloads.sourceforge.net/sourceforge/tcllib/${tcllib_tar}
 fi
@@ -498,7 +583,7 @@ if [ ! $version_ns = ".." ] ; then
             cd ${build_dir}/naviserver
             git pull
         fi
-        if [ ! ${git_branch_ns} = "" ] ; then
+        if [ ! "${git_branch_ns}" = "" ] ; then
             cd ${build_dir}/naviserver
             git checkout ${git_branch_ns}
         fi
@@ -517,55 +602,55 @@ else
         mkdir ${modules_dir}
     fi
     modules='
-        letsencrypt 
-        nsaccess 
-        nsaspell 
-        nsauthpam 
-        nschartdir 
-        nsclamav 
-        nscoap 
-        nsconf 
-        nsdbbdb 
-        nsdbi 
-        nsdbilite 
-        nsdbimy 
-        nsdbipg 
-        nsdbmysql 
-        nsdbpg 
-        nsdbsqlite 
-        nsdbtds 
-        nsdhcpd 
-        nsdns 
-        nsexample 
-        nsexpat 
-        nsfortune 
-        nsgdchart 
-        nsicmp 
-        nsimap 
-        nsldap 
-        nsldapd 
-        nsloopctl 
-        nsmemcache 
-        nsocaml 
-        nsoracle 
-        nsphp 
-        nsradiusd 
+        letsencrypt
+        nsaccess
+        nsaspell
+        nsauthpam
+        nschartdir
+        nsclamav
+        nscoap
+        nsconf
+        nsdbbdb
+        nsdbi
+        nsdbilite
+        nsdbimy
+        nsdbipg
+        nsdbmysql
+        nsdbpg
+        nsdbsqlite
+        nsdbtds
+        nsdhcpd
+        nsdns
+        nsexample
+        nsexpat
+        nsfortune
+        nsgdchart
+        nsicmp
+        nsimap
+        nsldap
+        nsldapd
+        nsloopctl
+        nsmemcache
+        nsocaml
+        nsoracle
+        nsphp
+        nsradiusd
         nsrtsp
-        nssavi 
-        nsshell 
-        nssip 
-        nssmtpd 
-        nssnmp 
-        nsstats 
-        nssys 
-        nssyslogd 
-        nstftpd 
-        nstk 
-        nsudp 
-        nsvfs 
-        nswebpush 
-        nszlib 
-        revproxy 
+        nssavi
+        nsshell
+        nssip
+        nssmtpd
+        nssnmp
+        nsstats
+        nssys
+        nssyslogd
+        nstftpd
+        nstk
+        nsudp
+        nsvfs
+        nswebpush
+        nszlib
+        revproxy
         websocket
     '
     modules=nsdbpg
@@ -583,11 +668,6 @@ else
 fi
 
 cd ${build_dir}
-if [ ! "$version_thread" = "" ] ; then
-    if [ ! -f thread${version_thread}.tar.gz ] ; then
-        wget ${wget_options} https://downloads.sourceforge.net/sourceforge/tcl/thread${version_thread}.tar.gz
-    fi
-fi
 
 if [ ! ${version_xotcl} = "HEAD" ] ; then
     if [ ! -f nsf${version_xotcl}.tar.gz ] ; then
@@ -623,10 +703,10 @@ if [ ! $version_tdom = "GIT" ] ; then
         #
         rm  -rf ${tdom_base} ${tdom_tar}
         #curl -L -O https://github.com/tDOM/tdom/tarball/4be49b70cabea18c90504d1159fd63994b323234
-        #${tar} zxvf 4be49b70cabea18c90504d1159fd63994b323234
+        #${tar} zxf 4be49b70cabea18c90504d1159fd63994b323234
         #mv tDOM-tdom-4be49b7 tDOM-${version_tdom}
         curl -L -O http://tdom.org/downloads/${tdom_tar}
-        ${tar} zxvf ${tdom_tar}
+        ${tar} zvf ${tdom_tar}
     fi
 else
     if [ ! -f "tdom/${version_tdom_git}" ] ; then
@@ -647,10 +727,11 @@ fi
 echo "------------------------ Installing Tcl ---------------------------------"
 set -o errexit
 
-${tar} xfz tcl${version_tcl}-src.tar.gz
+rm -rf ${tcl_src_dir}
+${tar} xfz ${tcl_tar}
 
 if [ $with_system_malloc = "1" ] ; then
-    cd tcl${version_tcl}
+    cd ${tcl_src_dir}
     cat <<EOF > tcl86-system-malloc.patch
 Index: generic/tclThreadAlloc.c
 ==================================================================
@@ -679,7 +760,7 @@ Index: generic/tclThreadAlloc.c
      Cache *cachePtr;
 @@ -366,10 +374,11 @@
      if (blockPtr == NULL) {
- 	return NULL;
+        return NULL;
      }
      return Block2Ptr(blockPtr, bucket, reqSize);
  }
@@ -712,8 +793,8 @@ Index: generic/tclThreadAlloc.c
      Cache *cachePtr;
 @@ -425,10 +442,11 @@
      if (cachePtr != sharedPtr &&
- 	    cachePtr->buckets[bucket].numFree > bucketInfo[bucket].maxBlocks) {
- 	PutBlocks(cachePtr, bucket, bucketInfo[bucket].numMove);
+            cachePtr->buckets[bucket].numFree > bucketInfo[bucket].maxBlocks) {
+        PutBlocks(cachePtr, bucket, bucketInfo[bucket].numMove);
      }
  }
 +#endif
@@ -744,8 +825,8 @@ Index: generic/tclThreadAlloc.c
      unsigned int reqSize)
  {
 @@ -519,10 +545,11 @@
- 	memcpy(newPtr, ptr, reqSize);
- 	TclpFree(ptr);
+        memcpy(newPtr, ptr, reqSize);
+        TclpFree(ptr);
      }
      return newPtr;
  }
@@ -764,10 +845,9 @@ EOF
     cd ..
 fi
 
-rm -rf  tcl${version_tcl}/pkgs/sqlit*
-#rm -rf tcl${version_tcl}/pkgs/thread*
+rm -rf  ${tcl_src_dir}/pkgs/sqlit*
 
-cd tcl${version_tcl}/unix
+cd ${tcl_src_dir}/unix
 ./configure --enable-threads --prefix=${ns_install_dir}
 #./configure --enable-threads --prefix=${ns_install_dir} --with-naviserver=${ns_install_dir}
 
@@ -790,7 +870,7 @@ cd ${build_dir}
 echo "------------------------ Installing Tcllib ------------------------------"
 
 #${tar} xvfj ${tcllib_tar}
-${tar} xvf ${tcllib_tar}
+${tar} xf ${tcllib_tar}
 cd ${tcllib_dirname}-${version_tcllib}
 ./configure --prefix=${ns_install_dir}
 ${make} install
@@ -818,8 +898,10 @@ else
 fi
 ${make}
 
-if [ ${version_ns} = "HEAD" ] || [ ${version_ns} = "GIT" ] || [ ${version_ns} = ".." ]; then
-    ${make} "DTPLITE=${ns_install_dir}/bin/tclsh $ns_install_dir/bin/dtplite" build-doc
+if [ ${version_ns} = "HEAD" ] || [ ${version_ns} = "GIT" ] || [ ${version_ns} = ".." ] ; then
+    if [ ! "${with_ns_doc}" = "0" ] ; then
+        ${make} "DTPLITE=${ns_install_dir}/bin/tclsh $ns_install_dir/bin/dtplite" build-doc
+    fi
 fi
 ${make} install
 cd ${build_dir}
@@ -838,27 +920,37 @@ if [ $with_postgres_driver = "1" ] ; then
     cd ${build_dir}
 fi
 
-if [ "$version_thread" = "" ] ; then
-
-    echo "------------------------ Configure, compile and install libthread for NaviServer ------------------"
-    cd ${build_dir}/tcl${version_tcl}/pkgs/thread*
+if [ "$thread_tar" = "" ] ; then
+    # Use the thread library as distributed with Tcl
+    echo "------------------------ Compile and install libthread from Tcl Sources ------------------"
+    cd ${build_dir}/${tcl_src_dir}/pkgs/thread*
     ./configure --enable-threads --prefix=${ns_install_dir} --with-naviserver=${ns_install_dir}
     ${make} clean
     ${make} install
     cd ${build_dir}
 
 else
-    echo "------------------------ Installing Tcl Thread library -----------------------"
+    echo "------------------------ Compile and install libthread from ${thread_tar} ----------------"
 
-    ${tar} xfz thread${version_thread}.tar.gz
-    cd thread${version_thread}/unix/
+    rm -rf ${thread_src_dir}
+    ${tar} xfz ${thread_tar}
+
+    if [ ! -f ${thread_src_dir}/tclconfig ] ; then
+        echo "Must fetch tclconfig"
+        url=https://core.tcl-lang.org/tclconfig/tarball/tclconfig.tar.gz?uuid=tcl8-compat
+        curl -L -s -k -o tclconfig.tar.gz $url
+        tar xf tclconfig.tar.gz
+        ln -s ${build_dir}/tclconfig ${thread_src_dir}/tclconfig
+    fi
+
+    cd ${thread_src_dir}/unix/
     ../configure --enable-threads --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-naviserver=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
     make
     ${make} install
     #
     # Copy installed naviserver flavor of libthread to a special name.
     # Use for the time being "cp" instead of "mv" to keep old
-    # configuration (not expecting the suffix) files working.
+    # configuration (not expeclsting the suffix) files working.
     #
     # thread2.8.6/libthread2.8.6.so -> thread2.8.6/libthread-ns2.8.6.so
     #binary=${ns_install_dir}/lib/thread${version_thread}/libthread${version_thread}.so
@@ -890,7 +982,7 @@ fi
 echo "------------------------ Installing XOTcl 2.* (with_mongo $with_mongo) -----------------"
 
 if [ ! ${version_xotcl} = "HEAD" ] ; then
-    ${tar} xvfz nsf${version_xotcl}.tar.gz
+    ${tar} xfz nsf${version_xotcl}.tar.gz
     cd nsf${version_xotcl}
 else
     cd nsf
