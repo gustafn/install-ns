@@ -76,6 +76,13 @@ pg_lib=/usr/lib
 pg_user=postgres
 
 
+# ----------------------------------------------------------------------
+#
+# Check version info and derive more variables from it.
+#
+need_git=1
+need_autoconf=1
+
 # When getting Tcl via sourceforge tar ball
 #   - the URL is https://downloads.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
 #   - the tarball is named tcl${version_tcl}-src.tar.gz
@@ -155,12 +162,29 @@ if [ ! "${version_tdom}" = "GIT" ] ; then
     fi
     tdom_tar=tdom-${version_tdom}-src.tgz
 else
+    need_git=1
     tdom_src_dir=tdom
 fi
 
 tcllib_src_dir=tcllib-${version_tcllib}
 tcllib_tar=${tcllib_src_dir}.tar.gz
 tcllib_url=https://downloads.sourceforge.net/sourceforge/tcllib/${tcllib_tar}
+
+if [ ! "${version_xotcl}" = "HEAD" ] ; then
+    nsf_src_dir=nsf${version_xotcl}
+    nsf_tar=${nsf_src_dir}.tar.gz
+    nsf_url=https://downloads.sourceforge.net/sourceforge/next-scripting/${nsf_tar}
+else
+    nsf_src_dir=nsf
+    need_git=1
+fi
+
+if [ "${version_ns}" = "HEAD" ] || [ "${version_ns}" = "GIT" ] ; then
+    need_git=1
+    need_autoconf=1
+elif [ "${version_ns}" = ".." ] ; then
+    need_autoconf=1
+fi
 
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
@@ -358,19 +382,13 @@ mkdir -p ${build_dir}
 cd ${build_dir}
 
 if [ $do_clean = 1 ] ; then
-    #rm    tcl${version_tcl}-src.tar.gz
-    rm -r tcl${version_tcl}
-    #rm    ${tcllib_tar}
+    rm -r ${tcl_src_dir}
     rm -r ${tcllib_src_dir}
-    #rm    naviserver-${version_ns}.tar.gz
     rm -rf naviserver-${version_ns}
-    #rm    naviserver-${version_ns}-modules.tar.gz
     rm -rf modules modules-git
-    #rm    thread${version_thread}.tar.gz
-    rm -r thread${version_thread}
-    #rm    nsf${version_xotcl}.tar.gz
-    rm -rf nsf${version_xotcl}
-    rm  -rf ${tdom_src_dir} ${tdom_tar} tdom
+    rm -r ${thread_src_dir}
+    rm -rf ${nsf_src_dir}
+    rm -rf ${tdom_src_dir} tdom
 fi
 
 # just clean?
@@ -437,6 +455,7 @@ function version_greater_equal()
 
 mongodb=
 if [ $with_mongo = "1" ] ; then
+    need_git=1
     debian10=0
     # Avoid Ubuntu, which has /etc/lsb-release
     if [ $debian = "1" ] && [ ! -f /etc/lsb-release ] ; then
@@ -460,18 +479,17 @@ if [ $with_mongo = "1" ] ; then
    fi
 fi
 
-if [ $with_mongo = "1" ] || [ $version_xotcl = "HEAD" ] || [ $version_tdom = "GIT" ] || [ $version_ns = "HEAD" ] || [ $version_ns = "GIT" ] ; then
+if [ "${need_git}" = "1" ] ; then
     git=git
 else
     git=
 fi
 
-if [ $version_ns = "HEAD" ] || [ $version_ns = "GIT" ] || [ $version_ns = ".." ] ; then
+if [ "${need_autoconf}" = "1" ] ; then
     autoconf=autoconf
 else
     autoconf=
 fi
-mercurial=
 with_openssl_configure_flag=
 
 if [ $debian = "1" ] ; then
@@ -479,7 +497,7 @@ if [ $debian = "1" ] ; then
     # NaviServer can't provide compression support
     apt-get install -y make ${autoconf} locales gcc zlib1g-dev \
             wget curl zip unzip openssl libssl-dev \
-            ${pg_packages} ${mercurial} ${git} ${mongodb}
+            ${pg_packages} ${git} ${mongodb}
     locale-gen en_US.UTF-8
     update-locale LANG="en_US.UTF-8"
 fi
@@ -495,7 +513,7 @@ if [ $redhat = "1" ] ; then
 
     ${pkgmanager} install make ${autoconf} automake gcc zlib zlib-devel \
                   wget curl zip unzip openssl openssl-devel \
-                  ${pg_packages} ${mercurial} ${git} ${mongodb}
+                  ${pg_packages} ${git} ${mongodb}
     export LANG=en_US.UTF-8
     localedef --verbose --force -i en_US -f UTF-8 en_US.UTF-8
 fi
@@ -506,16 +524,16 @@ fi
 
 if [ $macosx = "1" ] ; then
     port install ${autoconf} automake zlib wget curl zip unzip openssl \
-         ${pg_packages} ${mercurial} ${git} ${mongodb}
+         ${pg_packages} ${git} ${mongodb}
     with_openssl_configure_flag="--with-openssl=/opt/local"
 fi
 
 if [ $sunos = "1" ] ; then
     # packages for OpenSolaris/OmniOS
-    pkg install pkg://omnios/developer/versioning/git mercurial \
+    pkg install pkg://omnios/developer/versioning/git \
         ${autoconf} automake /developer/gcc51 zlib wget \
         curl compress/zip compress/unzip \
-        ${pg_packages} ${mercurial} ${git} ${mongodb}
+        ${pg_packages} ${git} ${mongodb}
     pkg install \
         developer/object-file \
         developer/linker \
@@ -531,7 +549,7 @@ fi
 
 if [ $freebsd = "1" ] ; then
     pkg install gmake llvm openssl automake wget curl zip unzip \
-        ${pg_packages} ${autoconf} ${mercurial} ${git} ${mongodb}
+        ${pg_packages} ${autoconf} ${git} ${mongodb}
 fi
 
 if [ $openbsd = "1" ] ; then
@@ -544,7 +562,7 @@ if [ $openbsd = "1" ] ; then
     # versions of OpenSSL.
     #
     pkg_add gcc openssl wget curl zip unzip bash gmake \
-            ${mercurial} ${git} ${mongodb} ${pg_packages} autoconf-2.69p2 automake-1.15.1
+            ${git} ${mongodb} ${pg_packages} autoconf-2.69p2 automake-1.15.1
     pkg_add autoconf-2.69p3
 fi
 
@@ -687,8 +705,9 @@ fi
 cd ${build_dir}
 
 if [ ! ${version_xotcl} = "HEAD" ] ; then
-    if [ ! -f nsf${version_xotcl}.tar.gz ] ; then
-        wget ${wget_options} https://downloads.sourceforge.net/sourceforge/next-scripting/nsf${version_xotcl}.tar.gz
+    if [ ! -f ${nsf_tar} ] ; then
+        echo "Downloading ${nsf_tar} ..."
+        curl -L -s -k -o ${nsf_tar} ${nsf_url}
     fi
 else
     if [ ! -d nsf ] ; then
@@ -712,7 +731,7 @@ fi
 
 if [ ! $version_tdom = "GIT" ] ; then
     if [ ! -f ${tdom_tar} ] ; then
-        echo "No ${tdom_tar}, must fetch it from http://tdom.org/downloads/"
+        echo "Must fetch ${tdom_tar} from http://tdom.org/downloads/"
         #wget --no-check-certificate https://cloud.github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
         #curl -L -O  https://github.com/downloads/tDOM/tdom/tDOM-${version_tdom}.tgz
         #
@@ -1001,11 +1020,10 @@ fi
 echo "------------------------ Installing XOTcl 2.* (with_mongo $with_mongo) -----------------"
 
 if [ ! ${version_xotcl} = "HEAD" ] ; then
-    ${tar} xfz nsf${version_xotcl}.tar.gz
-    cd nsf${version_xotcl}
-else
-    cd nsf
+    ${tar} xfz ${nsf_tar}
 fi
+cd ${nsf_src_dir}
+
 #export CC=gcc
 
 if [ $with_mongo = "1" ] ; then
