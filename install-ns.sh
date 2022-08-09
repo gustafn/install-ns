@@ -747,7 +747,7 @@ if [ ! "${version_tdom}" = "GIT" ] ; then
     if [ ! -f ${tdom_tar} ] ; then
         echo "Must fetch ${tdom_tar} from http://tdom.org/downloads/"
         rm -rf ${tdom_src_dir} ${tdom_tar}
-        curl --max-time 300 --connection-timeout 300 --keepalive-time 300 \
+        curl --max-time 300 --connect-timeout 300 --keepalive-time 300 -v --trace-time \
              -L -s -k -o ${tdom_tar} http://tdom.org/downloads/${tdom_tar}
         echo "... download from http://tdom.org/downloads/${tdom_tar} finished."
     else
