@@ -156,6 +156,9 @@ if [ ! "${version_tdom}" = "GIT" ] ; then
         tdom_src_dir=tdom-${version_tdom}-src
     fi
     tdom_tar=tdom-${version_tdom}-src.tgz
+    # tdom.org/downloads/ does not work reliably inside github actions
+    #tdom_url=http://tdom.org/downloads/${tdom_tar}
+    tdom_url=https://openacs.org/downloads/${tdom_tar}
 else
     need_git=1
     tdom_src_dir=tdom
@@ -745,11 +748,11 @@ fi
 
 if [ ! "${version_tdom}" = "GIT" ] ; then
     if [ ! -f ${tdom_tar} ] ; then
-        echo "Must fetch ${tdom_tar} from http://tdom.org/downloads/"
+        echo "Must fetch ${tdom_tar} from ${tdom_url}"
         rm -rf ${tdom_src_dir} ${tdom_tar}
         curl --max-time 300 --connect-timeout 300 --keepalive-time 300 -v --trace-time \
-             -L -s -k -o ${tdom_tar} http://tdom.org/downloads/${tdom_tar}
-        echo "... download from http://tdom.org/downloads/${tdom_tar} finished."
+             -L -s -k -o ${tdom_tar} ${tdom_url}
+        echo "... download from ${tdom_url} finished."
     else
         echo "No need to fetch ${tdom_tar} (already available)"
     fi
