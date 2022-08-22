@@ -45,6 +45,7 @@ version_xotcl=${version_xotcl:-2.4.0}
 #version_tdom=GIT
 version_tdom=${version_tdom:-0.9.1}
 version_tdom_git="master@{2014-11-01 00:00:00}"
+ns_modules=${ns_modules:-}
 ns_user=${ns_user:-nsadmin}
 ns_group=${ns_group:-nsadmin}
 with_mongo=${with_mongo:-0}
@@ -69,6 +70,11 @@ with_postgres_driver=${with_postgres_driver:-1}
 pg_incl=/usr/include/postgresql
 pg_lib=/usr/lib
 pg_user=postgres
+
+if [ "${with_postgres_driver}" = "1" ] && [ "${ns_modules}" = "" ] ; then
+    ns_modules=nsdbpg
+fi
+
 
 
 # ----------------------------------------------------------------------
@@ -364,6 +370,7 @@ SETTINGS   build_dir              (Build directory)                 ${build_dir}
            ns_group               (NaviServer group)                ${ns_group}
                                   (Make command)                    ${make}
                                   (Type command)                    ${type}
+           ns_modules             (NaviServer Modules)              ${ns_modules}
            with_mongo             (Add MongoDB client and server)   ${with_mongo}
            with_postgres          (Install PostgreSQL DB server)    ${with_postgres}
            with_postgres_driver   (Add PostgreSQL driver support)   ${with_postgres_driver}
@@ -649,10 +656,12 @@ if [ ! "${modules_tar}" = "" ] ; then
         echo "Downloading ${modules_tar} ..."
         curl -L -s -k -o ${modules_tar} ${modules_url}
     fi
+    ${tar} zxvf naviserver-${version_modules}-modules.tar.gz
 else
     if [ ! -d ${modules_src_dir} ] ; then
         mkdir ${modules_src_dir}
     fi
+
     modules='
         letsencrypt
         nsaccess
@@ -705,14 +714,13 @@ else
         revproxy
         websocket
     '
-    modules=nsdbpg
     cd ${modules_src_dir}
-    for d in ${modules}
+    for module in ${ns_modules}
     do
-        if [ ! -d $d ] ; then
-            git clone https://bitbucket.org/naviserver/$d
+        if [ ! -d $module ] ; then
+            git clone https://bitbucket.org/naviserver/$module
         else
-            cd $d
+            cd $module
             git pull
             cd ${build_dir}
         fi
@@ -950,19 +958,21 @@ fi
 ${make} install
 cd ${build_dir}
 
-if [ "${with_postgres_driver}" = "1" ] ; then
+for module in ${ns_modules}
+do
+    echo "------------------------ Installing modules/${module} ----------------------"
+    cd ${modules_src_dir}/${module}
 
-    echo "------------------------ Installing Modules/nsdbpg ----------------------"
-    cd ${build_dir}
-    if [ ! "${version_modules}" = "HEAD" ] && [ ! "${version_modules}" = "GIT" ] ; then
-        ${tar} zxvf naviserver-${version_modules}-modules.tar.gz
+    if [ "${module}" = "nsdbpg" ] || [ "${module}" = "nsdbipg" ] ; then
+        ${make} PGLIB=${pg_lib} PGINCLUDE=${pg_incl} NAVISERVER=${ns_install_dir}
+        ${make} NAVISERVER=${ns_install_dir} install
+    else
+        ${make} NAVISERVER=${ns_install_dir}
+        ${make} NAVISERVER=${ns_install_dir} install
     fi
-    cd ${modules_src_dir}/nsdbpg
-    ${make} PGLIB=${pg_lib} PGINCLUDE=${pg_incl} NAVISERVER=${ns_install_dir}
-    ${make} NAVISERVER=${ns_install_dir} install
-
     cd ${build_dir}
-fi
+done
+
 
 if [ "${thread_tar}" = "" ] ; then
     # Use the thread library as distributed with Tcl
