@@ -929,6 +929,7 @@ echo "------------------------ Installing Tcllib ------------------------------"
 ${tar} xf ${tcllib_tar}
 #export TCL_PKG_PREFER_LATEST=1
 cd ${tcllib_src_dir}
+sed '/package require Tcl 8.2/d' installer.tcl
 ./configure --prefix=${ns_install_dir}
 ${make} install
 cd ..
