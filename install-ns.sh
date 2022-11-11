@@ -346,7 +346,7 @@ releases and compiling it.
 
 The script has a long heritage:
 (c) 2008      Malte Sussdorff, Nima Mazloumi
-(c) 2012-2021 Gustaf Neumann
+(c) 2012-2022 Gustaf Neumann
 
 Tested under macOS, Ubuntu 12.04, 13.04, 14.04, 16.04, 18.04, 20.04, Raspbian 9.4,
 OmniOS r151014, OpenBSD 6.1, 6.3, 6.6, 6.8, 6.9 FreeBSD 12.2, 13.0,
@@ -927,6 +927,7 @@ cd ${build_dir}
 echo "------------------------ Installing Tcllib ------------------------------"
 
 ${tar} xf ${tcllib_tar}
+export TCL_PKG_PREFER_LATEST=1
 cd ${tcllib_src_dir}
 ./configure --prefix=${ns_install_dir}
 ${make} install
@@ -978,7 +979,8 @@ if [ "${thread_tar}" = "" ] ; then
     # Use the thread library as distributed with Tcl
     echo "------------------------ Compile and install libthread from Tcl Sources ------------------"
     cd ${build_dir}/${tcl_src_dir}/pkgs/thread*
-    ./configure --enable-threads --prefix=${ns_install_dir} --with-naviserver=${ns_install_dir}
+    ./configure --enable-threads --prefix=${ns_install_dir} --with-tcl=${ns_install_dir} \
+                --with-naviserver=${ns_install_dir}
     ${make} clean
     ${make} install
     cd ${build_dir}
@@ -1000,7 +1002,9 @@ else
     fi
 
     cd ${thread_src_dir}/unix/
-    ../configure --enable-threads --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-naviserver=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
+    ../configure --enable-threads --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} \
+                 --with-tcl=${ns_install_dir}/lib \
+                 --with-naviserver=${ns_install_dir}
     make
     ${make} install
     #
