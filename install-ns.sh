@@ -36,7 +36,7 @@ version_modules=${version_modules:-${version_ns}}
 
 #version_tcl=8.5.19
 version_tcl=${version_tcl:-8.6.12}
-version_tcllib=${version_tcllib:-1.20}
+version_tcllib=${version_tcllib:-1.21}
 version_thread=""
 #version_thread=2.8.2
 #version_thread=2.8.6
@@ -927,7 +927,7 @@ cd ${build_dir}
 echo "------------------------ Installing Tcllib ------------------------------"
 
 ${tar} xf ${tcllib_tar}
-export TCL_PKG_PREFER_LATEST=1
+#export TCL_PKG_PREFER_LATEST=1
 cd ${tcllib_src_dir}
 ./configure --prefix=${ns_install_dir}
 ${make} install
