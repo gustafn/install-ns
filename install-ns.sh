@@ -35,7 +35,7 @@ version_modules=${version_modules:-${version_ns}}
 #version_modules=HEAD
 
 #version_tcl=8.5.19
-version_tcl=${version_tcl:-8.6.12}
+version_tcl=${version_tcl:-8.6.13}
 version_tcllib=${version_tcllib:-1.21}
 version_thread=""
 #version_thread=2.8.2
@@ -980,7 +980,7 @@ if [ "${thread_tar}" = "" ] ; then
     # Use the thread library as distributed with Tcl
     echo "------------------------ Compile and install libthread from Tcl Sources ------------------"
     cd ${build_dir}/${tcl_src_dir}/pkgs/thread*
-    ./configure --enable-threads --prefix=${ns_install_dir} --with-tcl=${ns_install_dir} \
+    ./configure --enable-threads --prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib \
                 --with-naviserver=${ns_install_dir}
     ${make} clean
     ${make} install
