@@ -51,6 +51,7 @@ ns_group=${ns_group:-nsadmin}
 with_mongo=${with_mongo:-0}
 with_system_malloc=${with_system_malloc:-0}
 with_ns_doc=${with_ns_doc:-1}
+with_debug_flags=${with_debug_flags:-0}
 
 #
 # The setting "with_postgres=1" means that we want to install a fresh
@@ -375,6 +376,7 @@ SETTINGS   build_dir              (Build directory)                 ${build_dir}
            with_postgres          (Install PostgreSQL DB server)    ${with_postgres}
            with_postgres_driver   (Add PostgreSQL driver support)   ${with_postgres_driver}
            with_system_malloc     (Tcl compiled with system malloc) ${with_system_malloc}
+           with_debug_flags       (Tcl and nsd compiled with debug) ${with_debug_flags}
            with_ns_doc            (NaviServer documentation)        ${with_ns_doc}"
 
 if [ $with_postgres = "1" ] ; then
@@ -908,7 +910,14 @@ cd ${tcl_src_dir}/unix
 ./configure --enable-threads --prefix=${ns_install_dir}
 #./configure --enable-threads --prefix=${ns_install_dir} --with-naviserver=${ns_install_dir}
 
-${make}
+if [ $with_debug_flags = "1" ] ; then
+    sed -i -e 's/-DNDEBUG=1//' -e 's/-DNDEBUG//' Makefile
+    extra_debug_flags="CFLAGS_OPTIMIZE=-O0 -g"
+else
+    extra_debug_flags="EXTRA_DEBUG_FLAGS="
+fi
+
+${make} "${extra_debug_flags}"
 ${make} install
 
 # Make sure, we have a tclsh in ns/bin
@@ -950,7 +959,14 @@ else
         ./configure --enable-threads --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir} ${with_openssl_configure_flag}
     fi
 fi
-${make}
+
+if [ $with_debug_flags = "1" ] ; then
+    sed -i -e 's/-DNDEBUG=1//' -e 's/-DNDEBUG//' include/Makefile.global
+    extra_debug_flags="CFLAGS_OPTIMIZE=-O0 -g"
+else
+    extra_debug_flags="EXTRA_DEBUG_FLAGS="
+fi
+${make} clean all "${extra_debug_flags}"
 
 if [ "${version_ns}" = "HEAD" ] || [ "${version_ns}" = "GIT" ] || [ "${version_ns}" = ".." ] ; then
     if [ ! "${with_ns_doc}" = "0" ] ; then
@@ -966,10 +982,10 @@ do
     cd ${modules_src_dir}/${module}
 
     if [ "${module}" = "nsdbpg" ] || [ "${module}" = "nsdbipg" ] ; then
-        ${make} PGLIB=${pg_lib} PGINCLUDE=${pg_incl} NAVISERVER=${ns_install_dir}
+        ${make} PGLIB=${pg_lib} PGINCLUDE=${pg_incl} NAVISERVER=${ns_install_dir} "${extra_debug_flags}"
         ${make} NAVISERVER=${ns_install_dir} install
     else
-        ${make} NAVISERVER=${ns_install_dir}
+        ${make} NAVISERVER=${ns_install_dir} "${extra_debug_flags}"
         ${make} NAVISERVER=${ns_install_dir} install
     fi
     cd ${build_dir}
