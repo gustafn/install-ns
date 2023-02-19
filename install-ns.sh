@@ -603,7 +603,7 @@ fi
 
 if [ ! -f ${tcl_tar} ] ; then
     #https://github.com/tcltk/tcl/archive/refs/tags/core-8-6-12.tar.gz
-    echo "Downloading ${tcl_tar} ..."
+    echo "Downloading ${tcl_tar} from ${tcl_url} ..."
     curl -L -s -k -o ${tcl_tar} ${tcl_url}
 else
     echo "No need to fetch ${tcl_tar} (already available)"
@@ -611,7 +611,7 @@ fi
 
 if [ ! "${thread_tar}" = "" ] ; then
     if [ ! -f ${thread_tar} ] ; then
-        echo "Downloading ${thread_tar} ..."
+        echo "Downloading ${thread_tar} from ${thread_url} ..."
         curl -L -s -k -o ${thread_tar} ${thread_url}
     else
         echo "No need to fetch ${thread_tar} (already available)"
@@ -733,7 +733,7 @@ cd ${build_dir}
 
 if [ ! "${version_xotcl}" = "HEAD" ] ; then
     if [ ! -f ${nsf_tar} ] ; then
-        echo "Downloading ${nsf_tar} ..."
+        echo "Downloading ${nsf_tar} from ${nsf_url} ..."
         curl -L -s -k -o ${nsf_tar} ${nsf_url}
     fi
 else
