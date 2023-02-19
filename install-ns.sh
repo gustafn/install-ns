@@ -620,7 +620,7 @@ fi
 
 
 if [ ! -f ${tcllib_tar} ] ; then
-    echo "Downloading ${tcllib_tar} ..."
+    echo "Downloading ${tcllib_tar} from ${tcllib_url} ..."
     curl -L -s -k -o ${tcllib_tar} ${tcllib_url}
 fi
 
