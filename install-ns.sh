@@ -597,6 +597,28 @@ fi
 echo "------------------------ Downloading sources ----------------------------"
 set -o errexit
 
+function fail {
+  echo $1 >&2
+  exit 1
+}
+
+function retry {
+  local n=1
+  local max=5
+  local delay=15
+  while true; do
+    "$@" && break || {
+      if [[ $n -lt $max ]]; then
+        ((n++))
+        echo "Command failed. Attempt $n/$max:"
+        sleep $delay;
+      else
+        fail "The command has failed after $n attempts."
+      fi
+    }
+  done
+}
+
 if [ "${tcl_fetch_always}" = "1" ] ; then
     rm -f ${tcl_tar}
 fi
@@ -621,7 +643,7 @@ fi
 
 if [ ! -f ${tcllib_tar} ] ; then
     echo "Downloading ${tcllib_tar} from ${tcllib_url} ..."
-    curl -L -s -k -o ${tcllib_tar} ${tcllib_url}
+    retry curl -L -s -k -o ${tcllib_tar} ${tcllib_url}
 fi
 
 # All versions of tcllib up to 1.15 were named tcllib-*.
