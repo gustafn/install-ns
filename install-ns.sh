@@ -37,7 +37,7 @@ version_modules=${version_modules:-${version_ns}}
 #version_tcl=8.5.19
 version_tcl=${version_tcl:-8.6.13}
 version_tcllib=${version_tcllib:-1.20}
-version_thread=""
+version_thread=${version_thread:-}
 #version_thread=2.8.2
 #version_thread=2.8.6
 version_xotcl=${version_xotcl:-2.4.0}
@@ -68,9 +68,11 @@ with_postgres_driver=${with_postgres_driver:-1}
 # the pg_* variables should be the path leading to the include and
 # library file of postgres to be used in this build.  In particular,
 # "libpq-fe.h" and "libpq.so" are typically needed.
-pg_incl=/usr/include/postgresql
-pg_lib=/usr/lib
-pg_user=postgres
+pg_incl=${pg_incl:-/usr/include/postgresql}
+pg_lib=${pg_lib:-/usr/lib}
+pg_user=${pg_user:-postgres}
+pg_packages=
+
 
 if [ "${with_postgres_driver}" = "1" ] && [ "${ns_modules}" = "" ] ; then
     ns_modules=nsdbpg
@@ -227,7 +229,6 @@ make="make"
 type="type -a"
 tar="tar"
 
-pg_packages=
 
 uname=$(uname)
 if [ "$uname" = "Darwin" ] ; then
@@ -381,10 +382,10 @@ SETTINGS   build_dir              (Build directory)                 ${build_dir}
 
 if [ $with_postgres = "1" ] ; then
     echo "
-           PostgreSQL user       ${pg_user}
-           postgres/include      ${pg_incl}
-           postgres/lib          ${pg_lib}
-           PostgreSQL Packages   ${pg_packages}
+           pg_user                (PostgreSQL user)                 ${pg_user}
+                                  (PostgreSQL include)              ${pg_incl}
+                                  (PostgreSQL lib)                  ${pg_lib}
+                                  (PostgreSQL Packages)             ${pg_packages}
 "
 fi
 
