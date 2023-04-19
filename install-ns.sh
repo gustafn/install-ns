@@ -133,6 +133,8 @@ fi
 if [ "${version_thread}" = "" ] && [ ${tcl_fetch_from_core} = "1" ] ; then
     if [ "${version_tcl}" = "trunk" ] ; then
         version_thread=trunk
+    elif [[ ${version_tcl} == "main" ]] ; then
+        version_thread=main
     elif [[ ${version_tcl} == *"8-5"* ]] ; then
         version_thread=thread-2-6
     else

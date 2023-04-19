@@ -49,7 +49,12 @@ This command will change the default setting by
   * use a special version of Tcl (here 6.8.10)
   * with some extra NaviServer modules
 
-To compile and build NaviServer, add the word "build" add the end of
+If you want to reuse an existing PostgresSQL database installation,
+use e.g.
+
+    sudo with_postgres=0 bash install-ns.sh
+
+Finally, to compile and build NaviServer, add the word "build" add the end of
 the  command:
 
     sudo ... bash install-ns.sh build
