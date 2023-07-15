@@ -749,7 +749,7 @@ else
         else
             cd $module
             git pull
-            cd ${build_dir}
+            cd ..
         fi
     done
 fi
