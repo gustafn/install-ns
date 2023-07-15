@@ -924,7 +924,7 @@ Index: generic/tclThreadAlloc.c
 
 EOF
     echo "patching Tcl with SYSTEM malloc patch ..."
-    patch -p0 < tcl86-system-malloc.patch
+    patch -p0 --fuzz=3 < tcl86-system-malloc.patch
     echo "patching Tcl with SYSTEM malloc patch DONE"
     cd ..
 fi
