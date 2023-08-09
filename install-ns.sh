@@ -28,7 +28,7 @@ build_dir=${build_dir:-/usr/local/src}
 ns_install_dir=${ns_install_dir:-/usr/local/ns}
 #ns_install_dir=/usr/local/oo2
 
-version_ns=${version_ns:-4.99.26}
+version_ns=${version_ns:-4.99.27}
 #version_ns=GIT
 git_branch_ns=${git_branch_ns:-main}
 version_modules=${version_modules:-${version_ns}}
