@@ -765,7 +765,7 @@ if [ ! "${version_xotcl}" = "HEAD" ] ; then
     fi
 else
     if [ ! -d nsf ] ; then
-        git clone git://alice.wu-wien.ac.at/nsf
+        git clone https://github.com/nm-wu/nsf.git
     else
         cd nsf
         git pull
