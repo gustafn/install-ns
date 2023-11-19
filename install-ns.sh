@@ -669,7 +669,7 @@ if [ ! "${version_ns}" = ".." ] ; then
         fi
     else
         if [ ! -d naviserver ] ; then
-            git clone https://bitbucket.org/naviserver/naviserver
+            git clone https://github.com/naviserver-project/naviserver.git
         else
             cd ${build_dir}/naviserver
             git pull
@@ -749,7 +749,7 @@ else
     for module in ${ns_modules}
     do
         if [ ! -d $module ] ; then
-            git clone https://bitbucket.org/naviserver/$module
+            git clone https://github.com/naviserver-project/$module
         else
             cd $module
             git pull
