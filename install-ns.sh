@@ -228,6 +228,7 @@ sunos=0
 freebsd=0
 openbsd=0
 archlinux=0
+alpine=0
 
 make="make"
 type="type -a"
@@ -278,6 +279,7 @@ else
         elif [ $with_postgres_driver = "1" ] ; then
             pg_packages="libpq-dev"
         fi
+
     elif [ -f "/etc/redhat-release" ] ; then
         redhat=1
         if [ $with_postgres = "1" ] ; then
@@ -285,11 +287,22 @@ else
         elif [ $with_postgres_driver = "1" ] ; then
             pg_packages="postgresql-devel"
         fi
+
+    elif [ -f "/etc/alpine-release" ] ; then
+        alpine=1
+        if [ $with_postgres_driver = "1" ] ; then
+            pg_packages="postgresql-dev"
+        fi
+        if [ $with_postgres = "1" ] ; then
+            pg_packages="postgresql ${pg_packages}"
+        fi
+
     elif [ -f "/etc/arch-release" ] ; then
         archlinux=1
         if [ $with_postgres = "1" ] || [ $with_postgres_driver = "1" ] ; then
             pg_packages="postgresql"
         fi
+
     elif [ "$uname" = 'SunOS' ] ; then
         sunos=1
         make="gmake"
@@ -299,6 +312,7 @@ else
             pg_incl=/opt/pgsql960/include
             pg_lib=/opt/pgsql960/lib
         fi
+
     elif [ "$uname" = "FreeBSD" ] ; then
         freebsd=1
         make="gmake"
@@ -314,6 +328,7 @@ else
         fi
         # make sure that bash is installed here, such that the recommendation for bash works below
         pkg install bash
+
     elif [ "$uname" = "OpenBSD" ] ; then
         make="gmake CC=clang"
         openbsd=1
@@ -352,11 +367,11 @@ releases and compiling it.
 
 The script has a long heritage:
 (c) 2008      Malte Sussdorff, Nima Mazloumi
-(c) 2012-2022 Gustaf Neumann
+(c) 2012-2023 Gustaf Neumann
 
 Tested under macOS, Ubuntu 12.04, 13.04, 14.04, 16.04, 18.04, 20.04, Raspbian 9.4,
 OmniOS r151014, OpenBSD 6.1, 6.3, 6.6, 6.8, 6.9 FreeBSD 12.2, 13.0,
-Fedora Core 18, 20, 32, 35, CentOS 7, Roxy Linux 8.4, ArchLinux
+Fedora Core 18, 20, 32, 35, CentOS 7, Roxy Linux 8.4, ArchLinux, Alpine 3.18.5
 
 LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
            This is free software, and you are welcome to redistribute it under certain conditions;
@@ -455,6 +470,7 @@ macosx=${macosx}
 sunos=${sunos}
 freebsd=${freebsd}
 archlinux=${archlinux}
+alpine=${alpine}
 EOF
 
 echo "------------------------ Check User and Group --------------------"
@@ -552,6 +568,16 @@ fi
 
 if [ $archlinux = "1" ] ; then
     pacman -Sy --noconfirm gcc make ${pg_packages}
+fi
+
+if [ $alpine = "1" ] ; then
+    apk add musl-dev zlib openssl ${pg_packages}
+    dev_packages="musl-dev gcc make zlib-dev openssl-dev"
+    if [ $with_postgres_driver = "1" ] ; then
+        dev_packages="${dev_packages} postgresql-dev"
+    fi
+    apk add $dev_packages
+
 fi
 
 if [ $macosx = "1" ] ; then
@@ -687,7 +713,7 @@ if [ ! "${modules_tar}" = "" ] ; then
         echo "Downloading ${modules_tar} ..."
         curl -L -s -k -o ${modules_tar} ${modules_url}
     fi
-    ${tar} zxvf naviserver-${version_modules}-modules.tar.gz
+    ${tar} zxf naviserver-${version_modules}-modules.tar.gz
 else
     if [ ! -d ${modules_src_dir} ] ; then
         mkdir ${modules_src_dir}
@@ -937,6 +963,8 @@ fi
 rm -rf  ${tcl_src_dir}/pkgs/sqlit*
 
 cd ${tcl_src_dir}/unix
+echo PWD=`pwd`
+echo Running: ./configure --enable-threads --prefix=${ns_install_dir}
 ./configure --enable-threads --prefix=${ns_install_dir}
 #./configure --enable-threads --prefix=${ns_install_dir} --with-naviserver=${ns_install_dir}
 
@@ -1151,3 +1179,8 @@ or you might want to use the server with OpenACS (search for /install-oacs.sh).
 Consult as a reference the alternate configuration files in ${ns_install_dir}/conf/
 
 "
+#################################################################
+if [ $alpine = "1" ] ; then
+    echo "You might consider to cleanup develoment packages:"
+    echo "        apk del git $dev_packages"
+fi
