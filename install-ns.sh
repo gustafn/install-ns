@@ -986,6 +986,7 @@ else
     if [ ! -f configure ] ; then
         echo PWD=`pwd` PATH=${PATH}
         ls -1ltr
+        echo version_ns=${version_ns} start_dir=${start_dir} ns_src_dir=${ns_src_dir}
         bash autogen.sh --enable-threads --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir} ${with_openssl_configure_flag}
     else
         ./configure --enable-threads --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir} ${with_openssl_configure_flag}
