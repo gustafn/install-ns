@@ -572,7 +572,7 @@ fi
 
 if [ $alpine = "1" ] ; then
     apk add musl-dev zlib openssl ${pg_packages}
-    dev_packages="musl-dev gcc make zlib-dev openssl-dev"
+    dev_packages="curl musl-dev gcc make zlib-dev openssl-dev"
     if [ $with_postgres_driver = "1" ] ; then
         dev_packages="${dev_packages} postgresql-dev"
     fi
