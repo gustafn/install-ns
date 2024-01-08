@@ -371,7 +371,7 @@ The script has a long heritage:
 
 Tested under macOS, Ubuntu 12.04, 13.04, 14.04, 16.04, 18.04, 20.04, Raspbian 9.4,
 OmniOS r151014, OpenBSD 6.1, 6.3, 6.6, 6.8, 6.9 FreeBSD 12.2, 13.0,
-Fedora Core 18, 20, 32, 35, CentOS 7, Roxy Linux 8.4, ArchLinux, Alpine 3.18.5
+Fedora Core 18, 20, 32, 35, CentOS 7, Roxy Linux 8.4, ArchLinux, Alpine 3.18, 3.19
 
 LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
            This is free software, and you are welcome to redistribute it under certain conditions;
@@ -574,7 +574,7 @@ if [ $alpine = "1" ] ; then
     apk add musl-dev zlib openssl ${pg_packages}
     dev_packages="curl musl-dev gcc make zlib-dev openssl-dev autoconf automake patch"
     if [ $with_postgres_driver = "1" ] ; then
-        dev_packages="${dev_packages} postgresql-dev"
+        dev_packages="${dev_packages} libpq-dev"
     fi
     apk add $dev_packages
 
