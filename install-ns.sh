@@ -291,7 +291,7 @@ else
     elif [ -f "/etc/alpine-release" ] ; then
         alpine=1
         if [ $with_postgres_driver = "1" ] ; then
-            pg_packages="postgresql-dev"
+            pg_packages="libpq-dev"
         fi
         if [ $with_postgres = "1" ] ; then
             pg_packages="postgresql ${pg_packages}"
