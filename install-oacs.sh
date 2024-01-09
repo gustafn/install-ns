@@ -54,29 +54,35 @@ ns_install_dir=${ns_install_dir:-/usr/local/ns}
 # on "oacs_core_tag" and "oacs_packages_tag".
 #
 #oacs_version=5-9-1
-oacs_version=5-10-0
+oacs_version=${oacs_version:-5-10-0}
 #oacs_version=HEAD
 
 #oacs_core_tag=HEAD
 #oacs_core_tag=oacs-5-9
 #oacs_core_tag=oacs-5-10
-oacs_core_tag=openacs-5-10-compat
+oacs_core_tag=${oacs_core_tag:-openacs-5-10-compat}
 #oacs_core_tag=openacs-5-9-0-final
 
 #oacs_packages_tag=HEAD
 #oacs_packages_tag=oacs-5-9
 #oacs_packages_tag=oacs-5-10
-oacs_packages_tag=openacs-5-10-compat
+oacs_packages_tag=${oacs_packages_tag:-openacs-5-10-compat}
 #oacs_packages_tag=openacs-5-9-0-final
 
-oacs_tar_release=openacs-5.10.0
-oacs_tar_release_url=https://openacs.org/projects/openacs/download/download/openacs-full-5.10.0.tar.gz?revision_id=5537440
-oacs_tar_release_url=
+oacs_tar_release=${oacs_tar_release:-openacs-5.10.0}
+#oacs_tar_release_url=https://openacs.org/projects/openacs/download/download/openacs-full-5.10.0.tar.gz?revision_id=5537440
+oacs_tar_release_url=${oacs_tar_release_url:-}
 
 oacs_service=oacs-${oacs_version}
 oacs_dir=/var/www/${oacs_service}
 db_name=${oacs_service}
-install_dotlrn=0
+install_dotlrn=${install_dotlrn:-0}
+
+#
+# Install OpenACS as a service if desired.  As service managers are
+# either systemd or upstart (which is mostly outdated by now).
+#
+install_as_service=${install_as_service:-1}
 
 pg_dir=/usr/
 #pg_dir=/usr/local/pgsql
@@ -147,6 +153,7 @@ SETTINGS   OpenACS version tag          ${oacs_core_tag}
 	   PostgreSQL user              ${pg_user}
 	   Make command                 ${make}
 	   Type command                 ${type}
+           Install as a service         ${install_as_service}
 "
 
 if [ $build = "0" ] ; then
@@ -347,7 +354,7 @@ if [ "$oacs_tar_release_url" = "" ] ; then
     cp ${oacs_dir}/packages/acs-bootstrap-installer/installer/www/SYSTEM/*.* ${oacs_dir}/www/SYSTEM
     cp ${oacs_dir}/packages/acs-bootstrap-installer/installer/tcl/*.* ${oacs_dir}/tcl/
 else
-    wget $oacs_tar_release_url -O ${oacs_tar_release}.tar.gz
+    curl -L -s -k -o ${oacs_tar_release}.tar.gz ${oacs_tar_release_url}
     tar zxvf ${oacs_tar_release}.tar.gz
     ln -sf ${oacs_tar_release}/* .
 fi
@@ -392,39 +399,46 @@ cat << EOF > /tmp/subst.tcl
 EOF
 ${ns_install_dir}/bin/tclsh /tmp/subst.tcl
 
-systemd=0
-upstart=0
 
-if [ $redhat = "1" ] || [ $archlinux = "1" ] ; then
-    systemd=1
-fi
 
-if [ $debian = "1" ] ; then
-    #
-    # Check, if the debian release still has /etc/init. If so, on can
-    # generate the upstart file.
-    #
-    if [ -d "/etc/init" ] ; then
-        upstart=1
+#
+# Install startup file, if desired
+#
+if [ $install_as_service = "1" ] ; then
+
+    systemd=0
+    upstart=0
+
+    if [ $redhat = "1" ] || [ $archlinux = "1" ] ; then
+        systemd=1
     fi
 
-    #
-    # Nowadays, most debian releases support systemd.
-    #
-    if [ -f "/etc/lsb-release" ] ; then
-	. /etc/lsb-release
-	if dpkg --compare-versions "$DISTRIB_RELEASE" "ge" "15.04" ; then
+    if [ $debian = "1" ] ; then
+        #
+        # Check, if the debian release still has /etc/init. If so, on can
+        # generate the upstart file.
+        #
+        if [ -d "/etc/init" ] ; then
+            upstart=1
+        fi
+
+        #
+        # Nowadays, most debian releases support systemd.
+        #
+        if [ -f "/etc/lsb-release" ] ; then
+	    . /etc/lsb-release
+	    if dpkg --compare-versions "$DISTRIB_RELEASE" "ge" "15.04" ; then
+	        systemd=1
+	    fi
+        elif [ -d "/lib/systemd/system" ] ; then
 	    systemd=1
-	fi
-    elif [ -d "/lib/systemd/system" ] ; then
-	systemd=1
+        fi
     fi
-fi
 
 
-if [ $systemd = "1" ] ; then
-echo "Writing /lib/systemd/system/${oacs_service}.service"
-cat <<EOF > /lib/systemd/system/${oacs_service}.service
+    if [ $systemd = "1" ] ; then
+        echo "Writing /lib/systemd/system/${oacs_service}.service"
+        cat <<EOF > /lib/systemd/system/${oacs_service}.service
 [Unit]
 Description=OpenACS/Naviserver
 After=network.target postgresql.service
@@ -452,12 +466,12 @@ KillMode=process
 # Uncomment this if the service should start automatically after system reboots.
 #WantedBy=multi-user.target
 EOF
-fi
+    fi
 
-if [ $upstart = "1" ] ; then
-   # Create automatically a configured upstart script into /etc/init/ ...
-echo "Writing /etc/init/${oacs_service}.conf"
-cat <<EOF > /etc/init/${oacs_service}.conf
+    if [ $upstart = "1" ] ; then
+        # Create automatically a configured upstart script into /etc/init/ ...
+        echo "Writing /etc/init/${oacs_service}.conf"
+        cat <<EOF > /etc/init/${oacs_service}.conf
 # /http://upstart.ubuntu.com/wiki/Stanzas
 
 description "OpenACS/NaviServer"
@@ -485,6 +499,7 @@ script
 
 end script
 EOF
+    fi
 fi
 
 
