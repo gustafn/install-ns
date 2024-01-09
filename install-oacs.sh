@@ -4,15 +4,15 @@ clean=0
 build=0
 while [ x"$1" != x ] ; do
     case $1 in
-	clean) clean=1
-	    shift
-	    continue;;
-	build) build=1
-	    shift
-	    continue;;
-	*)  echo "argument '$1' ignored"
-	    shift
-	    continue;;
+        clean) clean=1
+            shift
+            continue;;
+        build) build=1
+            shift
+            continue;;
+        *)  echo "argument '$1' ignored"
+            shift
+            continue;;
     esac
 done
 
@@ -133,34 +133,34 @@ Tested on Ubuntu 12.04, 13.04, 14.04 Fedora Core 18, and CentOS 7
 (c) 2013 Gustaf Neumann
 
 LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
-	   This is free software, and you are welcome to redistribute it under certain conditions;
-	   For details see http://www.gnu.org/licenses.
+           This is free software, and you are welcome to redistribute it under certain conditions;
+           For details see http://www.gnu.org/licenses.
 
 SETTINGS   OpenACS version tag          ${oacs_core_tag}
-	   OpenACS packages tag         ${oacs_packages_tag}
-	   OpenACS tar release URL      ${oacs_tar_release_url}
-	   OpenACS directory            ${oacs_dir}
-	   OpenACS service              ${oacs_service}
-	   OpenACS user                 ${oacs_user}
-	   OpenACS group                ${oacs_group}
-	   PostgreSQL directory         ${pg_dir}
-	   Database name                ${db_name}
-	   NaviServer install directory ${ns_install_dir}
-	   NaviServer src directory     ${ns_src_dir}
-	   NaviServer modules directory ${modules_src_dir}
-	   Install DotLRN               ${install_dotlrn}
-	   With PostgreSQL              ${with_postgres}
-	   PostgreSQL user              ${pg_user}
-	   Make command                 ${make}
-	   Type command                 ${type}
+           OpenACS packages tag         ${oacs_packages_tag}
+           OpenACS tar release URL      ${oacs_tar_release_url}
+           OpenACS directory            ${oacs_dir}
+           OpenACS service              ${oacs_service}
+           OpenACS user                 ${oacs_user}
+           OpenACS group                ${oacs_group}
+           PostgreSQL directory         ${pg_dir}
+           Database name                ${db_name}
+           NaviServer install directory ${ns_install_dir}
+           NaviServer src directory     ${ns_src_dir}
+           NaviServer modules directory ${modules_src_dir}
+           Install DotLRN               ${install_dotlrn}
+           With PostgreSQL              ${with_postgres}
+           PostgreSQL user              ${pg_user}
+           Make command                 ${make}
+           Type command                 ${type}
            Install as a service         ${install_as_service}
 "
 
 if [ $build = "0" ] ; then
     echo "
 WARNING    Check Settings AND Cleanup section before running this script!
-	   If you know what you're doing then call the call the script as
-	      bash $0 build
+           If you know what you're doing then call the call the script as
+              bash $0 build
 "
 exit
 fi
@@ -199,33 +199,33 @@ fi
 if [ $redhat = "1" ] ; then
 
     if [ -x "/usr/bin/dnf" ] ; then
-	pkgmanager=/usr/bin/dnf
+        pkgmanager=/usr/bin/dnf
     else
-	pkgmanager=yum
+        pkgmanager=yum
     fi
 
     if [ $with_postgres = "1" ] ; then
-	${pkgmanager} install postgresql-server
+        ${pkgmanager} install postgresql-server
     fi
     running=$(ps ax|fgrep postgres:)
     if [ "$running" = "" ] ; then
-	echo "PostgreSQL is not running. You might consider to initialize PostgreSQL"
-	echo "    service postgresql initdb"
-	echo "and/or to start the database"
-	echo "    service postgresql start"
-	echo "and rerun this script"
-	exit
+        echo "PostgreSQL is not running. You might consider to initialize PostgreSQL"
+        echo "    service postgresql initdb"
+        echo "and/or to start the database"
+        echo "    service postgresql start"
+        echo "and rerun this script"
+        exit
     fi
 elif [ $debian = "1" ] ; then
     if [ $with_postgres = "1" ] ; then
-	apt-get install postgresql postgresql-contrib
+        apt-get install postgresql postgresql-contrib
     fi
 elif  [ $sunos = "1" ] ; then
     if [ $with_postgres = "1" ] ; then
-	running=$(ps ax|fgrep "/postgres ")
-	if [ "$running" = "" ] ; then
-	    echo "Postgres is NOT running. Please start the PostgreSQL server first"
-	fi
+        running=$(ps ax|fgrep "/postgres ")
+        if [ "$running" = "" ] ; then
+            echo "Postgres is NOT running. Please start the PostgreSQL server first"
+        fi
     fi
 fi
 
@@ -240,11 +240,11 @@ fi
 id=$(id -u ${oacs_user})
 if [ $? != "0" ] ; then
     if  [ $debian = "1" ] ; then
-	eval ${oacs_user_addcmd}
+        eval ${oacs_user_addcmd}
     else
-	echo "User ${oacs_user} does not exist; you might add it with something like"
-	echo "     ${oacs_user_addcmd}"
-	exit
+        echo "User ${oacs_user} does not exist; you might add it with something like"
+        echo "     ${oacs_user_addcmd}"
+        exit
     fi
 fi
 
@@ -303,28 +303,28 @@ if [ "$oacs_tar_release_url" = "" ] ; then
     #
     cvspath=$(${type} cvs)
     if [ "$cvspath" = "" ] ; then
-	if [ $debian = "1" ] ; then
-	    apt-get install cvs
-	elif [ $redhat = "1" ] ; then
-	    ${pkgmanager} install cvs
-	elif [ $archlinux = "1" ] ; then
-	    pacman -Sy --noconfirm cvs
-	elif [ $sunos = "1" ] ; then
-	    # why is there no CVS available via "pkg install" ?
-	    cd ${build_dir}
-	    if [ ! -f cvs-1.11.23.tar.gz ] ; then
-		wget http://ftp.gnu.org/non-gnu/cvs/source/stable/1.11.23/cvs-1.11.23.tar.gz
-	    fi
-	    tar zxvf cvs-1.11.23.tar.gz
-	    cd cvs-1.11.23
-	    ./configure --prefix=/usr/gnu
-	    ${make}
-	    ${make} install
-	else
-	    echo "cvs is not installed; you might install it with"
-	    echo "    apt-get install cvs"
-	    exit
-	fi
+        if [ $debian = "1" ] ; then
+            apt-get install cvs
+        elif [ $redhat = "1" ] ; then
+            ${pkgmanager} install cvs
+        elif [ $archlinux = "1" ] ; then
+            pacman -Sy --noconfirm cvs
+        elif [ $sunos = "1" ] ; then
+            # why is there no CVS available via "pkg install" ?
+            cd ${build_dir}
+            if [ ! -f cvs-1.11.23.tar.gz ] ; then
+                wget http://ftp.gnu.org/non-gnu/cvs/source/stable/1.11.23/cvs-1.11.23.tar.gz
+            fi
+            tar zxvf cvs-1.11.23.tar.gz
+            cd cvs-1.11.23
+            ./configure --prefix=/usr/gnu
+            ${make}
+            ${make} install
+        else
+            echo "cvs is not installed; you might install it with"
+            echo "    apt-get install cvs"
+            exit
+        fi
     fi
 fi
 
@@ -336,7 +336,7 @@ if [ "$oacs_tar_release_url" = "" ] ; then
 
     cvs -q -d:pserver:anonymous@cvs.openacs.org:/cvsroot checkout -r ${oacs_core_tag} acs-core
     if [ ! -d "www" ] ; then
-	ln -sf $(echo openacs-4/[a-z]*) .
+        ln -sf $(echo openacs-4/[a-z]*) .
     fi
 
     cd ${oacs_dir}/packages
@@ -345,7 +345,7 @@ if [ "$oacs_tar_release_url" = "" ] ; then
     cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_tag} acs-developer-support ajaxhelper attachments richtext-ckeditor4
 
     if [ $install_dotlrn = "1" ] ; then
-	cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_tag} dotlrn-all
+        cvs -d:pserver:anonymous@cvs.openacs.org:/cvsroot -q checkout -r ${oacs_packages_tag} dotlrn-all
     fi
     cd ${oacs_dir}
 
@@ -426,12 +426,12 @@ if [ $install_as_service = "1" ] ; then
         # Nowadays, most debian releases support systemd.
         #
         if [ -f "/etc/lsb-release" ] ; then
-	    . /etc/lsb-release
-	    if dpkg --compare-versions "$DISTRIB_RELEASE" "ge" "15.04" ; then
-	        systemd=1
-	    fi
+            . /etc/lsb-release
+            if dpkg --compare-versions "$DISTRIB_RELEASE" "ge" "15.04" ; then
+                systemd=1
+            fi
         elif [ -d "/lib/systemd/system" ] ; then
-	    systemd=1
+            systemd=1
         fi
     fi
 
