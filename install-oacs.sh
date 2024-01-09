@@ -20,10 +20,13 @@ done
 echo "------------------------ Settings ---------------------------------------"
 
 ##
-## In case you configured install-ns.sh to use a different
-## ns_install_dir, adjust it here to the same directory
+## In case you configured "install-ns.sh" to use a different
+## "ns_install_dir", provide this as well to this script via shell
+## variables, such one can use
 ##
-ns_install_dir=/usr/local/ns
+##     ns_install_dir=/opt/.... bash install-oacs.sh ...
+##
+ns_install_dir=${ns_install_dir:-/usr/local/ns}
 
 
 #
