@@ -460,6 +460,7 @@ pg_user=${pg_user}
 ns_group=${ns_group}
 with_mongo=${with_mongo}
 with_postgres=${with_postgres}
+with_postgres_driver=${with_postgres_driver}
 pg_incl="${pg_incl}"
 pg_lib="${pg_lib}"
 make="${make}"
