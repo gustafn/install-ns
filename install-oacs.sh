@@ -73,8 +73,8 @@ oacs_tar_release=${oacs_tar_release:-openacs-5.10.0}
 #oacs_tar_release_url=https://openacs.org/projects/openacs/download/download/openacs-full-5.10.0.tar.gz?revision_id=5537440
 oacs_tar_release_url=${oacs_tar_release_url:-}
 
-oacs_service=oacs-${oacs_version}
-oacs_dir=/var/www/${oacs_service}
+oacs_service=${oacs_service:-oacs-${oacs_version}}
+oacs_dir=${oacs_dir:-/var/www/${oacs_service}}
 install_dotlrn=${install_dotlrn:-0}
 
 db_name=${db_name:-$oacs_service}
