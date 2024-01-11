@@ -969,7 +969,7 @@ echo Running: ./configure --enable-threads --prefix=${ns_install_dir}
 ./configure --enable-threads --prefix=${ns_install_dir}
 #./configure --enable-threads --prefix=${ns_install_dir} --with-naviserver=${ns_install_dir}
 
-if [ $with_debug_flags = "1" ] ; then
+if [ "$with_debug_flags" = "1" ] ; then
     sed -i -e 's/-DNDEBUG=1//' -e 's/-DNDEBUG//' Makefile
     extra_debug_flags="CFLAGS_OPTIMIZE=-O0 -g"
 else
@@ -1140,7 +1140,12 @@ else
                 --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
 fi
 
-${make}
+if [ "$with_debug_flags" = "1" ] ; then
+    #sed -i -e 's/-DNDEBUG=1//' -e 's/-DNDEBUG//' Makefile
+    ${make} CFLAGS_OPTIMIZE=-g
+else
+    ${make}
+fi
 ${make} install
 cd ..
 
