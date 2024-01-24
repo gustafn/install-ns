@@ -976,7 +976,7 @@ else
     extra_debug_flags="EXTRA_DEBUG_FLAGS="
 fi
 
-${make} "${extra_debug_flags}"
+${make} -j4 "${extra_debug_flags}"
 ${make} install
 
 # Make sure, we have a tclsh in ns/bin
@@ -1028,7 +1028,7 @@ if [ $with_debug_flags = "1" ] ; then
 else
     extra_debug_flags="EXTRA_DEBUG_FLAGS="
 fi
-${make} clean all "${extra_debug_flags}"
+${make} -j4 clean all "${extra_debug_flags}"
 
 if [ "${version_ns}" = "HEAD" ] || [ "${version_ns}" = "GIT" ] || [ "${version_ns}" = ".." ] ; then
     if [ ! "${with_ns_doc}" = "0" ] ; then
@@ -1141,7 +1141,7 @@ else
 fi
 
 if [ "$with_debug_flags" = "1" ] ; then
-    #sed -i.bak -e 's/-DNDEBUG=1//' -e 's/-DNDEBUG//' Makefile
+    sed -i.bak -e 's/-DNDEBUG=1//' -e 's/-DNDEBUG//' Makefile
     ${make} CFLAGS_OPTIMIZE=-g
 else
     ${make}
