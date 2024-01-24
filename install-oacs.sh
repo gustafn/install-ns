@@ -87,7 +87,7 @@ db_port=${db_port:-5432}
 #
 install_as_service=${install_as_service:-1}
 
-pg_dir=${pgdir:-/usr/}
+pg_dir=${pg_dir:-/usr/}
 #pg_dir=/usr/local/pgsql
 
 #
