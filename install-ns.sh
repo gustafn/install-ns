@@ -961,7 +961,7 @@ EOF
     cd ..
 fi
 
-rm -rf  ${tcl_src_dir}/pkgs/sqlit*
+rm -rf ${tcl_src_dir}/pkgs/sqlit* ${tcl_src_dir}/pkgs/itcl* ${tcl_src_dir}/pkgs/tdbc*
 
 cd ${tcl_src_dir}/unix
 echo PWD=`pwd`
