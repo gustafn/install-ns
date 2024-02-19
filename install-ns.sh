@@ -143,7 +143,7 @@ if [ "${version_thread}" = "" ] && [ ${tcl_fetch_from_core} = "1" ] ; then
     fi
     thread_fetch_from_core=1
     thread_url=https://core.tcl-lang.org/thread/tarball/thread.tar.gz?uuid=${version_thread}
-    thread_tar=thread.tar.gz
+    thread_tar=thread-${version_thread}.tar.gz
     thread_src_dir=thread
 else
     thread_fetch_from_core=0
@@ -645,9 +645,15 @@ chksum_get_value() {
 #
 # Set known checksum values
 #
+chksum_set_value tcl8.6.13-src.tar.gz 43a1fae7412f61ff11de2cfd05d28cfc3a73762f354a417c62370a54e2caf066
+chksum_set_value tcl-core-8-6-14-rc.tar.gz 20f17c2442bfd7859ce6276d8273aea4fa854a4431cbc10bfe2b7e20a38a4ee4
+
+chksum_set_value tcllib-1.20.tar.gz e3b097475bcb93c4439df4a088daa59592e1937beee2a2c8495f4f0303125d71
+
 chksum_set_value tdom-0.9.1-src.tgz 3b1f644cf07533fe4afaa8cb709cb00a899d9e9ebfa66f4674aa2dcfb398242c
 chksum_set_value tdom-0.9.3-src.tgz b46bcb6750283bcf41bd6f220cf06e7074752dc8b9a87a192bd81e53caad53f9
-chksum_set_value tcl8.6.13-src.tar.gz 43a1fae7412f61ff11de2cfd05d28cfc3a73762f354a417c62370a54e2caf066
+
+# chksum_set_value thread.tar.gz 1674cd723f175afc55912694b01d1918539eefc3d2e8fef0b8b509f7ae77d490
 
 # Get and print a value
 # echo "The value of key1 is: $(chksum_get_value "tdom-0.9.1-src.tgz")"
@@ -701,8 +707,8 @@ function download_file() {
             local actual_checksum=
         fi
         if [ "$provided_checksum" = "" ] ; then
-            echo "no checksum provided, consider setting:"
-            echo "     chksum_set_value $target_filename $actual_checksum"
+            echo "   no checksum provided, consider setting:"
+            echo "      chksum_set_value $target_filename $actual_checksum"
             break
         fi
         if [ "$provided_checksum" = $actual_checksum ] ; then
@@ -902,7 +908,7 @@ if [ ! "${version_tdom}" = "GIT" ] ; then
         #     -L -s -k -o ${tdom_tar} ${tdom_url}
         #curl -L -s -k -o ${tdom_tar} ${tdom_url}
         download_file $tdom_tar $tdom_url
-        echo "... download from ${tdom_url} finished."
+        #echo "... download from ${tdom_url} finished."
     else
         echo "No need to fetch ${tdom_tar} (already available)"
     fi
