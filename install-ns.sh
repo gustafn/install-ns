@@ -653,7 +653,7 @@ chksum_set_value tcllib-1.20.tar.gz e3b097475bcb93c4439df4a088daa59592e1937beee2
 chksum_set_value tdom-0.9.1-src.tgz 3b1f644cf07533fe4afaa8cb709cb00a899d9e9ebfa66f4674aa2dcfb398242c
 chksum_set_value tdom-0.9.3-src.tgz b46bcb6750283bcf41bd6f220cf06e7074752dc8b9a87a192bd81e53caad53f9
 
-# chksum_set_value thread.tar.gz 1674cd723f175afc55912694b01d1918539eefc3d2e8fef0b8b509f7ae77d490
+chksum_set_value thread-thread-2-8-branch.tar.gz 1674cd723f175afc55912694b01d1918539eefc3d2e8fef0b8b509f7ae77d490
 
 # Get and print a value
 # echo "The value of key1 is: $(chksum_get_value "tdom-0.9.1-src.tgz")"
@@ -694,7 +694,7 @@ function download_file() {
     #echo openssl $openssl sha256sum $sha256sum shasum $shasum
 
     while [ $attempt -le $max_attempts ]; do
-        echo "Attempt $attempt to download $download_url..."
+        echo "Downloading ($attempt) ${target_filename} from ${download_url} ..."
         retry curl -L -s -k -o "$target_filename" "$download_url"
 
         if [ "$openssl" != "" ] ; then
@@ -708,7 +708,7 @@ function download_file() {
         fi
         if [ "$provided_checksum" = "" ] ; then
             echo "   no checksum provided, consider setting:"
-            echo "      chksum_set_value $target_filename $actual_checksum"
+            echo "   chksum_set_value $target_filename $actual_checksum"
             break
         fi
         if [ "$provided_checksum" = $actual_checksum ] ; then
@@ -742,7 +742,7 @@ fi
 
 if [ ! -f ${tcl_tar} ] ; then
     #https://github.com/tcltk/tcl/archive/refs/tags/core-8-6-12.tar.gz
-    echo "Downloading ${tcl_tar} from ${tcl_url} ..."
+    #echo "Downloading ${tcl_tar} from ${tcl_url} ..."
     #curl -L -s -k -o ${tcl_tar} ${tcl_url}
     #curl --max-time 300 --connect-timeout 300 --keepalive-time 300 -v --trace-time \
     #     -L -s -k -o ${tcl_tar} ${tcl_url}
@@ -753,7 +753,7 @@ fi
 
 if [ ! "${thread_tar}" = "" ] ; then
     if [ ! -f ${thread_tar} ] ; then
-        echo "Downloading ${thread_tar} from ${thread_url} ..."
+        #echo "Downloading ${thread_tar} from ${thread_url} ..."
         download_file ${thread_tar} ${thread_url}
         #curl -L -s -k -o ${thread_tar} ${thread_url}
     else
@@ -763,7 +763,7 @@ fi
 
 
 if [ ! -f ${tcllib_tar} ] ; then
-    echo "Downloading ${tcllib_tar} from ${tcllib_url} ..."
+    #echo "Downloading ${tcllib_tar} from ${tcllib_url} ..."
     #retry curl -L -s -k -o ${tcllib_tar} ${tcllib_url}
     download_file ${tcllib_tar} ${tcllib_url}
 fi
