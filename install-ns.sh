@@ -79,7 +79,6 @@ if [ "${with_postgres_driver}" = "1" ] && [ "${ns_modules}" = "" ] ; then
 fi
 
 
-
 # ----------------------------------------------------------------------
 #
 # Check version info and derive more variables from it.
@@ -170,8 +169,8 @@ if [ ! "${version_tdom}" = "GIT" ] ; then
     fi
     tdom_tar=tdom-${version_tdom}-src.tgz
     # tdom.org/downloads/ does not work reliably inside github actions
-    #tdom_url=http://tdom.org/downloads/${tdom_tar}
-    tdom_url=https://openacs.org/downloads/${tdom_tar}
+    tdom_url=http://tdom.org/downloads/${tdom_tar}
+    #tdom_url=https://openacs.org/downloads/${tdom_tar}
 else
     need_git=1
     tdom_src_dir=tdom
@@ -629,6 +628,30 @@ fi
 echo "------------------------ Downloading sources ----------------------------"
 set -o errexit
 
+# Function to set a value in the pseudo-associative array
+chksum_set_value() {
+    local key=$(echo $1 | sed -r 's/[-.]/_/g')
+    local value="$2"
+    #echo setting "arr_${key}='$value'"
+    eval "arr_${key}='$value'"
+}
+
+# Function to get a value from the pseudo-associative array
+chksum_get_value() {
+    local key=$(echo $1 | sed -r 's/[-.]/_/g')
+    eval "echo \$arr_${key}"
+}
+
+#
+# Set known checksum values
+#
+chksum_set_value tdom-0.9.1-src.tgz 3b1f644cf07533fe4afaa8cb709cb00a899d9e9ebfa66f4674aa2dcfb398242c
+chksum_set_value tdom-0.9.3-src.tgz b46bcb6750283bcf41bd6f220cf06e7074752dc8b9a87a192bd81e53caad53f9
+chksum_set_value tcl8.6.13-src.tar.gz 43a1fae7412f61ff11de2cfd05d28cfc3a73762f354a417c62370a54e2caf066
+
+# Get and print a value
+# echo "The value of key1 is: $(chksum_get_value "tdom-0.9.1-src.tgz")"
+
 function fail {
   echo $1 >&2
   exit 1
@@ -651,6 +674,62 @@ function retry {
   done
 }
 
+function download_file() {
+    local target_filename="$1"
+    local download_url="$2"
+
+    local provided_checksum=$(chksum_get_value $target_filename)
+    local max_attempts=3
+    local attempt=1
+    local openssl=$(${type} openssl)
+    local sha256sum=$(${type} sha256sum)
+    local shasum=$(${type} shasum)
+
+    #echo openssl $openssl sha256sum $sha256sum shasum $shasum
+
+    while [ $attempt -le $max_attempts ]; do
+        echo "Attempt $attempt to download $download_url..."
+        retry curl -L -s -k -o "$target_filename" "$download_url"
+
+        if [ "$openssl" != "" ] ; then
+            local actual_checksum=$(openssl dgst -sha256 "$target_filename" | sed -e 's/.* //')
+        elif [ "$sha256sum" != "" ] ; then
+            local actual_checksum=$(sha256sum "$target_filename" | sed -e 's/\s.*$//')
+        elif [ "$shasum" != "" ] ; then
+            local actual_checksum=$(shasum -a 256 "$target_filename" | sed -e 's/\s.*$//')
+        else
+            local actual_checksum=
+        fi
+        if [ "$provided_checksum" = "" ] ; then
+            echo "no checksum provided, consider setting:"
+            echo "     chksum_set_value $target_filename $actual_checksum"
+            break
+        fi
+        if [ "$provided_checksum" = $actual_checksum ] ; then
+            echo "... checksum of $target_filename OK"
+            break
+        fi
+        if [ "$actual_checksum" = "" ] ; then
+            echo "... do not know how to compute checksum of $target_filename on this system"
+            break
+        fi
+        attempt=$((attempt + 1))
+        sleep 1 # Wait a bit before retrying
+    done
+
+    if [ $attempt -gt $max_attempts ]; then
+        echo "Failed to download the file after $max_attempts attempts."
+        exit 1
+    fi
+}
+
+# version_tdom=0.9.1
+# version_tdom=0.9.3
+# tdom_tar=tdom-${version_tdom}-src.tgz
+# tdom_url=https://openacs.org/downloads/${tdom_tar}
+# download_file $tdom_tar $tdom_url
+# download_file $tcl_tar $tcl_url
+
 if [ "${tcl_fetch_always}" = "1" ] ; then
     rm -f ${tcl_tar}
 fi
@@ -659,8 +738,9 @@ if [ ! -f ${tcl_tar} ] ; then
     #https://github.com/tcltk/tcl/archive/refs/tags/core-8-6-12.tar.gz
     echo "Downloading ${tcl_tar} from ${tcl_url} ..."
     #curl -L -s -k -o ${tcl_tar} ${tcl_url}
-    curl --max-time 300 --connect-timeout 300 --keepalive-time 300 -v --trace-time \
-             -L -s -k -o ${tcl_tar} ${tcl_url}
+    #curl --max-time 300 --connect-timeout 300 --keepalive-time 300 -v --trace-time \
+    #     -L -s -k -o ${tcl_tar} ${tcl_url}
+    download_file $tcl_tar $tcl_url
 else
     echo "No need to fetch ${tcl_tar} (already available)"
 fi
@@ -668,7 +748,8 @@ fi
 if [ ! "${thread_tar}" = "" ] ; then
     if [ ! -f ${thread_tar} ] ; then
         echo "Downloading ${thread_tar} from ${thread_url} ..."
-        curl -L -s -k -o ${thread_tar} ${thread_url}
+        download_file ${thread_tar} ${thread_url}
+        #curl -L -s -k -o ${thread_tar} ${thread_url}
     else
         echo "No need to fetch ${thread_tar} (already available)"
     fi
@@ -677,7 +758,8 @@ fi
 
 if [ ! -f ${tcllib_tar} ] ; then
     echo "Downloading ${tcllib_tar} from ${tcllib_url} ..."
-    retry curl -L -s -k -o ${tcllib_tar} ${tcllib_url}
+    #retry curl -L -s -k -o ${tcllib_tar} ${tcllib_url}
+    download_file ${tcllib_tar} ${tcllib_url}
 fi
 
 # All versions of tcllib up to 1.15 were named tcllib-*.
@@ -818,7 +900,8 @@ if [ ! "${version_tdom}" = "GIT" ] ; then
         rm -rf ${tdom_src_dir} ${tdom_tar}
         #curl --max-time 300 --connect-timeout 300 --keepalive-time 300 -v --trace-time \
         #     -L -s -k -o ${tdom_tar} ${tdom_url}
-        curl -L -s -k -o ${tdom_tar} ${tdom_url}
+        #curl -L -s -k -o ${tdom_tar} ${tdom_url}
+        download_file $tdom_tar $tdom_url
         echo "... download from ${tdom_url} finished."
     else
         echo "No need to fetch ${tdom_tar} (already available)"
