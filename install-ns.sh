@@ -644,7 +644,7 @@ chksum_get_value() {
 
 #
 # Set known checksum values
-#
+
 chksum_set_value tcl8.6.13-src.tar.gz      43a1fae7412f61ff11de2cfd05d28cfc3a73762f354a417c62370a54e2caf066
 chksum_set_value tcl-core-8-6-13.tar.gz    69d4b1192a3ad94c1748e1802c5cf727b2dbba400f5560407f9af19f3d8fd6b3
 chksum_set_value tcl-core-8-6-14-rc.tar.gz 20f17c2442bfd7859ce6276d8273aea4fa854a4431cbc10bfe2b7e20a38a4ee4
@@ -655,6 +655,7 @@ chksum_set_value tcllib-1.20.tar.gz        e3b097475bcb93c4439df4a088daa59592e19
 chksum_set_value tdom-0.9.1-src.tgz        3b1f644cf07533fe4afaa8cb709cb00a899d9e9ebfa66f4674aa2dcfb398242c
 chksum_set_value tdom-0.9.3-src.tgz        b46bcb6750283bcf41bd6f220cf06e7074752dc8b9a87a192bd81e53caad53f9
 
+chksum_set_value nsf2.3.0.tar.gz           3940c4c00e18900abac8d57c195498f563c3cdb65157257af57060185cfd7ba9
 chksum_set_value nsf2.4.0.tar.gz           51bd956d8db19f9bc014bec0909f73659431ce83f835c479739b5384d3bcc1f6
 
 chksum_set_value thread-thread-2-8-branch.tar.gz 1674cd723f175afc55912694b01d1918539eefc3d2e8fef0b8b509f7ae77d490
@@ -699,7 +700,12 @@ function download_file() {
 
     while [ $attempt -le $max_attempts ]; do
         echo "Downloading ($attempt) ${target_filename} from ${download_url} ..."
-        retry curl -L -s -k -o "$target_filename" "$download_url"
+        if [ $attempt = $max_attempts ] ; then
+            extraflags="--max-time 300 --connect-timeout 300 --keepalive-time 300 -v --trace-time"
+        else
+            extraflags=""
+        fi
+        retry curl $extraflags -L -s -k -o  "$target_filename" "$download_url"
 
         if [ "$openssl" != "" ] ; then
             local actual_checksum=$(openssl dgst -sha256 "$target_filename" | sed -e 's/.* //')
