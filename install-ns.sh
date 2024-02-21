@@ -690,7 +690,7 @@ function download_file() {
     local download_url="$2"
 
     local provided_checksum=$(chksum_get_value $target_filename)
-    local max_attempts=3
+    local max_attempts=5
     local attempt=1
     local openssl=$(${type} openssl)
     local sha256sum=$(${type} sha256sum)
