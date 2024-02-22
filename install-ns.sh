@@ -700,7 +700,7 @@ function download_file() {
 
     while [ $attempt -le $max_attempts ]; do
         echo "Downloading ($attempt) ${target_filename} from ${download_url} ..."
-        if [ $attempt = $(($max_attempts-1))] ; then
+        if [ $attempt = $(($max_attempts-1)) ] ; then
             extraflags="--http1.1"
         elif [ $attempt = $max_attempts ] ; then
             extraflags="--max-time 300 --connect-timeout 300 --keepalive-time 300 -v --trace-time"
