@@ -643,11 +643,14 @@ chksum_get_value() {
 }
 
 #
-# Set known checksum values
+# Set known checksum values.
+#
+# Do not save checksums for changing branches, such as:
+#
+#chksum_set_value tcl-core-8-6-14-rc.tar.gz 4a8834f8b7ec68087e21a05779758956d559c88491cc43020d445ff3edaabaab
 
 chksum_set_value tcl8.6.13-src.tar.gz      43a1fae7412f61ff11de2cfd05d28cfc3a73762f354a417c62370a54e2caf066
 chksum_set_value tcl-core-8-6-13.tar.gz    69d4b1192a3ad94c1748e1802c5cf727b2dbba400f5560407f9af19f3d8fd6b3
-chksum_set_value tcl-core-8-6-14-rc.tar.gz 20f17c2442bfd7859ce6276d8273aea4fa854a4431cbc10bfe2b7e20a38a4ee4
 chksum_set_value tcl-core-8-7-a5.tar.gz    7dd250dc6a76af47f3fc96b218906cfd166edf63c5d142186d632b500a6030eb
 
 chksum_set_value tcllib-1.20.tar.gz        e3b097475bcb93c4439df4a088daa59592e1937beee2a2c8495f4f0303125d71
@@ -707,8 +710,13 @@ function download_file() {
         else
             extraflags=""
         fi
+
+        #
+        # The function "retry" is used for commands ending with an
+        # error return code.
+        #
         retry curl $extraflags -L -s -k -o  "${target_filename}" "$download_url"
-        echo "Downloaded ${target_filename}:" `ls -l "${target_filename}"`
+        #echo "Downloaded ${target_filename}:" `ls -l "${target_filename}"`
 
         if [ "$openssl" != "" ] ; then
             local actual_checksum=$(openssl dgst -sha256 "${target_filename}" | sed -e 's/.* //')
@@ -719,8 +727,6 @@ function download_file() {
         else
             local actual_checksum=
         fi
-        echo "Provided checksum: ${provided_checksum}"
-        echo "Actual checksum: ${actual_checksum}"
 
         if [ "${provided_checksum}" = "" ] ; then
             echo "   no checksum provided, consider setting:"
@@ -735,6 +741,11 @@ function download_file() {
             echo "... do not know how to compute checksum of ${target_filename} on this system"
             break
         fi
+
+        echo "Checksums differ for ${target_filename}"
+        echo "    Provided checksum : ${provided_checksum}"
+        echo "    Actual checksum   : ${actual_checksum}"
+
         attempt=$((attempt + 1))
         sleep 1 # Wait a bit before retrying
     done
@@ -744,13 +755,6 @@ function download_file() {
         exit 1
     fi
 }
-
-# version_tdom=0.9.1
-# version_tdom=0.9.3
-# tdom_tar=tdom-${version_tdom}-src.tgz
-# tdom_url=https://openacs.org/downloads/${tdom_tar}
-# download_file $tdom_tar $tdom_url
-# download_file $tcl_tar $tcl_url
 
 if [ "${tcl_fetch_always}" = "1" ] ; then
     rm -f ${tcl_tar}
