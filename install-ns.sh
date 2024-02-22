@@ -719,16 +719,19 @@ function download_file() {
         else
             local actual_checksum=
         fi
-        if [ "$provided_checksum" = "" ] ; then
+        echo "Provided checksum: ${provided_checksum}"
+        echo "Actual checksum: ${actual_checksum}"
+
+        if [ "${provided_checksum}" = "" ] ; then
             echo "   no checksum provided, consider setting:"
-            echo "   chksum_set_value ${target_filename} $actual_checksum"
+            echo "   chksum_set_value ${target_filename} ${actual_checksum}"
             break
         fi
-        if [ "$provided_checksum" = $actual_checksum ] ; then
+        if [ "${provided_checksum}" = "${actual_checksum}" ] ; then
             echo "... checksum of ${target_filename} OK"
             break
         fi
-        if [ "$actual_checksum" = "" ] ; then
+        if [ "${actual_checksum}" = "" ] ; then
             echo "... do not know how to compute checksum of ${target_filename} on this system"
             break
         fi
