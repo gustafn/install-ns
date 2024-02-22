@@ -689,7 +689,7 @@ function download_file() {
     local target_filename="$1"
     local download_url="$2"
 
-    local provided_checksum=$(chksum_get_value $target_filename)
+    local provided_checksum=$(chksum_get_value ${target_filename})
     local max_attempts=5
     local attempt=1
     local openssl=$(${type} openssl)
@@ -700,35 +700,36 @@ function download_file() {
 
     while [ $attempt -le $max_attempts ]; do
         echo "Downloading ($attempt) ${target_filename} from ${download_url} ..."
-        if [ $attempt = $(($max_attempts-1)) ] ; then
+        if [ $attempt = $((max_attempts-1)) ] ; then
             extraflags="--http1.1"
         elif [ $attempt = $max_attempts ] ; then
             extraflags="--max-time 300 --connect-timeout 300 --keepalive-time 300 -v --trace-time"
         else
             extraflags=""
         fi
-        retry curl $extraflags -L -s -k -o  "$target_filename" "$download_url"
+        retry curl $extraflags -L -s -k -o  "${target_filename}" "$download_url"
+        echo "Downloaded ${target_filename}:" `ls -l "${target_filename}"`
 
         if [ "$openssl" != "" ] ; then
-            local actual_checksum=$(openssl dgst -sha256 "$target_filename" | sed -e 's/.* //')
+            local actual_checksum=$(openssl dgst -sha256 "${target_filename}" | sed -e 's/.* //')
         elif [ "$sha256sum" != "" ] ; then
-            local actual_checksum=$(sha256sum "$target_filename" | sed -e 's/\s.*$//')
+            local actual_checksum=$(sha256sum "${target_filename}" | sed -e 's/\s.*$//')
         elif [ "$shasum" != "" ] ; then
-            local actual_checksum=$(shasum -a 256 "$target_filename" | sed -e 's/\s.*$//')
+            local actual_checksum=$(shasum -a 256 "${target_filename}" | sed -e 's/\s.*$//')
         else
             local actual_checksum=
         fi
         if [ "$provided_checksum" = "" ] ; then
             echo "   no checksum provided, consider setting:"
-            echo "   chksum_set_value $target_filename $actual_checksum"
+            echo "   chksum_set_value ${target_filename} $actual_checksum"
             break
         fi
         if [ "$provided_checksum" = $actual_checksum ] ; then
-            echo "... checksum of $target_filename OK"
+            echo "... checksum of ${target_filename} OK"
             break
         fi
         if [ "$actual_checksum" = "" ] ; then
-            echo "... do not know how to compute checksum of $target_filename on this system"
+            echo "... do not know how to compute checksum of ${target_filename} on this system"
             break
         fi
         attempt=$((attempt + 1))
