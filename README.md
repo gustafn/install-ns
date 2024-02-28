@@ -6,7 +6,7 @@ Install scripts for NaviServer
 [releases](https://sourceforge.net/projects/naviserver/))
 and optionally [OpenACS](https://openacs.org/).
 
-To see the degfault settings, use the following command
+To see the default settings, use the following command
 
      sudo bash install-ns.sh
 
