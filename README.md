@@ -1,7 +1,10 @@
 install-ns
 ==========
 
-Install scripts for Naviserver and/or OpenACS
+Install scripts for NaviServer
+([source code](https://github.com/orgs/naviserver-project/naviserver-project/naviserver),
+[releases](https://sourceforge.net/projects/naviserver/))
+and optionally [OpenACS](https://openacs.org/).
 
 To see the degfault settings, use the following command
 
