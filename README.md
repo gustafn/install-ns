@@ -2,7 +2,7 @@ install-ns
 ==========
 
 Install scripts for NaviServer
-([source code](https://github.com/orgs/naviserver-project/naviserver/),
+([source code](https://github.com/naviserver-project/naviserver/),
 [releases](https://sourceforge.net/projects/naviserver/))
 and optionally [OpenACS](https://openacs.org/).
 
