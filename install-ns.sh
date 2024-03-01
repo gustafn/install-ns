@@ -35,7 +35,7 @@ version_modules=${version_modules:-${version_ns}}
 #version_modules=HEAD
 
 #version_tcl=8.5.19
-version_tcl=${version_tcl:-8.6.13}
+version_tcl=${version_tcl:-8.6.14}
 version_tcllib=${version_tcllib:-1.20}
 version_thread=${version_thread:-}
 #version_thread=2.8.2
@@ -716,7 +716,6 @@ function download_file() {
         # error return code.
         #
         retry curl $extraflags -L -s -k -o  "${target_filename}" "$download_url"
-        #echo "Downloaded ${target_filename}:" `ls -l "${target_filename}"`
 
         if [ "$openssl" != "" ] ; then
             local actual_checksum=$(openssl dgst -sha256 "${target_filename}" | sed -e 's/.* //')
@@ -745,6 +744,7 @@ function download_file() {
         echo "Checksums differ for ${target_filename}"
         echo "    Provided checksum : ${provided_checksum}"
         echo "    Actual checksum   : ${actual_checksum}"
+        echo "    Downloadeded      :" `ls -l "${target_filename}"`
 
         attempt=$((attempt + 1))
         sleep 1 # Wait a bit before retrying
