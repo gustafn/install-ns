@@ -230,7 +230,7 @@ archlinux=0
 alpine=0
 
 make="make"
-type="type -a"
+type="type -p"
 tar="tar"
 
 
