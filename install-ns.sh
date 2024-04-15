@@ -1,4 +1,4 @@
-!/bin/bash
+#!/bin/bash
 
 do_clean=0
 clean_only=0
