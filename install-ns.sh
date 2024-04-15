@@ -680,11 +680,13 @@ function retry {
   while true; do
     "$@" && break || {
       if [[ $n -lt $max ]]; then
-        ((n++))
-        echo "Command failed. Attempt $n/$max, error code: $?"
-        sleep $delay;
+          ((n++))
+          echo "Command failed. Attempt $n/$max, error code: $?"
+          sleep $delay;
       else
-        fail "The command has failed after $n attempts."
+          # fail "The command has failed after $n attempts."
+          echo "The command has failed after $n attempts."
+          return
       fi
     }
   done
@@ -714,19 +716,33 @@ function download_file() {
         fi
 
         #
+        # Make sure, we check after the download the retrieved file.
+        #
+        rm -f ${target_filename}
+        #
         # The function "retry" is used for commands ending with an
         # error return code.
         #
         retry curl $extraflags -L -s -k -o  "${target_filename}" "$download_url"
 
-        if [ "$openssl" != "" ] ; then
-            local actual_checksum=$(openssl dgst -sha256 "${target_filename}" | sed -e 's/.* //')
-        elif [ "$sha256sum" != "" ] ; then
-            local actual_checksum=$(sha256sum "${target_filename}" | sed -e 's/\s.*$//')
-        elif [ "$shasum" != "" ] ; then
-            local actual_checksum=$(shasum -a 256 "${target_filename}" | sed -e 's/\s.*$//')
+        if [ ! -f ${target_filename} ] ; then
+            #
+            # We got no file.
+            #
+            local actual_checksum="download failed"
         else
-            local actual_checksum=
+            #
+            # A file was downloaded
+            #
+            if [ "$openssl" != "" ] ; then
+                local actual_checksum=$(openssl dgst -sha256 "${target_filename}" | sed -e 's/.* //')
+            elif [ "$sha256sum" != "" ] ; then
+                local actual_checksum=$(sha256sum "${target_filename}" | sed -e 's/\s.*$//')
+            elif [ "$shasum" != "" ] ; then
+                local actual_checksum=$(shasum -a 256 "${target_filename}" | sed -e 's/\s.*$//')
+            else
+                local actual_checksum=
+            fi
         fi
 
         if [ "${provided_checksum}" = "" ] ; then
@@ -775,9 +791,7 @@ fi
 
 if [ ! "${thread_tar}" = "" ] ; then
     if [ ! -f ${thread_tar} ] ; then
-        #echo "Downloading ${thread_tar} from ${thread_url} ..."
         download_file ${thread_tar} ${thread_url}
-        #curl -L -s -k -o ${thread_tar} ${thread_url}
     else
         echo "No need to fetch ${thread_tar} (already available)"
     fi
@@ -785,8 +799,6 @@ fi
 
 
 if [ ! -f ${tcllib_tar} ] ; then
-    #echo "Downloading ${tcllib_tar} from ${tcllib_url} ..."
-    #retry curl -L -s -k -o ${tcllib_tar} ${tcllib_url}
     download_file ${tcllib_tar} ${tcllib_url}
 fi
 
