@@ -139,7 +139,8 @@ if [ "${version_thread}" = "" ] && [ ${tcl_fetch_from_core} = "1" ] ; then
     elif [[ ${version_tcl} == *"8-5"* ]] ; then
         version_thread=thread-2-6
     else
-        version_thread=thread-2-8-branch
+        #version_thread=thread-2-8-branch
+        version_thread=thread-2-8-9
     fi
     thread_fetch_from_core=1
     thread_url=https://core.tcl-lang.org/thread/tarball/thread.tar.gz?uuid=${version_thread}
