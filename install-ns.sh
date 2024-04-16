@@ -663,7 +663,8 @@ chksum_set_value tdom-0.9.3-src.tgz        b46bcb6750283bcf41bd6f220cf06e7074752
 chksum_set_value nsf2.3.0.tar.gz           3940c4c00e18900abac8d57c195498f563c3cdb65157257af57060185cfd7ba9
 chksum_set_value nsf2.4.0.tar.gz           51bd956d8db19f9bc014bec0909f73659431ce83f835c479739b5384d3bcc1f6
 
-chksum_set_value thread-thread-2-8-branch.tar.gz 1674cd723f175afc55912694b01d1918539eefc3d2e8fef0b8b509f7ae77d490
+#chksum_set_value thread-thread-2-8-branch.tar.gz 1674cd723f175afc55912694b01d1918539eefc3d2e8fef0b8b509f7ae77d490
+chksum_set_value thread-thread-2-8-branch.tar.gz 21d69cfb8a010957398ee6fd41a03a770941803971ae0b5d17229684cec6ce88
 
 # Get and print a value
 # echo "The value of key1 is: $(chksum_get_value "tdom-0.9.1-src.tgz")"
