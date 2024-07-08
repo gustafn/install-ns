@@ -129,6 +129,7 @@ else
     fi
 fi
 
+# tags: https://core.tcl-lang.org/thread/taglist
 if [ "${version_thread}" = "" ] && [ ${tcl_fetch_from_core} = "1" ] ; then
     if [ "${version_tcl}" = "trunk" ] ; then
         version_thread=trunk
@@ -370,7 +371,7 @@ The script has a long heritage:
 (c) 2012-2023 Gustaf Neumann
 
 Tested under macOS, Ubuntu 12.04, 13.04, 14.04, 16.04, 18.04, 20.04, Raspbian 9.4,
-OmniOS r151014, OpenBSD 6.1, 6.3, 6.6, 6.8, 6.9 FreeBSD 12.2, 13.0,
+OmniOS r151014, OpenBSD 6.1, 6.3, 6.6, 6.8, 6.9 FreeBSD 12.2, 13.0, 14.0,
 Fedora Core 18, 20, 32, 35, CentOS 7, Roxy Linux 8.4, ArchLinux, Alpine 3.18, 3.19
 
 LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
@@ -650,6 +651,7 @@ chksum_get_value() {
 #
 #chksum_set_value tcl-core-8-6-14-rc.tar.gz 4a8834f8b7ec68087e21a05779758956d559c88491cc43020d445ff3edaabaab
 
+chksum_set_value tcl-core-8-5-19.tar.gz    45bf6624144d063e12dcc840a27d9edfedf9a4d33c8362f95f718a2ea7e799a1
 chksum_set_value tcl8.6.13-src.tar.gz      43a1fae7412f61ff11de2cfd05d28cfc3a73762f354a417c62370a54e2caf066
 chksum_set_value tcl8.6.14-src.tar.gz      5880225babf7954c58d4fb0f5cf6279104ce1cd6aa9b71e9a6322540e1c4de66
 chksum_set_value tcl-core-8-6-14.tar.gz    4a8834f8b7ec68087e21a05779758956d559c88491cc43020d445ff3edaabaab
@@ -921,7 +923,8 @@ if [ ! "${version_xotcl}" = "HEAD" ] ; then
     fi
 else
     if [ ! -d nsf ] ; then
-        git clone https://github.com/nm-wu/nsf.git
+        #git clone https://github.com/nm-wu/nsf.git
+        git clone https://github.com/gustafn/nsf.git
     else
         cd nsf
         git pull
