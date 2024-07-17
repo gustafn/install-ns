@@ -163,16 +163,26 @@ fi
 if [ ! "${version_tdom}" = "GIT" ] ; then
     if [ "${version_tdom}" = "0.9.0" ] || [ "${version_tdom}" = "0.9.1" ] ; then
         tdom_src_dir=tdom-${version_tdom}
-    else
+        tdom_tar=tdom-${version_tdom}.tgz
+        tdom_url=http://tdom.org/downloads/${tdom_tar}
+    elif [[ ${version_tdom} == *"."* ]] ; then
         #
+        # Download from the "downloads" directory.
         # Newer versions of tdom have "-src" as root directory.
         #
         tdom_src_dir=tdom-${version_tdom}-src
+        tdom_tar=tdom-${version_tdom}-src.tgz
+        tdom_url=http://tdom.org/downloads/${tdom_tar}
+        # tdom.org/downloads/ does not work reliably inside github actions
+        #tdom_url=https://openacs.org/downloads/${tdom_tar}
+    else
+        #
+        # Download from tdom fossil
+        #
+        tdom_src_dir=tDOM-${version_tdom}
+        tdom_tar=tDOM-${version_tdom}.tar.gz
+        tdom_url=http://tdom.org/index.html/tarball/${version_tdom}/${tdom_tar}
     fi
-    tdom_tar=tdom-${version_tdom}-src.tgz
-    # tdom.org/downloads/ does not work reliably inside github actions
-    tdom_url=http://tdom.org/downloads/${tdom_tar}
-    #tdom_url=https://openacs.org/downloads/${tdom_tar}
 else
     need_git=1
     tdom_src_dir=tdom
