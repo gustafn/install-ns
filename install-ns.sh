@@ -163,7 +163,7 @@ fi
 if [ ! "${version_tdom}" = "GIT" ] ; then
     if [ "${version_tdom}" = "0.9.0" ] || [ "${version_tdom}" = "0.9.1" ] ; then
         tdom_src_dir=tdom-${version_tdom}
-        tdom_tar=tdom-${version_tdom}.tgz
+        tdom_tar=tdom-${version_tdom}-src.tgz
         tdom_url=http://tdom.org/downloads/${tdom_tar}
     elif [[ ${version_tdom} == *"."* ]] ; then
         #
