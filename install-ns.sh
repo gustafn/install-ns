@@ -677,6 +677,7 @@ chksum_set_value tcllib-1.20.tar.gz        e3b097475bcb93c4439df4a088daa59592e19
 
 chksum_set_value tdom-0.9.1-src.tgz        3b1f644cf07533fe4afaa8cb709cb00a899d9e9ebfa66f4674aa2dcfb398242c
 chksum_set_value tdom-0.9.3-src.tgz        b46bcb6750283bcf41bd6f220cf06e7074752dc8b9a87a192bd81e53caad53f9
+chksum_set_value tdom-0.9.4-src.tgz        f947d38cbb7978ec1510e3cf894a672a4ad18cb823b8c9bb3604934ebe4c4546
 
 chksum_set_value nsf2.3.0.tar.gz           3940c4c00e18900abac8d57c195498f563c3cdb65157257af57060185cfd7ba9
 chksum_set_value nsf2.4.0.tar.gz           51bd956d8db19f9bc014bec0909f73659431ce83f835c479739b5384d3bcc1f6
