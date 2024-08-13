@@ -28,7 +28,7 @@ build_dir=${build_dir:-/usr/local/src}
 ns_install_dir=${ns_install_dir:-/usr/local/ns}
 #ns_install_dir=/usr/local/oo2
 
-version_ns=${version_ns:-4.99.30}
+version_ns=${version_ns:-4.99.31}
 #version_ns=GIT
 git_branch_ns=${git_branch_ns:-main}
 version_modules=${version_modules:-${version_ns}}
@@ -128,6 +128,11 @@ else
         tcl_fetch_always=0
     fi
 fi
+
+# comment for downloading from branch "core-9-0-b3-rc" (currently not supported)
+#tcl_url=https://core.tcl-lang.org/tcl/tarball/core-9-0-b3-rc/tcl-core-9-0-b3-rc.tar.gz
+#tcl_tar=tcl-core-9-0-b3-rc.tar.gz
+#tcl_src_dir=tcl-core-9-0-b3-rc
 
 # tags: https://core.tcl-lang.org/thread/taglist
 if [ "${version_thread}" = "" ] && [ ${tcl_fetch_from_core} = "1" ] ; then
