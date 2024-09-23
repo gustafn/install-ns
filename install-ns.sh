@@ -996,7 +996,14 @@ ${tar} xfz ${tcl_tar}
 
 if [ $with_system_malloc = "1" ] ; then
     cd ${tcl_src_dir}
-    cat <<EOF > tcl86-system-malloc.patch
+    echo "patching Tcl with SYSTEM malloc patch ..."
+    TCL9=$(grep 'define.*TCL_MAJOR_VERSION.*9' generic/tcl.h)
+    if [ "${TCL9}" = "" ] ; then
+        #
+        # Tcl 8.*
+        #
+        patch_file=tcl86-system-malloc.patch
+        cat <<EOF > $patch_file
 Index: generic/tclThreadAlloc.c
 ==================================================================
 --- generic/tclThreadAlloc.c
@@ -1103,10 +1110,95 @@ Index: generic/tclThreadAlloc.c
 
 
 EOF
-    echo "patching Tcl with SYSTEM malloc patch ..."
-    patch -p0 --fuzz=3 < tcl86-system-malloc.patch
-    echo "patching Tcl with SYSTEM malloc patch DONE"
+        patch -p0 --fuzz=3 < $patch_file
+    else
+        #
+        # Tcl 9.*
+        #
+        patch_file=tcl9-system-malloc.patch
+        cat <<EOF > $patch_file
+--- generic/tclThreadAlloc.c-orig	2024-09-23 01:12:41.711892003 +0000
++++ generic/tclThreadAlloc.c	2024-09-23 01:12:41.711892003 +0000
+@@ -297,7 +297,15 @@
+  *
+  *----------------------------------------------------------------------
+  */
+-
++#define SYSTEM_MALLOC 1
++#if defined(SYSTEM_MALLOC)
++void *
++TclpAlloc(
++    size_t numBytes)     /* Number of bytes to allocate. */
++{
++    return malloc(numBytes);
++}
++#else
+ void *
+ TclpAlloc(
+     size_t reqSize)
+@@ -345,6 +353,7 @@
+     }
+     return Block2Ptr(blockPtr, bucket, reqSize);
+ }
++#endif
+ 
+ /*
+  *----------------------------------------------------------------------
+@@ -361,7 +370,15 @@
+  *
+  *----------------------------------------------------------------------
+  */
+-
++#if defined(SYSTEM_MALLOC)
++void
++TclpFree(
++    void *ptr)         /* Pointer to memory to free. */
++{
++    free(ptr);
++    return;
++}
++#else
+ void
+ TclpFree(
+     void *ptr)
+@@ -404,6 +421,7 @@
+ 	PutBlocks(cachePtr, bucket, bucketInfo[bucket].numMove);
+     }
+ }
++#endif
+ 
+ /*
+  *----------------------------------------------------------------------
+@@ -420,7 +438,15 @@
+  *
+  *----------------------------------------------------------------------
+  */
+-
++#if defined(SYSTEM_MALLOC)
++void *
++TclpRealloc(
++    void *oldPtr,              /* Pointer to alloced block. */
++    size_t numBytes)     /* New size of memory. */
++{
++    return realloc(oldPtr, numBytes);
++}
++#else
+ void *
+ TclpRealloc(
+     void *ptr,
+@@ -485,6 +511,7 @@
+     }
+     return newPtr;
+ }
++#endif
+ 
+ /*
+  *----------------------------------------------------------------------
+EOF
+        patch -p0 < $patch_file
+    fi
     cd ..
+    echo "patching Tcl with SYSTEM malloc patch $patch_file DONE"
 fi
 
 rm -rf ${tcl_src_dir}/pkgs/sqlit* ${tcl_src_dir}/pkgs/itcl* ${tcl_src_dir}/pkgs/tdbc*
