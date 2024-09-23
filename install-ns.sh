@@ -997,7 +997,9 @@ ${tar} xfz ${tcl_tar}
 if [ $with_system_malloc = "1" ] ; then
     cd ${tcl_src_dir}
     echo "patching Tcl with SYSTEM malloc patch ..."
+    set +o errexit
     TCL9=$(grep 'define.*TCL_MAJOR_VERSION.*9' generic/tcl.h)
+    set -o errexit
     if [ "${TCL9}" = "" ] ; then
         #
         # Tcl 8.*
