@@ -42,7 +42,7 @@ version_thread=${version_thread:-}
 #version_thread=2.8.6
 version_xotcl=${version_xotcl:-2.4.0}
 #version_xotcl=HEAD
-version_tdom=${version_tdom:-0.9.4}
+version_tdom=${version_tdom:-0.9.5}
 #version_tdom=GIT
 #version_tdom_git="master@{2014-11-01 00:00:00}"
 ns_modules=${ns_modules:-}
@@ -149,7 +149,7 @@ if [ "${version_thread}" = "" ] && [ ${tcl_fetch_from_core} = "1" ] ; then
         #version_thread=3.0b1
     else
         #version_thread=thread-2-8-branch
-        version_thread=thread-2-8-9
+        version_thread=thread-2-8-10
     fi
     thread_fetch_from_core=1
     thread_url=https://core.tcl-lang.org/thread/tarball/thread.tar.gz?uuid=${version_thread}
@@ -282,10 +282,10 @@ if [ "$uname" = "Darwin" ] ; then
     ns_user_addgroup_hint="dseditgroup -o edit -a YOUR_USERID -t user ${ns_group}"
 
     if [ $with_postgres = "1" ] ; then
-        # Preconfigured for PostgreSQL 15 installed via MacPorts
-        pg_incl=/opt/local/include/postgresql15/
-        pg_lib=/opt/local/lib/postgresql15/
-        pg_packages="postgresql15 postgresql15-server"
+        # Preconfigured for PostgreSQL 16 installed via MacPorts
+        pg_incl=/opt/local/include/postgresql16/
+        pg_lib=/opt/local/lib/postgresql16/
+        pg_packages="postgresql16 postgresql16-server"
     fi
 else
     #
@@ -676,6 +676,7 @@ chksum_set_value tcl8.6.15-src.tar.gz      861e159753f2e2fbd6ec1484103715b0be56b
 chksum_set_value tcl9.0.0-src.tar.gz       3bfda6dbaee8e9b1eeacc1511b4e18a07a91dff82d9954cdb9c729d8bca4bbb7
 chksum_set_value tcl-core-8-6-14.tar.gz    4a8834f8b7ec68087e21a05779758956d559c88491cc43020d445ff3edaabaab
 chksum_set_value tcl-core-8-6-13.tar.gz    69d4b1192a3ad94c1748e1802c5cf727b2dbba400f5560407f9af19f3d8fd6b3
+chksum_set_value tcl-core-8-6-15.tar.gz    40a6432db8bd9e5725582d758352c15f7dcacfc33c58f10599cdc3f709f4c2bd
 chksum_set_value tcl-core-8-7-a5.tar.gz    7dd250dc6a76af47f3fc96b218906cfd166edf63c5d142186d632b500a6030eb
 
 chksum_set_value tcllib-1.20.tar.gz        e3b097475bcb93c4439df4a088daa59592e1937beee2a2c8495f4f0303125d71
@@ -1275,7 +1276,8 @@ if [ $with_debug_flags = "1" ] ; then
 else
     extra_debug_flags="EXTRA_DEBUG_FLAGS="
 fi
-${make} -j4 clean all "${extra_debug_flags}"
+${make} clean
+${make} -j4 all "${extra_debug_flags}"
 
 if [ "${version_ns}" = "HEAD" ] || [ "${version_ns}" = "GIT" ] || [ "${version_ns}" = ".." ] ; then
     if [ ! "${with_ns_doc}" = "0" ] ; then
