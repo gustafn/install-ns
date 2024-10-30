@@ -613,7 +613,7 @@ fi
 
 if [ $wolfi = "1" ] ; then
     apk add zlib openssl ${pg_packages}
-    dev_packages="curl clang make zlib-dev openssl-dev automake patch"
+    dev_packages="curl clang make zlib-dev openssl-dev autoconf automake patch"
     if [ $with_postgres_driver = "1" ] ; then
         dev_packages="${dev_packages} postgresql-dev"
     fi
