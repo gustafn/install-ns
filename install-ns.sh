@@ -248,6 +248,7 @@ freebsd=0
 openbsd=0
 archlinux=0
 alpine=0
+wolfi=0
 
 make="make"
 type="type -p"
@@ -310,7 +311,16 @@ else
     elif [ -f "/etc/alpine-release" ] ; then
         alpine=1
         if [ $with_postgres_driver = "1" ] ; then
-            pg_packages="libpq-dev"
+            pg_packages="libpq"
+        fi
+        if [ $with_postgres = "1" ] ; then
+            pg_packages="postgresql ${pg_packages}"
+        fi
+
+    elif [ -f "/etc/os-release" ] ; then
+        wolfi=1
+        if [ $with_postgres_driver = "1" ] ; then
+            pg_packages="libpq"
         fi
         if [ $with_postgres = "1" ] ; then
             pg_packages="postgresql ${pg_packages}"
@@ -491,6 +501,7 @@ sunos=${sunos}
 freebsd=${freebsd}
 archlinux=${archlinux}
 alpine=${alpine}
+wolfi=${wolfi}
 EOF
 
 echo "------------------------ Check User and Group --------------------"
@@ -599,6 +610,17 @@ if [ $alpine = "1" ] ; then
     apk add $dev_packages
 
 fi
+
+if [ $wolfi = "1" ] ; then
+    apk add zlib openssl ${pg_packages}
+    dev_packages="curl clang make zlib-dev openssl-dev automake patch"
+    if [ $with_postgres_driver = "1" ] ; then
+        dev_packages="${dev_packages} postgresql-dev"
+    fi
+    apk add $dev_packages
+
+fi
+
 
 if [ $macosx = "1" ] ; then
     port install ${autoconf} automake zlib curl zip unzip openssl \
@@ -1436,7 +1458,7 @@ Consult as a reference the alternate configuration files in ${ns_install_dir}/co
 
 "
 #################################################################
-if [ $alpine = "1" ] ; then
+if [ "$alpine" = "1" ] || [ "$wolfi" = "1" ] ; then
     echo "You might consider to cleanup develoment packages:"
     echo "        apk del git $dev_packages"
 fi
