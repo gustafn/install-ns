@@ -282,12 +282,23 @@ if [ "$uname" = "Darwin" ] ; then
 
     ns_user_addgroup_hint="dseditgroup -o edit -a YOUR_USERID -t user ${ns_group}"
 
-    if [ $with_postgres = "1" ] ; then
-        # Preconfigured for PostgreSQL 16 installed via MacPorts
-        pg_incl=/opt/local/include/postgresql16/
-        pg_lib=/opt/local/lib/postgresql16/
-        pg_packages="postgresql16 postgresql16-server"
+    #
+    # Preconfigured for PostgreSQL 16 installed via MacPorts
+    #
+    pgversion=postgresql16
+
+    if [ $with_postgres_driver = "1" ] ; then
+        pg_incl=/opt/local/include/$pgversion/
+        pg_lib=/opt/local/lib/$pgversion/
+        pg_packages=$pgversion
     fi
+    if [ $with_postgres = "1" ] ; then
+        #
+        # Also include the PostgreSQL "*-server" package
+        #
+        pg_packages="$pgversion $pgversion-server"
+    fi
+
 else
     #
     # Not Darwin
