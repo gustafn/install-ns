@@ -49,6 +49,7 @@ ns_modules=${ns_modules:-}
 ns_user=${ns_user:-nsadmin}
 ns_group=${ns_group:-nsadmin}
 with_mongo=${with_mongo:-0}
+with_ns_deprecated=${with_ns_deprecated:-1}
 with_system_malloc=${with_system_malloc:-0}
 with_ns_doc=${with_ns_doc:-1}
 with_debug_flags=${with_debug_flags:-0}
@@ -435,6 +436,7 @@ SETTINGS   build_dir              (Build directory)                 ${build_dir}
            with_mongo             (Add MongoDB client and server)   ${with_mongo}
            with_postgres          (Install PostgreSQL DB server)    ${with_postgres}
            with_postgres_driver   (Add PostgreSQL driver support)   ${with_postgres_driver}
+           with_ns_deprecated     (NaviServer with deprecated cmds) ${with_ns_deprecated}
            with_system_malloc     (Tcl compiled with system malloc) ${with_system_malloc}
            with_debug_flags       (Tcl and nsd compiled with debug) ${with_debug_flags}
            with_ns_doc            (NaviServer documentation)        ${with_ns_doc}"
@@ -501,6 +503,8 @@ ns_group=${ns_group}
 with_mongo=${with_mongo}
 with_postgres=${with_postgres}
 with_postgres_driver=${with_postgres_driver}
+with_ns_deprecated=${with_ns_deprecated}
+with_system_malloc=${with_system_malloc}
 pg_incl="${pg_incl}"
 pg_lib="${pg_lib}"
 make="${make}"
@@ -1256,6 +1260,10 @@ if [ "$with_debug_flags" = "1" ] ; then
     extra_debug_flags="CFLAGS_OPTIMIZE=-O0 -g"
 else
     extra_debug_flags="EXTRA_DEBUG_FLAGS="
+fi
+
+if  [ "$with_ns_deprecated" = "0" ] ; then
+    extra_debug_flags="${extra_debug_flags} -DNS_NO_DEPRECATED"
 fi
 
 ${make} -j4 "${extra_debug_flags}"
