@@ -35,7 +35,7 @@ version_modules=${version_modules:-${version_ns}}
 #version_modules=HEAD
 
 #version_tcl=8.5.19
-version_tcl=${version_tcl:-8.6.15}
+version_tcl=${version_tcl:-8.6.16}
 version_tcllib=${version_tcllib:-1.20}
 version_thread=${version_thread:-}
 #version_thread=2.8.2
