@@ -1263,10 +1263,6 @@ else
     extra_debug_flags="EXTRA_DEBUG_FLAGS="
 fi
 
-if  [ "$with_ns_deprecated" = "0" ] ; then
-    extra_debug_flags="${extra_debug_flags} -DNS_NO_DEPRECATED"
-fi
-
 ${make} -j4 "${extra_debug_flags}"
 ${make} install
 
@@ -1319,6 +1315,10 @@ if [ $with_debug_flags = "1" ] ; then
 else
     extra_debug_flags="EXTRA_DEBUG_FLAGS="
 fi
+if  [ "$with_ns_deprecated" = "0" ] ; then
+    extra_debug_flags="${extra_debug_flags} -DNS_NO_DEPRECATED"
+fi
+
 ${make} clean
 ${make} -j4 all "${extra_debug_flags}"
 
