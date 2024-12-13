@@ -1256,13 +1256,14 @@ echo Running: ./configure --enable-threads --prefix=${ns_install_dir}
 ./configure --enable-threads --prefix=${ns_install_dir}
 #./configure --enable-threads --prefix=${ns_install_dir} --with-naviserver=${ns_install_dir}
 
-if [ "$with_debug_flags" = "1" ] ; then
+if [ "${with_debug_flags}" = "1" ] ; then
     sed -i.bak -e 's/-DNDEBUG=1//' -e 's/-DNDEBUG//' Makefile
     extra_debug_flags="CFLAGS_OPTIMIZE=-O0 -g"
 else
     extra_debug_flags="EXTRA_DEBUG_FLAGS="
 fi
 
+echo "Compiling Tcl with extra flags: ${extra_debug_flags}"
 ${make} -j4 "${extra_debug_flags}"
 ${make} install
 
@@ -1309,17 +1310,24 @@ else
     fi
 fi
 
-if [ $with_debug_flags = "1" ] ; then
+#
+# We have no extra section in general for these flags, so we use sed
+# to update the structures available cross versions. This is fragile.
+#
+if [ "${with_debug_flags}" = "1" ] ; then
     sed -i.bak -e 's/-DNDEBUG=1//' -e 's/-DNDEBUG//' include/Makefile.global
     extra_debug_flags="CFLAGS_OPTIMIZE=-O0 -g"
 else
     extra_debug_flags="EXTRA_DEBUG_FLAGS="
 fi
-if  [ "$with_ns_deprecated" = "0" ] ; then
-    extra_debug_flags="${extra_debug_flags} -DNS_NO_DEPRECATED"
+
+if  [ "${with_ns_deprecated}" = "0" ] ; then
+    sed -i.bak -e 's/-std=c99/-DNS_NO_DEPRECATED -std=c99/' include/Makefile.global
 fi
 
 ${make} clean
+
+echo "Compiling NaviServer with extra flags: ${extra_debug_flags}"
 ${make} -j4 all "${extra_debug_flags}"
 
 if [ "${version_ns}" = "HEAD" ] || [ "${version_ns}" = "GIT" ] || [ "${version_ns}" = ".." ] ; then
