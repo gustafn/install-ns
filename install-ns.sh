@@ -717,6 +717,7 @@ chksum_set_value tcl-core-8-5-19.tar.gz    45bf6624144d063e12dcc840a27d9edfedf9a
 chksum_set_value tcl-core-8-6-14.tar.gz    4a8834f8b7ec68087e21a05779758956d559c88491cc43020d445ff3edaabaab
 chksum_set_value tcl-core-8-6-13.tar.gz    69d4b1192a3ad94c1748e1802c5cf727b2dbba400f5560407f9af19f3d8fd6b3
 chksum_set_value tcl-core-8-6-15.tar.gz    40a6432db8bd9e5725582d758352c15f7dcacfc33c58f10599cdc3f709f4c2bd
+chksum_set_value tcl-core-8-6-16.tar.gz    a142d2c6f6ca979c5747e9fd6c8220d7b0a783412b46e9bda0ee7baafedba258
 chksum_set_value tcl-core-8-7-a5.tar.gz    7dd250dc6a76af47f3fc96b218906cfd166edf63c5d142186d632b500a6030eb
 
 chksum_set_value tcllib-1.20.tar.gz        e3b097475bcb93c4439df4a088daa59592e1937beee2a2c8495f4f0303125d71
