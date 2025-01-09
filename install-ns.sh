@@ -111,7 +111,7 @@ need_autoconf=1
 tcl_src_dir=tcl${version_tcl}
 
 if [[ ${version_tcl} == *"."* ]] ; then
-    echo "${version_tcl} contains a DOT -> fetch from sourceforge"
+    echo "Tcl version number ${version_tcl} contains a DOT -> fetch Tcl from sourceforge"
     tcl_fetch_from_core=0
     tcl_fetch_always=0
     tcl_url=https://downloads.sourceforge.net/sourceforge/tcl/tcl${version_tcl}-src.tar.gz
