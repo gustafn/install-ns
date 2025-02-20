@@ -1374,9 +1374,7 @@ else
     ${tar} xfz ${thread_tar}
 
     if [ ! -f ${thread_src_dir}/tclconfig ] ; then
-        echo "Downloading tclconfig"
         url=https://core.tcl-lang.org/tclconfig/tarball/tclconfig.tar.gz?uuid=tcl8-compat
-        #curl -L -s -k -o tclconfig.tar.gz $url
         download_file tclconfig.tar.gz $url
         tar xf tclconfig.tar.gz
         ln -s ${build_dir}/tclconfig ${thread_src_dir}/tclconfig
