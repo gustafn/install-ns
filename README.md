@@ -26,14 +26,14 @@ This command outputs a list of settings, similar to the example below:
 
      SETTINGS   build_dir              (Build directory)                 /usr/local/src
                 ns_install_dir         (Installation directory)          /usr/local/ns
-                version_ns             (Version of NaviServer)           4.99.24
+                version_ns             (Version of NaviServer)           4.99.31
                 git_branch_ns          (Branch for git checkout of ns)   main
-                version_modules        (Version of NaviServer Modules)   4.99.24
+                version_modules        (Version of NaviServer Modules)   4.99.31
                 version_tcllib         (Version of Tcllib)               1.20
                 version_thread         (Version Tcl thread library)
                 version_xotcl          (Version of NSF/NX/XOTcl)         2.4.0
-                version_tcl            (Version of Tcl)                  8.6.13
-                version_tdom           (Version of tDOM)                 0.9.1
+                version_tcl            (Version of Tcl)                  8.6.16
+                version_tdom           (Version of tDOM)                 0.9.5
                 ns_user                (NaviServer user)                 nsadmin
                 ns_group               (NaviServer group)                nsadmin
                                        (Make command)                    make
@@ -62,13 +62,13 @@ as environment variables when invoking the script.
 For example, to compile NaviServer with site-specific settings, run:
 
 ```bash
-sudo with_debug_flags=1 version_tcl=8.6.10 ns_modules="nsdbpg nssmtpd" \
+sudo with_debug_flags=1 version_tcl=8.6.13 ns_modules="nsdbpg nssmtpd" \
      bash install-ns.sh
 ```
 
 This command changes the defaults by:
 - Enabling debugging (compilation flag `-g`).
-- Using a specific version of Tcl (8.6.10).
+- Using a specific version of Tcl (`8.6.13`).
 - Including additional NaviServer modules (e.g., `nsdbpg` and `nssmtpd`).
 
 One can specify every released version of Tcl 8.6.* or 9.* (indicated
