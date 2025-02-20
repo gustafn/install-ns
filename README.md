@@ -73,8 +73,8 @@ This command changes the defaults by:
 
 One can specify every released version of Tcl 8.6.* or 9.* (indicated
 by the dots) or tags from the Tcl Fossil repository. To use the latest
-version from the Tcl 8.5 branch from Fossil, use `core-8-5-branch`,
-for `version_tcl` which has no dots in the name.
+version from the Tcl 8.5 branch from Fossil, use `core-8-5-branch` (no dots in the name)
+for `version_tcl`.
 
 If you wish to reuse an existing PostgreSQL database installation, but
 still building the PostgreSQL module, use:
