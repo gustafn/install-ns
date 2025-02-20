@@ -1,16 +1,28 @@
-install-ns
-==========
+# install-ns
 
-Install scripts for NaviServer
-([source code](https://github.com/naviserver-project/naviserver/),
-[releases](https://sourceforge.net/projects/naviserver/))
-and optionally [OpenACS](https://openacs.org/).
+**Install Scripts for NaviServer**
 
-To see the default settings, use the following command
+This repository provides installation scripts for NaviServer—and
+optionally OpenACS. For more details, see the links below:
 
-     sudo bash install-ns.sh
+- [Source Code](https://github.com/naviserver-project/naviserver/)
+- [Releases](https://sourceforge.net/projects/naviserver/)
+- [OpenACS](https://openacs.org/)
 
-This command returns a listing like e.g., the following:
+## Overview
+
+The `install-ns.sh` script allows you to install NaviServer with
+customizable settings. When run without additional parameters, it
+displays the default configuration values.
+
+To view the default settings, run:
+
+```bash
+sudo bash install-ns.sh
+```
+
+This command outputs a list of settings, similar to the example below:
+
 
      SETTINGS   build_dir              (Build directory)                 /usr/local/src
                 ns_install_dir         (Installation directory)          /usr/local/ns
@@ -39,31 +51,53 @@ This command returns a listing like e.g., the following:
                                        (PostgreSQL lib)                  /usr/lib
                                        (PostgreSQL Packages)             postgresql libpq-dev
 
-This listing shows in the first column a name that can be used to
-adapt the defaults to the needs of the current instance. One can edit
-the script, or provide these variables as shell variables for the script.
 
-For example, one can compile with some site-specific settings
-
-    sudo with_debug_flags=1 version_tcl=8.6.10 ns_modules="nsdbpg nssmtpd" bash install-ns.sh
-
-This command will change the default setting by
-  * compile with debiggung enabled (compilation flag -g)
-  * use a special version of Tcl (here 6.8.10)
-  * with some extra NaviServer modules
-
-If you want to reuse an existing PostgresSQL database installation,
-use e.g.
-
-    sudo with_postgres=0 bash install-ns.sh
-
-Finally, to compile and build NaviServer, add the word "build" add the end of
-the  command:
-
-    sudo ... bash install-ns.sh build
+The first column lists variable names that you can use to override the
+defaults. You can edit the script directly or provide these variables
+as environment variables when invoking the script.
 
 
+## Customizing the Installation
+
+For example, to compile NaviServer with site-specific settings, run:
+
+```bash
+sudo with_debug_flags=1 version_tcl=8.6.10 ns_modules="nsdbpg nssmtpd" \
+     bash install-ns.sh
+```
+
+This command changes the defaults by:
+- Enabling debugging (compilation flag `-g`).
+- Using a specific version of Tcl (8.6.10).
+- Including additional NaviServer modules (e.g., `nsdbpg` and `nssmtpd`).
+
+One can specify every released version of Tcl 8.6.* or 9.* (indicated
+by the dots) or tags from the Tcl Fossil repository. To use the latest
+version from the Tcl 8.5 branch from Fossil, use `core-8-5-branch`,
+which has no dots in the name.
+
+If you wish to reuse an existing PostgreSQL database installation, but
+still building the PostgreSQL module, use:
+
+```bash
+sudo with_postgres=0 bash install-ns.sh
+```
+
+If you want to build without PostgresQL support at all, use:
+
+```bash
+sudo with_postgres=0 with_postgres_driver=0 bash install-ns.sh
+```
 
 
+To compile and build NaviServer, append the word `build` at the end of the command:
 
-For details, see: http://openacs.org/xowiki/naviserver-openacs
+```bash
+sudo bash install-ns.sh build
+```
+
+## Additional Information
+
+For further details, visit:  
+[http://openacs.org/xowiki/naviserver-openacs](http://openacs.org/xowiki/naviserver-openacs)
+```
