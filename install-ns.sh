@@ -1053,7 +1053,6 @@ fi
 set -o errexit
 
 if [ $with_system_malloc = "1" ] ; then
-    cd ${tcl_src_dir}
     echo "patching Tcl with SYSTEM malloc patch ..."
     if [ "${TCL9}" = "" ] ; then
         #
