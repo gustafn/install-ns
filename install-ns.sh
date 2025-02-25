@@ -1046,9 +1046,9 @@ set +o errexit
 cd ${build_dir}/${tcl_src_dir}
 TCL9=$(grep 'define.*TCL_MAJOR_VERSION.*9' generic/tcl.h)
 if [ "${TCL9}" = "" ] ; then
-    enable_threads=""
-else
     enable_threads="--enable-threads"
+else
+    enable_threads=""
 fi
 
 set -o errexit
