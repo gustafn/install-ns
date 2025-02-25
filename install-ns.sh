@@ -1037,6 +1037,12 @@ fi
 
 #exit
 echo "------------------------ Installing Tcl ---------------------------------"
+
+rm -rf ${tcl_src_dir}
+${tar} xfz ${tcl_tar}
+
+set +o errexit
+cd ${tcl_src_dir}
 TCL9=$(grep 'define.*TCL_MAJOR_VERSION.*9' generic/tcl.h)
 if [ "${TCL9}" = "" ] ; then
     enable_threads=""
@@ -1045,9 +1051,6 @@ else
 fi
 
 set -o errexit
-
-rm -rf ${tcl_src_dir}
-${tar} xfz ${tcl_tar}
 
 if [ $with_system_malloc = "1" ] ; then
     cd ${tcl_src_dir}
