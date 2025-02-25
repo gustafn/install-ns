@@ -1037,6 +1037,13 @@ fi
 
 #exit
 echo "------------------------ Installing Tcl ---------------------------------"
+TCL9=$(grep 'define.*TCL_MAJOR_VERSION.*9' generic/tcl.h)
+if [ "${TCL9}" = "" ] ; then
+    enable_threads=""
+else
+    enable_threads="--enable-threads"
+fi
+
 set -o errexit
 
 rm -rf ${tcl_src_dir}
@@ -1045,9 +1052,6 @@ ${tar} xfz ${tcl_tar}
 if [ $with_system_malloc = "1" ] ; then
     cd ${tcl_src_dir}
     echo "patching Tcl with SYSTEM malloc patch ..."
-    set +o errexit
-    TCL9=$(grep 'define.*TCL_MAJOR_VERSION.*9' generic/tcl.h)
-    set -o errexit
     if [ "${TCL9}" = "" ] ; then
         #
         # Tcl 8.*
@@ -1255,9 +1259,9 @@ rm -rf ${tcl_src_dir}/pkgs/sqlit* ${tcl_src_dir}/pkgs/itcl* ${tcl_src_dir}/pkgs/
 
 cd ${tcl_src_dir}/unix
 echo PWD=`pwd`
-echo Running: ./configure --enable-threads --prefix=${ns_install_dir}
-./configure --enable-threads --prefix=${ns_install_dir}
-#./configure --enable-threads --prefix=${ns_install_dir} --with-naviserver=${ns_install_dir}
+echo Running: ./configure ${enable_threads} --prefix=${ns_install_dir}
+./configure ${enable_threads} --prefix=${ns_install_dir}
+#./configure ${enable_threads} --prefix=${ns_install_dir} --with-naviserver=${ns_install_dir}
 
 if [ "${with_debug_flags}" = "1" ] ; then
     sed -i.bak -e 's/-DNDEBUG=1//' -e 's/-DNDEBUG//' Makefile
@@ -1307,9 +1311,9 @@ else
         echo PWD=`pwd` PATH=${PATH}
         ls -1ltr
         echo version_ns=${version_ns} start_dir=${start_dir} ns_src_dir=${ns_src_dir}
-        bash autogen.sh --enable-threads --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir} ${with_openssl_configure_flag}
+        bash autogen.sh --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir} ${with_openssl_configure_flag}
     else
-        ./configure --enable-threads --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir} ${with_openssl_configure_flag}
+        ./configure --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir} ${with_openssl_configure_flag}
     fi
 fi
 
@@ -1361,7 +1365,7 @@ if [ "${thread_tar}" = "" ] ; then
     # Use the thread library as distributed with Tcl
     echo "------------------------ Compile and install libthread from Tcl Sources ------------------"
     cd ${build_dir}/${tcl_src_dir}/pkgs/thread*
-    ./configure --enable-threads --prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib \
+    ./configure ${enable_threads} --prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib \
                 --with-naviserver=${ns_install_dir}
     ${make} clean
     ${make} install
@@ -1383,7 +1387,7 @@ else
     fi
 
     cd ${thread_src_dir}/unix/
-    ../configure --enable-threads --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} \
+    ../configure ${enable_threads} --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} \
                  --with-tcl=${ns_install_dir}/lib \
                  --with-naviserver=${ns_install_dir}
     make
@@ -1432,13 +1436,13 @@ cd ${nsf_src_dir}
 if [ $with_mongo = "1" ] ; then
     echo "------------------------ WITH MONGO"
 
-    ./configure --enable-threads --enable-symbols \
+    ./configure ${enable_threads} --enable-symbols \
                 --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib \
                 --with-nsf=../../ \
                 --with-mongoc=/usr/local/include/libmongoc-1.0/,/usr/local/lib/ \
                 --with-bson=/usr/local/include/libbson-1.0,/usr/local/lib/
 else
-    ./configure --enable-threads --enable-symbols \
+    ./configure ${enable_threads} --enable-symbols \
                 --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
 fi
 
@@ -1464,7 +1468,7 @@ else
     #${tar} xfz tDOM-${version_tdom}.tgz
     cd ${tdom_src_dir}/unix
 fi
-../configure --enable-threads --disable-tdomalloc --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
+../configure ${enable_threads} --disable-tdomalloc --prefix=${ns_install_dir} --exec-prefix=${ns_install_dir} --with-tcl=${ns_install_dir}/lib
 ${make} install
 cd ../..
 
