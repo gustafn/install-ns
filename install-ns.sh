@@ -1038,11 +1038,12 @@ fi
 #exit
 echo "------------------------ Installing Tcl ---------------------------------"
 
+cd ${build_dir}
 rm -rf ${tcl_src_dir}
 ${tar} xfz ${tcl_tar}
 
 set +o errexit
-cd ${tcl_src_dir}
+cd ${build_dir}/${tcl_src_dir}
 TCL9=$(grep 'define.*TCL_MAJOR_VERSION.*9' generic/tcl.h)
 if [ "${TCL9}" = "" ] ; then
     enable_threads=""
@@ -1253,13 +1254,13 @@ EOF
 EOF
         patch -p0 < $patch_file
     fi
-    cd ..
     echo "patching Tcl with SYSTEM malloc patch $patch_file DONE"
 fi
 
+cd ${build_dir}
 rm -rf ${tcl_src_dir}/pkgs/sqlit* ${tcl_src_dir}/pkgs/itcl* ${tcl_src_dir}/pkgs/tdbc*
 
-cd ${tcl_src_dir}/unix
+cd ${build_dir}/${tcl_src_dir}/unix
 echo PWD=`pwd`
 echo Running: ./configure ${enable_threads} --prefix=${ns_install_dir}
 ./configure ${enable_threads} --prefix=${ns_install_dir}
