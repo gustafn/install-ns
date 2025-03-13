@@ -284,9 +284,9 @@ if [ "$uname" = "Darwin" ] ; then
     ns_user_addgroup_hint="dseditgroup -o edit -a YOUR_USERID -t user ${ns_group}"
 
     #
-    # Preconfigured for PostgreSQL 16 installed via MacPorts
+    # Preconfigured for PostgreSQL 17 installed via MacPorts
     #
-    pgversion=postgresql16
+    pgversion=postgresql17
 
     if [ $with_postgres_driver = "1" ] ; then
         pg_incl=/opt/local/include/$pgversion/
@@ -401,18 +401,19 @@ fi
 echo "
 Installation Script for NaviServer
 
-This script installs Tcl, NaviServer, the essential
-NaviServer modules, tcllib, libthread, XOTcl and tDOM
-from scratch by obtaining the sources from the actual
-releases and compiling it.
+This script automates the installation of Tcl, NaviServer, essential
+NaviServer modules, tcllib, libthread, XOTcl, and tDOM from
+scratch. It downloads the source code from their official releases and
+compiles each component.
 
 The script has a long heritage:
 (c) 2008      Malte Sussdorff, Nima Mazloumi
-(c) 2012-2023 Gustaf Neumann
+(c) 2012-2025 Gustaf Neumann
 
-Tested under macOS, Ubuntu 12.04, 13.04, 14.04, 16.04, 18.04, 20.04, Raspbian 9.4,
-OmniOS r151014, OpenBSD 6.1, 6.3, 6.6, 6.8, 6.9 FreeBSD 12.2, 13.0, 14.0,
-Fedora Core 18, 20, 32, 35, CentOS 7, Roxy Linux 8.4, ArchLinux, Alpine 3.18, 3.19
+Tested under macOS, Ubuntu 12.04, 13.04, 14.04, 16.04, 18.04, 20.04,
+Debian bookworm, Raspbian 9.4, OmniOS r151014, OpenBSD 6.1, 6.3, 6.6,
+6.8, 6.9 FreeBSD 12.2, 13.0, 14.0, Fedora Core 18, 20, 32, 35, CentOS
+7, Roxy Linux 8.4, ArchLinux, Alpine 3.18, 3.19
 
 LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
            This is free software, and you are welcome to redistribute it under certain conditions;
