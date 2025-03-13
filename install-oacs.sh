@@ -49,7 +49,7 @@ ns_install_dir=${ns_install_dir:-/usr/local/ns}
 #      a release of the main OpenACS packages).
 #
 # One can obtain the OpenACS sources either via tar file or via
-# cvs. When "oacs_tar_release_url" is nonempty, it is used and the CVS tags
+# CVS. When "oacs_tar_release_url" is nonempty, it is used and the CVS tags
 # are ignored. Otherwise, a checkout from CVS is used based
 # on "oacs_core_tag" and "oacs_packages_tag".
 #
@@ -102,19 +102,19 @@ fi
 echo "Loaded definitions from ${ns_install_dir}/lib/nsConfig.sh"
 
 #
-# inherited/derived variables
+# Inherited/derived variables, you might override some of these here:
 #
 #build_dir=/usr/local/src
 #with_postgres=1
-#ns_src_dir=/usr/local/src/naviserver-4.99.17
+#ns_src_dir=/usr/local/src/naviserver-4.99.29
 
 oacs_user=${ns_user}
 oacs_group=${ns_group}
 
-if [ ! ${version_ns} = "HEAD" ] ; then
-    ns_src_dir=${build_dir}/naviserver-${version_ns}
-else
+if [ "${version_ns}" = "HEAD" ] || [ "${version_ns}" = "GIT" ] ; then
     ns_src_dir=${build_dir}/naviserver
+else
+    ns_src_dir=${build_dir}/naviserver-${version_ns}
 fi
 modules_src_dir=${build_dir}/modules
 
@@ -122,18 +122,22 @@ export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 
 echo "
-Installation Script for OpenACS
+OpenACS Installation Script
 
-This script configures a (pre-installed) PostgreSQL installation for
-OpenACS, installs OpenACS core, basic OpenACS packages (and xowiki,
-xowf and optionally dotlrn on CVS based installs; tar-based installs
-can install these packages via 'install from repository'). The script
-generates a config file and startup files (for Ubuntu and Fedora Core).
-The script  assumes a pre-existing NaviServer installation,
-installed e.g. via install-ns.sh
+This script configures a pre-installed PostgreSQL instance for OpenACS
+and installs the core system along with the essential OpenACS
+packages. For CVS-based installations, it also installs xowiki, xowf,
+and optionally dotlrn; for tar-based installations, these packages can
+be added using the “install from repository” option. Additionally, the
+script generates a configuration file and startup scripts for the
+Debian (Ubuntu) family and the RedHat family (Fedora Core, Roxy
+Linux). It assumes that NaviServer is already installed via install-ns.sh,
+since it uses its installation variables.
 
-Tested on Ubuntu 12.04, 13.04, 14.04 Fedora Core 18, and CentOS 7
-(c) 2013 Gustaf Neumann
+Tested on Ubuntu 12.04, 13.04, 14.04, 16.04, 18.04, 20.04, 22.04,
+Debian bookworm, Fedora Core 18, 20, 32, 35, CentOS 7, Roxy Linux 8.4
+
+(c) 2013-2025 Gustaf Neumann
 
 LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
            This is free software, and you are welcome to redistribute it under certain conditions;
@@ -304,7 +308,7 @@ set +o errexit
 
 if [ "$oacs_tar_release_url" = "" ] ; then
     #
-    # we use cvs for obtaining OpenACS
+    # We use CVS for obtaining OpenACS
     #
     cvspath=$(${type} cvs)
     if [ "$cvspath" = "" ] ; then
@@ -326,7 +330,7 @@ if [ "$oacs_tar_release_url" = "" ] ; then
             ${make}
             ${make} install
         else
-            echo "cvs is not installed; you might install it with"
+            echo "CVS is not installed; you might install it with"
             echo "    apt-get install cvs"
             exit
         fi
