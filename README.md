@@ -71,24 +71,30 @@ This command changes the defaults by:
 - Using a specific version of Tcl (`8.6.13`).
 - Including additional NaviServer modules (e.g., `nsdbpg` and `nssmtpd`).
 
-One can specify every released version of Tcl 8.6.* or 9.* (indicated
-by the dots) or tags from the Tcl Fossil repository. To use the latest
-version from the Tcl 8.5 branch from Fossil, use `core-8-5-branch` (no dots in the name)
-for `version_tcl`.
+You can specify any released version of Tcl 8.6.* or 9.* (as denoted
+by the dots), or use tags names from the Tcl Fossil repository. For example,
+to use the latest version from the Tcl 8.5 branch on Fossil, set
+`version_tcl` to `core-8-5-branch` (note that this tag does not include
+dots).
 
-If you wish to reuse an existing PostgreSQL database installation, but
-still building the PostgreSQL module, use:
+
+For the NaviServer components (controlled by `version_ns` and
+`version_modules`), you can use the value `GIT` to automatically fetch
+the latest version from GitHub. If these variables contain a dot, the
+installer will use the tarball releases from SourceForge instead.
+
+
+To reuse an existing PostgreSQL database installation while still
+building the PostgreSQL module, run:
 
 ```bash
 sudo with_postgres=0 bash install-ns.sh
 ```
 
-If you want to build without PostgresQL support at all, use:
-
+If you prefer to build NaviServer without PostgreSQL support at all, run:
 ```bash
 sudo with_postgres=0 with_postgres_driver=0 bash install-ns.sh
 ```
-
 
 To compile and build NaviServer, append the word `build` at the end of the command:
 
