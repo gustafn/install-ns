@@ -489,6 +489,12 @@ fi
 echo "------------------------ Save config variables in ${ns_install_dir}/lib/nsConfig.sh"
 mkdir -p  ${ns_install_dir}/lib
 cat << EOF > ${ns_install_dir}/lib/nsConfig.sh
+#
+# This file was automatically created and is used for install-oacs.sh
+# to pick up the configuration settings from install-ns.sh.
+#
+#        DO NOT EDIT
+#
 build_dir="${build_dir}"
 ns_install_dir="${ns_install_dir}"
 version_ns=${version_ns}
