@@ -824,6 +824,8 @@ function download_file() {
         if [ "${provided_checksum}" = "" ] ; then
             echo "   no checksum provided, consider setting:"
             echo "   chksum_set_value ${target_filename} ${actual_checksum}"
+            file_size=$(wc -c < ${target_filename})
+            echo "    downloaded file ${target_filename} has ${file_size} bytes"
             break
         fi
         if [ "${provided_checksum}" = "${actual_checksum}" ] ; then
