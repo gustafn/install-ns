@@ -825,7 +825,8 @@ function download_file() {
             echo "   no checksum provided, consider setting:"
             echo "   chksum_set_value ${target_filename} ${actual_checksum}"
             file_size=$(wc -c < ${target_filename})
-            echo "    downloaded file ${target_filename} has ${file_size} bytes"
+            echo "   The downloaded file ${target_filename} has ${file_size} bytes"
+            echo "   Used command: curl $extraflags -H 'Connection: close' -L -s -k -o '${target_filename}' '$download_url'"
             break
         fi
         if [ "${provided_checksum}" = "${actual_checksum}" ] ; then
