@@ -28,7 +28,7 @@ build_dir=${build_dir:-/usr/local/src}
 ns_install_dir=${ns_install_dir:-/usr/local/ns}
 #ns_install_dir=/usr/local/oo2
 
-version_ns=${version_ns:-4.99.30}
+version_ns=${version_ns:-5.0.0}
 #version_ns=GIT
 git_branch_ns=${git_branch_ns:-main}
 version_modules=${version_modules:-${version_ns}}
@@ -42,7 +42,7 @@ version_thread=${version_thread:-}
 #version_thread=2.8.6
 version_xotcl=${version_xotcl:-2.4.0}
 #version_xotcl=HEAD
-version_tdom=${version_tdom:-0.9.5}
+version_tdom=${version_tdom:-0.9.6}
 #version_tdom=GIT
 #version_tdom_git="master@{2014-11-01 00:00:00}"
 ns_modules=${ns_modules:-}
@@ -719,6 +719,7 @@ chksum_set_value tcl8.6.15-src.tar.gz      861e159753f2e2fbd6ec1484103715b0be56b
 chksum_set_value tcl8.6.16-src.tar.gz      91cb8fa61771c63c262efb553059b7c7ad6757afa5857af6265e4b0bdc2a14a5
 chksum_set_value tcl9.0.0-src.tar.gz       3bfda6dbaee8e9b1eeacc1511b4e18a07a91dff82d9954cdb9c729d8bca4bbb7
 chksum_set_value tcl9.0.1-src.tar.gz       a72b1607d7a399c75148c80fcdead88ed3371a29884181f200f2200cdee33bbc
+chksum_set_value tcl9.0.2-src.tar.gz       e074c6a8d9ba2cddf914ba97b6677a552d7a52a3ca102924389a05ccb249b520
 
 chksum_set_value tcl-core-8-5-19.tar.gz    45bf6624144d063e12dcc840a27d9edfedf9a4d33c8362f95f718a2ea7e799a1
 chksum_set_value tcl-core-8-6-14.tar.gz    4a8834f8b7ec68087e21a05779758956d559c88491cc43020d445ff3edaabaab
@@ -734,6 +735,7 @@ chksum_set_value tdom-0.9.1-src.tgz        3b1f644cf07533fe4afaa8cb709cb00a899d9
 chksum_set_value tdom-0.9.3-src.tgz        b46bcb6750283bcf41bd6f220cf06e7074752dc8b9a87a192bd81e53caad53f9
 chksum_set_value tdom-0.9.4-src.tgz        f947d38cbb7978ec1510e3cf894a672a4ad18cb823b8c9bb3604934ebe4c4546
 chksum_set_value tdom-0.9.5-src.tgz        ce22e3f42da9f89718688bf413b82fbf079b40252ba4dd7f2a0e752232bb67e8
+chksum_set_value tdom-0.9.6-src.tgz        6d24734aef46d1dc16f3476685414794d6a4e65f48079e1029374477104e8319
 
 chksum_set_value nsf2.3.0.tar.gz           3940c4c00e18900abac8d57c195498f563c3cdb65157257af57060185cfd7ba9
 chksum_set_value nsf2.4.0.tar.gz           51bd956d8db19f9bc014bec0909f73659431ce83f835c479739b5384d3bcc1f6
