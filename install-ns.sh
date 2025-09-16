@@ -153,7 +153,8 @@ if [ "${version_thread}" = "" ] && [ ${tcl_fetch_from_core} = "1" ] ; then
         version_thread=thread-2-8-10
     fi
     thread_fetch_from_core=1
-    thread_url=https://core.tcl-lang.org/thread/tarball/thread.tar.gz?uuid=${version_thread}
+    #thread_url=https://core.tcl-lang.org/thread/tarball/thread.tar.gz?uuid=${version_thread}
+    thread_url=https://github.com/tcltk/thread/archive/refs/tags/${version_thread}.tar.gz
     thread_tar=thread-${version_thread}.tar.gz
     thread_src_dir=thread
 else
