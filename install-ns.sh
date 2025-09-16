@@ -161,8 +161,9 @@ else
     thread_fetch_from_core=0
     if [ ! "${version_thread}" = "" ] ; then
         thread_tar=thread${version_thread}.tar.gz
-        thread_url=https://downloads.sourceforge.net/sourceforge/tcl/thread${version_thread}.tar.gz
-        thread_src_dir=thread${version_thread}
+        #thread_url=https://downloads.sourceforge.net/sourceforge/tcl/thread${version_thread}.tar.gz
+        thread_url=https://github.com/tcltk/thread/archive/refs/tags/${version_thread}.tar.gz
+        thread_src_dir=thread-${version_thread}
     else
         thread_tar=""
         thread_url=""
@@ -1403,6 +1404,7 @@ else
         download_file tclconfig.tar.gz $url
         tar xf tclconfig.tar.gz
         #ln -s ${build_dir}/tclconfig ${thread_src_dir}/tclconfig
+        echo "ln -s ${build_dir}/tclconfig-tcl8-compat ${thread_src_dir}/tclconfig"
         ln -s ${build_dir}/tclconfig-tcl8-compat ${thread_src_dir}/tclconfig
     else
         echo "No need to fetch tclconfig (already available)"
