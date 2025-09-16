@@ -1396,13 +1396,13 @@ else
     echo "------------------------ Compile and install libthread from ${thread_tar} ----------------"
 
     rm -rf ${thread_src_dir}
-    ${tar} xtfz ${thread_tar}
+    ${tar} xvfz ${thread_tar}
 
     if [ ! -f ${thread_src_dir}/tclconfig ] ; then
         #url=https://core.tcl-lang.org/tclconfig/tarball/tclconfig.tar.gz?uuid=tcl8-compat
         url=https://github.com/tcltk/tclconfig/archive/refs/heads/tcl8-compat.tar.gz
         download_file tclconfig.tar.gz $url
-        tar xtf tclconfig.tar.gz
+        tar xvf tclconfig.tar.gz
         #ln -s ${build_dir}/tclconfig ${thread_src_dir}/tclconfig
         echo "ln -s ${build_dir}/tclconfig-tcl8-compat ${thread_src_dir}/tclconfig"
         ln -s ${build_dir}/tclconfig-tcl8-compat ${thread_src_dir}/tclconfig
