@@ -719,6 +719,7 @@ chksum_set_value tcl8.6.14-src.tar.gz      5880225babf7954c58d4fb0f5cf6279104ce1
 chksum_set_value tcl8.6.15-src.tar.gz      861e159753f2e2fbd6ec1484103715b0be56be3357522b858d3cbb5f893ffef1
 chksum_set_value tcl8.6.16-src.tar.gz      91cb8fa61771c63c262efb553059b7c7ad6757afa5857af6265e4b0bdc2a14a5
 chksum_set_value tcl8.6.17-src.tar.gz      a3903371efcce8a405c5c245d029e9f6850258a60fa3761c4d58995610949b31
+chksum_set_value tcl-core-8-6-17.tar.gz    7acf617a70eb558b76f01514e24a7472a1659ead39aa9444eeb2cd6f054c0d86
 chksum_set_value tcl9.0.0-src.tar.gz       3bfda6dbaee8e9b1eeacc1511b4e18a07a91dff82d9954cdb9c729d8bca4bbb7
 chksum_set_value tcl9.0.1-src.tar.gz       a72b1607d7a399c75148c80fcdead88ed3371a29884181f200f2200cdee33bbc
 chksum_set_value tcl9.0.2-src.tar.gz       e074c6a8d9ba2cddf914ba97b6677a552d7a52a3ca102924389a05ccb249b520
@@ -732,6 +733,8 @@ chksum_set_value tcl-core-8-7-a5.tar.gz    7dd250dc6a76af47f3fc96b218906cfd166ed
 
 chksum_set_value tcllib-1.20.tar.gz        e3b097475bcb93c4439df4a088daa59592e1937beee2a2c8495f4f0303125d71
 chksum_set_value tcllib-2.0.tar.gz         590263de0832ac801255501d003441a85fb180b8ba96265d50c4a9f92fde2534
+
+chksum_set_value thread-thread-2-8-10.tar.gz e8cdae2484877644d37a6134105a416006e7b8e373112461f94a87e198d2f278
 
 chksum_set_value tdom-0.9.1-src.tgz        3b1f644cf07533fe4afaa8cb709cb00a899d9e9ebfa66f4674aa2dcfb398242c
 chksum_set_value tdom-0.9.3-src.tgz        b46bcb6750283bcf41bd6f220cf06e7074752dc8b9a87a192bd81e53caad53f9
@@ -1399,7 +1402,8 @@ else
         url=https://github.com/tcltk/tclconfig/archive/refs/heads/tcl8-compat.tar.gz
         download_file tclconfig.tar.gz $url
         tar xf tclconfig.tar.gz
-        ln -s ${build_dir}/tclconfig ${thread_src_dir}/tclconfig
+        #ln -s ${build_dir}/tclconfig ${thread_src_dir}/tclconfig
+        ln -s ${build_dir}/tclconfig-tcl8-compat ${thread_src_dir}/tclconfig
     else
         echo "No need to fetch tclconfig (already available)"
     fi
