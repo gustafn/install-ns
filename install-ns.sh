@@ -79,6 +79,31 @@ if [ "${with_postgres_driver}" = "1" ] && [ "${ns_modules}" = "" ] ; then
     ns_modules=nsdbpg
 fi
 
+strip_word() {
+  # $1 = list, $2 = word to remove
+  out=
+  for w in $1; do
+    if [ "$w" = "$2" ]; then
+      echo "filtered: $w from '$1'" >&2
+    else
+      out="${out:+$out }$w"
+    fi  done
+  printf '%s\n' "$out"
+}
+
+case "$version_ns" in
+  GIT|HEAD)
+      # always >= 5.0
+      ns_modules="$(strip_word "$ns_modules" revproxy)"
+    ;;
+  *)
+    major=$(printf '%s' "$version_ns" | cut -d. -f1)
+    if [ "$major" -ge 5 ]; then
+      ns_modules="$(strip_word "$ns_modules" revproxy)"
+    fi
+    ;;
+esac
+
 
 # ----------------------------------------------------------------------
 #
