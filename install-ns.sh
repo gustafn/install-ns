@@ -28,7 +28,7 @@ build_dir=${build_dir:-/usr/local/src}
 ns_install_dir=${ns_install_dir:-/usr/local/ns}
 #ns_install_dir=/usr/local/oo2
 
-version_ns=${version_ns:-5.0.0}
+version_ns=${version_ns:-5.0.1}
 #version_ns=GIT
 git_branch_ns=${git_branch_ns:-main}
 version_modules=${version_modules:-${version_ns}}
@@ -438,10 +438,10 @@ The script has a long heritage:
 (c) 2008      Malte Sussdorff, Nima Mazloumi
 (c) 2012-2025 Gustaf Neumann
 
-Tested under macOS, Ubuntu 12.04, 13.04, 14.04, 16.04, 18.04, 20.04,
-Debian bookworm, Raspbian 9.4, OmniOS r151014, OpenBSD 6.1, 6.3, 6.6,
+Tested under macOS, Ubuntu 12.04, 13.04, 14.04, 16.04, 18.04, 20.04, 24.04,
+Debian bookworm, trixie, Raspbian 9.4, OmniOS r151014, OpenBSD 6.1, 6.3, 6.6,
 6.8, 6.9 FreeBSD 12.2, 13.0, 14.0, Fedora Core 18, 20, 32, 35, CentOS
-7, Roxy Linux 8.4, ArchLinux, Alpine 3.18, 3.19
+7, Roxy Linux 8.4, 9.6, ArchLinux, Alpine 3.18, 3.19
 
 LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
            This is free software, and you are welcome to redistribute it under certain conditions;
