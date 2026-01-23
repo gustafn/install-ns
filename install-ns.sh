@@ -28,7 +28,7 @@ build_dir=${build_dir:-/usr/local/src}
 ns_install_dir=${ns_install_dir:-/usr/local/ns}
 #ns_install_dir=/usr/local/oo2
 
-version_ns=${version_ns:-5.0.3}
+version_ns=${version_ns:-5.0.4}
 #version_ns=GIT
 git_branch_ns=${git_branch_ns:-main}
 version_modules=${version_modules:-${version_ns}}
@@ -776,6 +776,7 @@ chksum_set_value nsf2.4.0.tar.gz           51bd956d8db19f9bc014bec0909f73659431c
 chksum_set_value thread-thread-2-8-branch.tar.gz 21d69cfb8a010957398ee6fd41a03a770941803971ae0b5d17229684cec6ce88
 
 chksum_set_value naviserver-5.0.3.tar.gz   e29ca00d6c5d3c19e38ba63305ab89d71253405f11807cdb43c4b7fa3a9db3e1
+chksum_set_value naviserver-5.0.4.tar.gz   9a407b5d43e371dae897ea67f3cd1a3a0c3bd16ef61451b562645b75b1a55f07
 
 # Get and print a value
 # echo "The value of key1 is: $(chksum_get_value "tdom-0.9.1-src.tgz")"
