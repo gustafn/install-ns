@@ -778,6 +778,8 @@ chksum_set_value thread-thread-2-8-branch.tar.gz 21d69cfb8a010957398ee6fd41a03a7
 chksum_set_value naviserver-5.0.3.tar.gz   e29ca00d6c5d3c19e38ba63305ab89d71253405f11807cdb43c4b7fa3a9db3e1
 chksum_set_value naviserver-5.0.4.tar.gz   9a407b5d43e371dae897ea67f3cd1a3a0c3bd16ef61451b562645b75b1a55f07
 
+chksum_set_value naviserver-5.0.4-modules.tar.gz 1e718c2425b1b955fcef3746b9c41372b89baed6dac5d84414852a443587afa7
+
 # Get and print a value
 # echo "The value of key1 is: $(chksum_get_value "tdom-0.9.1-src.tgz")"
 
