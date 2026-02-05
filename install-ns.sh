@@ -880,7 +880,7 @@ function download_file() {
         echo "Checksums differ for ${target_filename}"
         echo "    Provided checksum : ${provided_checksum}"
         echo "    Actual checksum   : ${actual_checksum}"
-        echo "    Downloadeded      :" `ls -l "${target_filename}"`
+        echo "    Downloaded        :" `ls -l "${target_filename}"`
 
         attempt=$((attempt + 1))
         sleep 1 # Wait a bit before retrying
