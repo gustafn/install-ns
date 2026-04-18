@@ -875,7 +875,10 @@ function download_file() {
         # The function "retry" is used for commands ending with an
         # error return code.
         #
-        retry curl $extraflags -H "Connection: close" -L -s -k -o  "${target_filename}" "$download_url"
+        retry curl $extraflags -f -L -s -k -S \
+              --retry 5 --retry-delay 2 --retry-connrefused \
+              -H "Connection: close" \
+              -o "${target_filename}" "$download_url"
 
         if [ ! -f ${target_filename} ] ; then
             #
