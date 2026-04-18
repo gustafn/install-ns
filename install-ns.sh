@@ -829,18 +829,24 @@ function retry {
   local n=1
   local max=5
   local delay=15
+  local rc
+
   while true; do
-    "$@" && break || {
-      if [[ $n -lt $max ]]; then
-          ((n++))
-          echo "Command failed. Attempt $n/$max, error code: $?"
-          sleep $delay;
-      else
-          # fail "The command has failed after $n attempts."
-          echo "The command has failed after $n attempts."
-          return
-      fi
-    }
+    "$@"
+    rc=$?
+
+    if [ $rc -eq 0 ]; then
+      return 0
+    fi
+
+    if [ $n -ge $max ]; then
+      echo "The command has failed after $n attempts, error code: $rc."
+      return $rc
+    fi
+
+    echo "Command failed. Attempt $n/$max, error code: $rc"
+    n=$((n + 1))
+    sleep $delay
   done
 }
 
