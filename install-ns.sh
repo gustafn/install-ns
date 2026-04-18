@@ -91,14 +91,50 @@ strip_word() {
   printf '%s\n' "$out"
 }
 
+ns_version_major() {
+  case "$1" in
+    GIT|HEAD)
+      # symbolic remote tip; caller may decide how to treat this
+      echo ""
+      return 0
+      ;;
+    ..)
+      # local checkout: try to determine version from configure.ac
+      if [ -f ../configure.ac ]; then
+        sed -n 's/^[[:space:]]*AC_INIT([^,]*,[[:space:]]*\[\{0,1\}\([0-9][0-9]*\)\..*/\1/p' ../configure.ac | head -1
+        return 0
+      elif [ -f ../nsconfig.h.in ]; then
+        sed -n 's/^#define[[:space:]]\+PACKAGE_VERSION[[:space:]]\+"\([0-9][0-9]*\)\..*/\1/p' ../nsconfig.h.in | head -1
+        return 0
+      fi
+      echo ""
+      return 0
+      ;;
+    *)
+      case "$1" in
+        [0-9]*)
+          printf '%s\n' "$1" | cut -d. -f1
+          ;;
+        *)
+          echo ""
+          ;;
+      esac
+      ;;
+  esac
+}
+
+ns_is_ge_5() {
+  major="$(ns_version_major "$1")"
+  [ -n "$major" ] && [ "$major" -ge 5 ]
+}
+
 case "$version_ns" in
   GIT|HEAD)
-      # always >= 5.0
+      # current remote development tip; known to be >= 5
       ns_modules="$(strip_word "$ns_modules" revproxy)"
     ;;
   *)
-    major=$(printf '%s' "$version_ns" | cut -d. -f1)
-    if [ "$major" -ge 5 ]; then
+    if ns_is_ge_5 "$version_ns"; then
       ns_modules="$(strip_word "$ns_modules" revproxy)"
     fi
     ;;
@@ -1316,6 +1352,22 @@ echo Running: ./configure ${enable_threads} --prefix=${ns_install_dir}
 ./configure ${enable_threads} --prefix=${ns_install_dir}
 #./configure ${enable_threads} --prefix=${ns_install_dir} --with-naviserver=${ns_install_dir}
 
+if [ -n "${NS_INSTALL_DEBUG_ENV:-}" ]; then
+  echo "------------------------ Debug Environment ------------------------"
+  echo "PWD=$PWD"
+  echo "PATH=$PATH"
+  echo "CC=${CC}"
+  echo "CXX=${CXX}"
+  echo "MAKEFLAGS=${MAKEFLAGS}"
+  echo "CCACHE_DIR=${CCACHE_DIR}"
+  echo "CCACHE_MAXSIZE=${CCACHE_MAXSIZE}"
+  echo "whoami=$(whoami 2>/dev/null || true)"
+  echo "id=$(id 2>/dev/null || true)"
+  command -v "${CC:-cc}" 2>/dev/null || true
+  type "${CC:-cc}" 2>/dev/null || true
+  echo "---------------------------------------------------------------"
+fi
+
 if [ "${with_debug_flags}" = "1" ] ; then
     sed -i.bak -e 's/-DNDEBUG=1//' -e 's/-DNDEBUG//' Makefile
     extra_debug_flags="CFLAGS_OPTIMIZE=-O0 -g"
@@ -1326,6 +1378,14 @@ fi
 echo "Compiling Tcl with extra flags: ${extra_debug_flags}"
 ${make} -j4 "${extra_debug_flags}"
 ${make} install
+
+if [ -n "${NS_INSTALL_DEBUG_CCACHE:-}" ]; then
+  if command -v ccache >/dev/null 2>&1; then
+    echo "------------------------ Debug ccache ----------------------------"
+    ccache -p || true
+    echo "---------------------------------------------------------------"
+  fi
+fi
 
 # Make sure, we have a tclsh in ns/bin
 if [ -f ${ns_install_dir}/bin/tclsh ] ; then
