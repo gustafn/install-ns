@@ -660,6 +660,14 @@ with_openssl_configure_flag=
 if [ $debian = "1" ] ; then
     # On Debian/Ubuntu, make sure we have zlib installed, otherwise
     # NaviServer can't provide compression support
+    #
+    # In CI/container environments, avoid interactive debconf prompts
+    # (e.g. tzdata via locales or dependencies).
+    #
+    if [ -n "${CI:-}" ] || [ -f /.dockerenv ] || [ -n "${GITHUB_ACTIONS:-}" ]; then
+        export DEBIAN_FRONTEND=noninteractive
+        export TZ="${TZ:-Etc/UTC}"
+    fi
     apt-get install -y make ${autoconf} pkg-config locales gcc zlib1g-dev \
             curl zip unzip openssl libssl-dev \
             ${pg_packages} ${git} ${mongodb}
