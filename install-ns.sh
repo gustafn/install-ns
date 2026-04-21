@@ -1392,8 +1392,10 @@ else
     extra_debug_flags="EXTRA_DEBUG_FLAGS="
 fi
 
-echo "Compiling Tcl with extra flags: ${extra_debug_flags}"
-${make} -j4 "${extra_debug_flags}"
+tcl_makeflags="${tcl_makeflags:--j4}"
+
+echo "Compiling Tcl with extra flags: ${tcl_makeflags} ${extra_debug_flags}"
+${make} ${tcl_makeflags} "${extra_debug_flags}"
 ${make} install
 
 if [ -n "${NS_INSTALL_DEBUG_CCACHE:-}" ]; then
