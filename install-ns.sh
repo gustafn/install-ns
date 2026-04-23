@@ -768,7 +768,7 @@ if [ $openbsd = "1" ] ; then
     # well), but NaviServer gets more functionality by using recent
     # versions of OpenSSL.
     #
-    pkg_add gcc openssl curl zip unzip bash gmake \
+    pkg_add gcc openssl curl zip unzip bash gmake gtar \
             ${git} ${mongodb} ${pg_packages} autoconf-2.69p2 automake-1.15.1
     pkg_add autoconf-2.69p3
     tar="gtar"
