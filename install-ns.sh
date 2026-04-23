@@ -771,7 +771,7 @@ if [ $openbsd = "1" ] ; then
     pkg_add gcc openssl curl zip unzip-- bash gmake gtar-- \
             ${git} ${mongodb} ${pg_packages}
     #pkg_add autoconf-2.69p3
-    pkg_add automake-- autoconf--
+    pkg_add automake-1.15.1p1 autoconf-2.69p3
 
     command -v autoconf
     command -v automake
