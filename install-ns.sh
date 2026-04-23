@@ -422,8 +422,8 @@ else
         freebsd=1
         make="gmake"
         type="type"
-        # adjust following to local gcc version:
-        setenv CC=clang
+        # adjust CC compiler
+        export CC=clang
         if [ $with_postgres = "1" ] ; then
             # for freebsd10, file is: /usr/local/include/postgresql/internal/postgres_fe.h so:
             #pg_incl=/usr/local/include/postgresql/internal
@@ -601,13 +601,13 @@ fi
 
 id=$(id -u ${ns_user})
 if [ $? != "0" ] ; then
-    if [ $debian = "1" ] || [ $macosx = "1" ] || [ $archlinux = "1" ] ; then
+    if [ $debian = "1" ] || [ $macosx = "1" ] || [ $archlinux = "1" ] || [ $freebsd = "1" ]; then
         echo "creating user ${ns_user} with command ${ns_user_addcmd}"
         eval ${ns_user_addcmd}
     else
         echo "User ${ns_user} does not exist; you might add it with a command like"
         echo "     sudo ${ns_user_addcmd}"
-        exit
+        exit 1
     fi
 fi
 
