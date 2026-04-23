@@ -424,6 +424,7 @@ else
         type="type"
         # adjust CC compiler
         export CC=clang
+        export PATH="/usr/local/bin:/usr/local/sbin:${PATH}"
         if [ $with_postgres = "1" ] ; then
             # for freebsd10, file is: /usr/local/include/postgresql/internal/postgres_fe.h so:
             #pg_incl=/usr/local/include/postgresql/internal
@@ -461,7 +462,7 @@ else
     group_listcmd="grep ${ns_group} /etc/group"
     ns_user_addgroup_hint="sudo usermod -G ${ns_group} YOUR_USERID"
 fi
-echo "--- OS settings fir $uname: debian=${debian} redhat=${redhat} macosx=${macosx} sunos=${sunos} freebsd=${freebsd} archlinux=${archlinux} alpine=${alpine} wolfi=${wolfi}"
+echo "---> OS settings for $uname: debian=${debian} redhat=${redhat} macosx=${macosx} sunos=${sunos} freebsd=${freebsd} archlinux=${archlinux} alpine=${alpine} wolfi=${wolfi}"
 
 
 echo "
@@ -1446,6 +1447,12 @@ else
         echo PWD=`pwd` PATH=${PATH}
         ls -1ltr
         echo version_ns=${version_ns} start_dir=${start_dir} ns_src_dir=${ns_src_dir}
+        echo "PWD=$(pwd) PATH=${PATH}"
+        command -v autoconf || true
+        command -v autoheader || true
+        command -v automake || true
+        command -v aclocal || true
+        ls -l /usr/local/bin/autoconf /usr/local/bin/automake 2>/dev/null || true
         bash autogen.sh --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir} ${with_openssl_configure_flag}
     else
         ./configure --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir} ${with_openssl_configure_flag}
