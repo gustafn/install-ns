@@ -426,25 +426,27 @@ else
         export CC=clang
         export PATH="/usr/local/bin:/usr/local/sbin:${PATH}"
         if [ $with_postgres = "1" ] ; then
-            # for freebsd10, file is: /usr/local/include/postgresql/internal/postgres_fe.h so:
-            #pg_incl=/usr/local/include/postgresql/internal
             pg_packages="postgresql-client"
+        elif [ $with_postgres_driver = "1" ] ; then
+            pg_packages="postgresql-client"
+        fi
+        if [ $with_postgres = "1" ] || [ $with_postgres_driver = "1" ] ; then
             pg_incl=/usr/local/include
             pg_lib=/usr/local/lib
         fi
         # make sure that bash is installed here, such that the recommendation for bash works below
-        pkg install bash
+        pkg install -y bash
 
     elif [ "$uname" = "OpenBSD" ] ; then
         make="gmake CC=clang"
         openbsd=1
         export CC=clang
         if [ $with_postgres = "1" ] ; then
-            if [ $with_postgres_driver = "1" ] ; then
-                pg_packages="postgresql-client postgresql-server"
-            else
-                pg_packages="postgresql-server"
-            fi
+            pg_packages="postgresql-client"
+        elif [ $with_postgres_driver = "1" ] ; then
+            pg_packages="postgresql-client"
+        fi
+        if [ $with_postgres = "1" ] || [ $with_postgres_driver = "1" ] ; then
             pg_incl=/usr/local/include/postgresql
             pg_lib=/usr/local/lib
         fi
