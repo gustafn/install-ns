@@ -601,6 +601,9 @@ fi
 
 id=$(id -u ${ns_user})
 if [ $? != "0" ] ; then
+
+    echo "OS settings debian=${debian} redhat=${redhat} macosx=${macosx} sunos=${sunos} freebsd=${freebsd} archlinux=${archlinux} alpine=${alpine} wolfi=${wolfi}"
+
     if [ $debian = "1" ] || [ $macosx = "1" ] || [ $archlinux = "1" ] || [ $freebsd = "1" ]; then
         echo "creating user ${ns_user} with command ${ns_user_addcmd}"
         eval ${ns_user_addcmd}
