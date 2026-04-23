@@ -748,6 +748,12 @@ fi
 if [ $freebsd = "1" ] ; then
     pkg install gmake llvm openssl autoconf autoconf-switch automake curl zip unzip \
         ${pg_packages} ${autoconf} ${git} ${mongodb}
+
+    pkg info -l autoconf | egrep '/bin/(autoconf|autoheader|autom4te)$' || true
+    pkg info -l automake | egrep '/bin/(automake|aclocal)' || true
+    pkg info -l autoconf-switch | egrep '/bin/(autoconf|autoheader|autom4te|autoreconf)$' || true
+
+    ls -l /usr/local/bin/autoconf* /usr/local/bin/autoheader* /usr/local/bin/automake* /usr/local/bin/aclocal* 2>/dev/null || true
 fi
 
 if [ $openbsd = "1" ] ; then
