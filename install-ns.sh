@@ -425,13 +425,15 @@ else
         # adjust CC compiler
         export CC=clang
         export PATH="/usr/local/bin:/usr/local/sbin:${PATH}"
-        pgver=$(pkg search    -q -S name -Q name postgresql | grep -E '^postgresql[0-9]+$' | sort -V | tail -1)
-        pgclient=$(pkg search -q -S name -Q name postgresql | grep -E '^postgresql[0-9]+-client$' | sort -V | tail -1)
-        echo "FreeBSD pg package selection: pgver <$pgver> pgclient <$pgclient>"
+        pgserver=$(pkg search -q postgresql | awk '{print $1}' | grep -E '^postgresql[0-9]+-server' | sort -V | tail -1)
+        pgclient=$(pkg search -q postgresql | awk '{print $1}' | grep -E '^postgresql[0-9]+-client' | sort -V | tail -1)
+        pgserver_base=$(printf '%s\n' "$pgserver" | sed -E 's/-[0-9].*$//')
+        pgclient_base=$(printf '%s\n' "$pgclient" | sed -E 's/-[0-9].*$//')
+        echo "---> FreeBSD pg package selection: pgserver <$pgserver> pgclient <$pgclient> base: server $pgserver_base client $pgclient_base"
         if [ $with_postgres = "1" ] ; then
-            pg_packages="$pgver"
+            pg_packages="$pgserver_base $pgclient_base"
         elif [ $with_postgres_driver = "1" ] ; then
-            pg_packages="$pgclient"
+            pg_packages="$pgclient_base"
         fi
         if [ $with_postgres = "1" ] || [ $with_postgres_driver = "1" ] ; then
             pg_incl=/usr/local/include
