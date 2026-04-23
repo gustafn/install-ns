@@ -748,12 +748,6 @@ fi
 if [ $freebsd = "1" ] ; then
     pkg install -y gmake llvm openssl autoconf-switch automake curl zip unzip \
         ${pg_packages} ${autoconf} ${git} ${mongodb}
-
-    pkg info -l autoconf | egrep '/bin/(autoconf|autoheader|autom4te)$' || true
-    pkg info -l automake | egrep '/bin/(automake|aclocal)' || true
-    pkg info -l autoconf-switch | egrep '/bin/(autoconf|autoheader|autom4te|autoreconf)$' || true
-
-    ls -l /usr/local/bin/autoconf* /usr/local/bin/autoheader* /usr/local/bin/automake* /usr/local/bin/aclocal* 2>/dev/null || true
 fi
 
 if [ $openbsd = "1" ] ; then
@@ -1453,12 +1447,6 @@ else
         echo PWD=`pwd` PATH=${PATH}
         ls -1ltr
         echo version_ns=${version_ns} start_dir=${start_dir} ns_src_dir=${ns_src_dir}
-        echo "PWD=$(pwd) PATH=${PATH}"
-        command -v autoconf || true
-        command -v autoheader || true
-        command -v automake || true
-        command -v aclocal || true
-        ls -l /usr/local/bin/autoconf /usr/local/bin/automake 2>/dev/null || true
         bash autogen.sh --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir} ${with_openssl_configure_flag}
     else
         ./configure --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir} ${with_openssl_configure_flag}
