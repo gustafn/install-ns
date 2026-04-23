@@ -429,7 +429,7 @@ else
         pgclient=$(pkg search -q postgresql | awk '{print $1}' | grep -E '^postgresql[0-9]+-client' | sort -V | tail -1)
         pgserver_base=$(printf '%s\n' "$pgserver" | sed -E 's/-[0-9].*$//')
         pgclient_base=$(printf '%s\n' "$pgclient" | sed -E 's/-[0-9].*$//')
-        echo "---> FreeBSD pg package selection: pgserver <$pgserver> pgclient <$pgclient> base: server $pgserver_base client $pgclient_base"
+        echo "---> FreeBSD pg package selection: pgserver $pgserver_base pgclient $pgclient_base"
         if [ $with_postgres = "1" ] ; then
             pg_packages="$pgserver_base $pgclient_base"
         elif [ $with_postgres_driver = "1" ] ; then
@@ -443,7 +443,7 @@ else
         pkg install -y bash
 
     elif [ "$uname" = "OpenBSD" ] ; then
-        make="gmake CC=clang"
+        make="gmake"
         openbsd=1
         export CC=clang
         if [ $with_postgres = "1" ] ; then
@@ -458,10 +458,10 @@ else
     fi
 
     group_addcmd="groupadd ${ns_group}"
-    if [ "$uname" = "FreeBSD" ] ; then
+    if [ $freebsd = "1" ] ; then
         group_addcmd="pw groupadd ${ns_group}"
         ns_user_addcmd="pw useradd ${ns_user} -G ${ns_group} "
-    elif [ "$uname" = "OpenBSD" ] ; then
+    elif [ [ $openbsd = "1" ] ; then
         ns_user_addcmd="useradd -m -g ${ns_group} ${ns_user}"
     else
         ns_user_addcmd="useradd -g ${ns_group} ${ns_user}"
@@ -469,7 +469,7 @@ else
     group_listcmd="grep ${ns_group} /etc/group"
     ns_user_addgroup_hint="sudo usermod -G ${ns_group} YOUR_USERID"
 fi
-echo "---> OS settings for $uname: debian=${debian} redhat=${redhat} macosx=${macosx} sunos=${sunos} freebsd=${freebsd} archlinux=${archlinux} alpine=${alpine} wolfi=${wolfi}"
+echo "---> OS settings for $uname: debian=${debian} redhat=${redhat} macosx=${macosx} sunos=${sunos} freebsd=${freebsd} openbsd=${openbsd} archlinux=${archlinux} alpine=${alpine} wolfi=${wolfi}"
 
 
 echo "
@@ -486,7 +486,7 @@ The script has a long heritage:
 
 Tested under macOS, Ubuntu 12.04, 13.04, 14.04, 16.04, 18.04, 20.04, 24.04,
 Debian bookworm, trixie, Raspbian 9.4, OmniOS r151014, OpenBSD 6.1, 6.3, 6.6,
-6.8, 6.9 FreeBSD 12.2, 13.0, 14.0, Fedora Core 18, 20, 32, 35, CentOS
+6.8, 6.9 FreeBSD 12.2, 13.0, 14.0, 15.0, Fedora Core 18, 20, 32, 35, CentOS
 7, Roxy Linux 8.4, 9.6, ArchLinux, Alpine 3.18, 3.19
 
 LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
@@ -612,7 +612,7 @@ fi
 id=$(id -u ${ns_user})
 if [ $? != "0" ] ; then
 
-    if [ $debian = "1" ] || [ $macosx = "1" ] || [ $archlinux = "1" ] || [ $freebsd = "1" ]; then
+    if [ $debian = "1" ] || [ $macosx = "1" ] || [ $archlinux = "1" ] || [ $freebsd = "1" ] || [ $openbsd = "1" ]; then
         echo "creating user ${ns_user} with command ${ns_user_addcmd}"
         eval ${ns_user_addcmd}
     else
