@@ -756,6 +756,7 @@ if [ $freebsd = "1" ] ; then
     pkg_list="gmake llvm openssl autoconf-switch automake curl zip unzip ${pg_packages} ${autoconf} ${git} ${mongodb}"
     echo "FreeBSD package list: ${pkg_list}"
     pkg install -y ${pkg_list}
+    tar="gtar"
 fi
 
 if [ $openbsd = "1" ] ; then
@@ -770,6 +771,7 @@ if [ $openbsd = "1" ] ; then
     pkg_add gcc openssl curl zip unzip bash gmake \
             ${git} ${mongodb} ${pg_packages} autoconf-2.69p2 automake-1.15.1
     pkg_add autoconf-2.69p3
+    tar="gtar"
 fi
 
 
