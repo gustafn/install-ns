@@ -482,7 +482,7 @@ compiles each component.
 
 The script has a long heritage:
 (c) 2008      Malte Sussdorff, Nima Mazloumi
-(c) 2012-2025 Gustaf Neumann
+(c) 2012-2026 Gustaf Neumann
 
 Tested under macOS, Ubuntu 12.04, 13.04, 14.04, 16.04, 18.04, 20.04, 24.04,
 Debian bookworm, trixie, Raspbian 9.4, OmniOS r151014, OpenBSD 6.1, 6.3, 6.6,
@@ -768,9 +768,14 @@ if [ $openbsd = "1" ] ; then
     # well), but NaviServer gets more functionality by using recent
     # versions of OpenSSL.
     #
-    pkg_add gcc openssl curl zip unzip bash gmake gtar \
-            ${git} ${mongodb} ${pg_packages} autoconf-2.69p2 automake-1.15.1
-    pkg_add autoconf-2.69p3
+    pkg_add gcc openssl curl zip unzip bash gmake gtar-- \
+            ${git} ${mongodb} ${pg_packages}
+    #pkg_add autoconf-2.69p3
+    pkg_add automake autoconf
+
+    command -v autoconf
+    command -v automake
+    command -v aclocal
     tar="gtar"
 fi
 
