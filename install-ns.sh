@@ -425,8 +425,8 @@ else
         # adjust CC compiler
         export CC=clang
         export PATH="/usr/local/bin:/usr/local/sbin:${PATH}"
-        pgver=$(pkg search    -Q pkg-name "%n" postgresql | grep -E '^postgresql[0-9]+$' | sort -V | tail -1)
-        pgclient=$(pkg search -Q pkg-name "%n" postgresql | grep -E '^postgresql[0-9]+-client$' | sort -V | tail -1)
+        pgver=$(pkg search    -q -S name -Q name postgresql | grep -E '^postgresql[0-9]+$' | sort -V | tail -1)
+        pgclient=$(pkg search -q -S name -Q name postgresql | grep -E '^postgresql[0-9]+-client$' | sort -V | tail -1)
         echo "FreeBSD pg package selection: pgver <$pgver> pgclient <$pgclient>"
         if [ $with_postgres = "1" ] ; then
             pg_packages="$pgver"
