@@ -461,7 +461,7 @@ else
     group_listcmd="grep ${ns_group} /etc/group"
     ns_user_addgroup_hint="sudo usermod -G ${ns_group} YOUR_USERID"
 fi
-echo "OS settings debian=${debian} redhat=${redhat} macosx=${macosx} sunos=${sunos} freebsd=${freebsd} archlinux=${archlinux} alpine=${alpine} wolfi=${wolfi}"
+echo "--- OS settings fir $uname: debian=${debian} redhat=${redhat} macosx=${macosx} sunos=${sunos} freebsd=${freebsd} archlinux=${archlinux} alpine=${alpine} wolfi=${wolfi}"
 
 
 echo "
@@ -745,7 +745,7 @@ if [ $sunos = "1" ] ; then
 fi
 
 if [ $freebsd = "1" ] ; then
-    pkg install gmake llvm openssl automake curl zip unzip \
+    pkg install gmake llvm openssl autoconf autoconf-switch automake curl zip unzip \
         ${pg_packages} ${autoconf} ${git} ${mongodb}
 fi
 
