@@ -393,7 +393,7 @@ else
             pg_packages="postgresql ${pg_packages}"
         fi
 
-    elif [ -f "/etc/os-release" ] ; then
+    elif [ -f "/etc/os-release" ] && grep -q '^ID="?wolfi"?$' /etc/os-release 2>/dev/null ; then
         wolfi=1
         if [ $with_postgres_driver = "1" ] ; then
             pg_packages="libpq"
@@ -461,6 +461,8 @@ else
     group_listcmd="grep ${ns_group} /etc/group"
     ns_user_addgroup_hint="sudo usermod -G ${ns_group} YOUR_USERID"
 fi
+echo "OS settings debian=${debian} redhat=${redhat} macosx=${macosx} sunos=${sunos} freebsd=${freebsd} archlinux=${archlinux} alpine=${alpine} wolfi=${wolfi}"
+
 
 echo "
 Installation Script for NaviServer
@@ -601,8 +603,6 @@ fi
 
 id=$(id -u ${ns_user})
 if [ $? != "0" ] ; then
-
-    echo "OS settings debian=${debian} redhat=${redhat} macosx=${macosx} sunos=${sunos} freebsd=${freebsd} archlinux=${archlinux} alpine=${alpine} wolfi=${wolfi}"
 
     if [ $debian = "1" ] || [ $macosx = "1" ] || [ $archlinux = "1" ] || [ $freebsd = "1" ]; then
         echo "creating user ${ns_user} with command ${ns_user_addcmd}"
