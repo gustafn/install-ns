@@ -746,7 +746,7 @@ if [ $sunos = "1" ] ; then
 fi
 
 if [ $freebsd = "1" ] ; then
-    pkg install gmake llvm openssl autoconf autoconf-switch automake curl zip unzip \
+    pkg install -y gmake llvm openssl autoconf-switch automake curl zip unzip \
         ${pg_packages} ${autoconf} ${git} ${mongodb}
 
     pkg info -l autoconf | egrep '/bin/(autoconf|autoheader|autom4te)$' || true
