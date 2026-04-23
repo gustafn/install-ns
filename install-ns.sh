@@ -425,10 +425,12 @@ else
         # adjust CC compiler
         export CC=clang
         export PATH="/usr/local/bin:/usr/local/sbin:${PATH}"
+        pgver=$(pkg search -q '^postgresql[0-9]+$' | sort -V | tail -1)
+        pgclient=$(pkg search -q '^postgresql[0-9]+-client$' | sort -V | tail -1)
         if [ $with_postgres = "1" ] ; then
-            pg_packages="postgresql-client"
+            pg_packages="$pgver"
         elif [ $with_postgres_driver = "1" ] ; then
-            pg_packages="postgresql-client"
+            pg_packages="$pgclient"
         fi
         if [ $with_postgres = "1" ] || [ $with_postgres_driver = "1" ] ; then
             pg_incl=/usr/local/include
@@ -442,7 +444,7 @@ else
         openbsd=1
         export CC=clang
         if [ $with_postgres = "1" ] ; then
-            pg_packages="postgresql-client"
+            pg_packages="postgresql-client postgresql-server"
         elif [ $with_postgres_driver = "1" ] ; then
             pg_packages="postgresql-client"
         fi
@@ -748,8 +750,9 @@ if [ $sunos = "1" ] ; then
 fi
 
 if [ $freebsd = "1" ] ; then
-    pkg install -y gmake llvm openssl autoconf-switch automake curl zip unzip \
-        ${pg_packages} ${autoconf} ${git} ${mongodb}
+    pkg_list="gmake llvm openssl autoconf-switch automake curl zip unzip ${pg_packages} ${autoconf} ${git} ${mongodb}"
+    echo "FreeBSD package list: ${pkg_list}"
+    pkg install -y ${pkg_list}
 fi
 
 if [ $openbsd = "1" ] ; then
