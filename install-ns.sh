@@ -760,8 +760,10 @@ if [ $freebsd = "1" ] ; then
 fi
 
 if [ $openbsd = "1" ] ; then
-    pkg_add curl zip unzip-- bash gmake gtar-- \
-            ${git} ${mongodb} ${pg_packages}
+    export AUTOCONF_VERSION=2.69
+    export AUTOMAKE_VERSION=1.15
+
+    pkg_add curl zip unzip-- bash gmake gtar-- ${git} ${mongodb} ${pg_packages}
     pkg_add automake-1.15.1p1 autoconf-2.69p3
 
     command -v autoconf
