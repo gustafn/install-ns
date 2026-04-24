@@ -781,7 +781,7 @@ if [ $openbsd = "1" ] ; then
     fi
     echo "---> OpenBSD selected version of the openssl package: <$openssl_pkg>"
 
-    openssl_base=$(echo "$openssl_pkg" | sed -E 's/^openssl-([0-9]+).*/eopenssl\1/')
+    openssl_base=$(printf '%s\n' "$openssl_pkg" | sed -E 's/^openssl-([0-9]+)\.([0-9]+).*/eopenssl\1\2/')
     with_openssl_configure_flag="--with-openssl=/usr/local/include/${openssl_base},/usr/local/lib/${openssl_base}"
 fi
 
