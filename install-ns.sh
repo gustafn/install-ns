@@ -1505,7 +1505,9 @@ if [ "${version_ns}" = "HEAD" ] || [ "${version_ns}" = "GIT" ] || [ "${version_n
         ${make} "DTPLITE=${ns_install_dir}/bin/tclsh $ns_install_dir/bin/dtplite" build-doc
     fi
 fi
-${make} OPENSSL="$openssl_bin" install
+
+export OPENSSL="${openssl_bin}"
+${make} install
 cd ${build_dir}
 
 for module in ${ns_modules}
@@ -1664,5 +1666,8 @@ if [ "$alpine" = "1" ] || [ "$wolfi" = "1" ] ; then
 fi
 
 if [ "${print_build_env:-0}" = "1" ]; then
-    printf 'OPENSSL=%s\n' "$openssl_bin"
+    cat > "${ns_install_dir}/lib/install-ns.env" <<EOF
+OPENSSL=${openssl_bin}
+CHOWN=${chown_bin:-chown}
+EOF
 fi
