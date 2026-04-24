@@ -1505,7 +1505,7 @@ if [ "${version_ns}" = "HEAD" ] || [ "${version_ns}" = "GIT" ] || [ "${version_n
         ${make} "DTPLITE=${ns_install_dir}/bin/tclsh $ns_install_dir/bin/dtplite" build-doc
     fi
 fi
-${make} OPENSSL=$openssl_bin install
+${make} OPENSSL="$openssl_bin" install
 cd ${build_dir}
 
 for module in ${ns_modules}
@@ -1544,7 +1544,7 @@ else
         #url=https://core.tcl-lang.org/tclconfig/tarball/tclconfig.tar.gz?uuid=tcl8-compat
         url=https://github.com/tcltk/tclconfig/archive/refs/heads/tcl8-compat.tar.gz
         download_file tclconfig.tar.gz $url
-        tar xvf tclconfig.tar.gz
+        ${tar} xvf tclconfig.tar.gz
         #ln -s ${build_dir}/tclconfig ${thread_src_dir}/tclconfig
         echo "ln -s ${build_dir}/tclconfig-tcl8-compat ${thread_src_dir}/tclconfig"
         ln -s ${build_dir}/tclconfig-tcl8-compat ${thread_src_dir}/tclconfig
