@@ -22,6 +22,7 @@ done
 echo "------------------------ Settings ---------------------------------------"
 # Installation directory and software versions to be installed.
 start_dir=`pwd`
+openssl_bin="${openssl_bin:-openssl}"
 
 build_dir=${build_dir:-/usr/local/src}
 #build_dir=/usr/local/src/oo2
@@ -782,6 +783,8 @@ if [ $openbsd = "1" ] ; then
     echo "---> OpenBSD selected version of the openssl package: <$openssl_pkg>"
 
     openssl_base=$(printf '%s\n' "$openssl_pkg" | sed -E 's/^openssl-([0-9]+)\.([0-9]+).*/eopenssl\1\2/')
+
+    openssl_bin="/usr/local/bin/${openssl_base}"
     with_openssl_configure_flag="--with-openssl=/usr/local/include/${openssl_base},/usr/local/lib/${openssl_base}"
 fi
 
@@ -1658,4 +1661,8 @@ Consult as a reference the alternate configuration files in ${ns_install_dir}/co
 if [ "$alpine" = "1" ] || [ "$wolfi" = "1" ] ; then
     echo "You might consider to cleanup develoment packages:"
     echo "        apk del git $dev_packages"
+fi
+
+if [ "${print_build_env:-0}" = "1" ]; then
+    printf 'OPENSSL=%s\n' "$openssl_bin"
 fi
