@@ -1505,7 +1505,7 @@ if [ "${version_ns}" = "HEAD" ] || [ "${version_ns}" = "GIT" ] || [ "${version_n
         ${make} "DTPLITE=${ns_install_dir}/bin/tclsh $ns_install_dir/bin/dtplite" build-doc
     fi
 fi
-${make} install
+${make} OPENSSL=$openssl_bin install
 cd ${build_dir}
 
 for module in ${ns_modules}
