@@ -760,23 +760,20 @@ if [ $freebsd = "1" ] ; then
 fi
 
 if [ $openbsd = "1" ] ; then
-    #export PKG_PATH=https://ftp.eu.openbsd.org/pub/OpenBSD/6.3/packages/`machine -a`/
-    export AUTOCONF_VERSION=2.69
-    export AUTOMAKE_VERSION=1.15
-    #
-    # OpenBSD does not require a build with OpenSSL (libreSSL works as
-    # well), but NaviServer gets more functionality by using recent
-    # versions of OpenSSL.
-    #
-    pkg_add gcc openssl curl zip unzip-- bash gmake gtar-- \
+    pkg_add curl zip unzip-- bash gmake gtar-- \
             ${git} ${mongodb} ${pg_packages}
-    #pkg_add autoconf-2.69p3
     pkg_add automake-1.15.1p1 autoconf-2.69p3
 
     command -v autoconf
     command -v automake
     command -v aclocal
     tar="gtar"
+
+    openssl_pkg=$(pkg_info -Q 'openssl-3.*' | sort -V | tail -1)
+    pkg_add "$openssl_pkg"
+
+    openssl_base=$(echo "$openssl_pkg" | sed -E 's/^openssl-([0-9]+).*/eopenssl\1/')
+    with_openssl_configure_flag="--with-openssl=/usr/local/include/${openssl_base},/usr/local/lib/${openssl_base}"
 fi
 
 
@@ -1452,19 +1449,22 @@ echo "------------------------ Installing NaviServer ---------------------------
 
 cd ${build_dir}
 
+ns_configure_args="--with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir} ${with_openssl_configure_flag}"
+echo "---> final configure args: $ns_configure_args"
+
 if [ ! "${ns_tar}" = "" ] ; then
     ${tar} zxvf ${ns_tar}
     cd ${ns_src_dir}
-    ./configure --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir} ${with_openssl_configure_flag}
+    ./configure ${ns_configure_args}
 else
     cd ${ns_src_dir}
     if [ ! -f configure ] ; then
         echo PWD=`pwd` PATH=${PATH}
         ls -1ltr
         echo version_ns=${version_ns} start_dir=${start_dir} ns_src_dir=${ns_src_dir}
-        bash autogen.sh --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir} ${with_openssl_configure_flag}
+        bash autogen.sh ${ns_configure_args}
     else
-        ./configure --with-tcl=${ns_install_dir}/lib --prefix=${ns_install_dir} ${with_openssl_configure_flag}
+        ./configure ${ns_configure_args}
     fi
 fi
 
