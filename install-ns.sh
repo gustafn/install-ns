@@ -487,7 +487,7 @@ The script has a long heritage:
 
 Tested under macOS, Ubuntu 12.04, 13.04, 14.04, 16.04, 18.04, 20.04, 24.04,
 Debian bookworm, trixie, Raspbian 9.4, OmniOS r151014, OpenBSD 6.1, 6.3, 6.6,
-6.8, 6.9 FreeBSD 12.2, 13.0, 14.0, 15.0, Fedora Core 18, 20, 32, 35, CentOS
+6.8, 6.9, 7.8, FreeBSD 12.2, 13.0, 14.0, 15.0, Fedora Core 18, 20, 32, 35, CentOS
 7, Roxy Linux 8.4, 9.6, ArchLinux, Alpine 3.18, 3.19
 
 LICENSE    This program comes with ABSOLUTELY NO WARRANTY;
@@ -754,7 +754,7 @@ if [ $sunos = "1" ] ; then
 fi
 
 if [ $freebsd = "1" ] ; then
-    pkg_list="gmake llvm openssl autoconf-switch automake curl zip unzip ${pg_packages} ${autoconf} ${git} ${mongodb}"
+    pkg_list="gmake llvm openssl autoconf-switch automake curl zip unzip gtar ${pg_packages} ${autoconf} ${git} ${mongodb}"
     echo "FreeBSD package list: ${pkg_list}"
     pkg install -y ${pkg_list}
     tar="gtar"
