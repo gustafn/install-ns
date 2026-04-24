@@ -771,6 +771,15 @@ if [ $openbsd = "1" ] ; then
     command -v aclocal
     tar="gtar"
 
+    openssl_pkg=$(pkg_add -n openssl 2>&1 | sed -n 's/.*[[:space:]]\(openssl-3\.[^[:space:]]*\).*/\1/p' | sort -V | tail -1)
+    if [ -n "$openssl_pkg" ]; then
+        pkg_add "$openssl_pkg"
+        with_openssl_configure_flag="--with-openssl=/usr/local/include/eopenssl35,/usr/local/lib/eopenssl35"
+    else
+        echo "Could not resolve OpenBSD OpenSSL 3.x package"
+        exit 1
+    fi
+
     openssl_pkg=$(pkg_info -Q 'openssl-3.*' | sort -V | tail -1)
     pkg_add "$openssl_pkg"
     echo "---> OpenBSD selected version of the openssl package: <$openssl_pkg>"
