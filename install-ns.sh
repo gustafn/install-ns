@@ -18,6 +18,10 @@ while [ x"$1" != x ] ; do
     esac
 done
 
+#
+# if print_build_env == 1, write ENV variables (no just for OPENSSL) to
+# ${ns_install_dir}/lib/install-ns.env
+#
 
 echo "------------------------ Settings ---------------------------------------"
 # Installation directory and software versions to be installed.
@@ -36,7 +40,7 @@ version_modules=${version_modules:-${version_ns}}
 #version_modules=HEAD
 
 #version_tcl=8.5.19
-version_tcl=${version_tcl:-8.6.17}
+version_tcl=${version_tcl:-8.6.18}
 version_tcllib=${version_tcllib:-1.20}
 version_thread=${version_thread:-}
 #version_thread=2.8.2
@@ -818,7 +822,6 @@ chksum_set_value tcl8.6.14-src.tar.gz      5880225babf7954c58d4fb0f5cf6279104ce1
 chksum_set_value tcl8.6.15-src.tar.gz      861e159753f2e2fbd6ec1484103715b0be56be3357522b858d3cbb5f893ffef1
 chksum_set_value tcl8.6.16-src.tar.gz      91cb8fa61771c63c262efb553059b7c7ad6757afa5857af6265e4b0bdc2a14a5
 chksum_set_value tcl8.6.17-src.tar.gz      a3903371efcce8a405c5c245d029e9f6850258a60fa3761c4d58995610949b31
-chksum_set_value tcl-core-8-6-17.tar.gz    7acf617a70eb558b76f01514e24a7472a1659ead39aa9444eeb2cd6f054c0d86
 chksum_set_value tcl9.0.0-src.tar.gz       3bfda6dbaee8e9b1eeacc1511b4e18a07a91dff82d9954cdb9c729d8bca4bbb7
 chksum_set_value tcl9.0.1-src.tar.gz       a72b1607d7a399c75148c80fcdead88ed3371a29884181f200f2200cdee33bbc
 chksum_set_value tcl9.0.2-src.tar.gz       e074c6a8d9ba2cddf914ba97b6677a552d7a52a3ca102924389a05ccb249b520
@@ -829,6 +832,8 @@ chksum_set_value tcl-core-8-6-14.tar.gz    4a8834f8b7ec68087e21a05779758956d559c
 chksum_set_value tcl-core-8-6-13.tar.gz    69d4b1192a3ad94c1748e1802c5cf727b2dbba400f5560407f9af19f3d8fd6b3
 chksum_set_value tcl-core-8-6-15.tar.gz    40a6432db8bd9e5725582d758352c15f7dcacfc33c58f10599cdc3f709f4c2bd
 chksum_set_value tcl-core-8-6-16.tar.gz    a142d2c6f6ca979c5747e9fd6c8220d7b0a783412b46e9bda0ee7baafedba258
+chksum_set_value tcl-core-8-6-17.tar.gz    7acf617a70eb558b76f01514e24a7472a1659ead39aa9444eeb2cd6f054c0d86
+chksum_set_value tcl-core-8-6-18.tar.gz    eb8319ad93ffda0fd4c8ac0413ceec002fcaaa6e5004b69359aecf964ae93695
 chksum_set_value tcl-core-8-7-a5.tar.gz    7dd250dc6a76af47f3fc96b218906cfd166edf63c5d142186d632b500a6030eb
 
 chksum_set_value tcllib-1.20.tar.gz        e3b097475bcb93c4439df4a088daa59592e1937beee2a2c8495f4f0303125d71
