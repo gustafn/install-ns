@@ -822,6 +822,7 @@ chksum_set_value tcl8.6.14-src.tar.gz      5880225babf7954c58d4fb0f5cf6279104ce1
 chksum_set_value tcl8.6.15-src.tar.gz      861e159753f2e2fbd6ec1484103715b0be56be3357522b858d3cbb5f893ffef1
 chksum_set_value tcl8.6.16-src.tar.gz      91cb8fa61771c63c262efb553059b7c7ad6757afa5857af6265e4b0bdc2a14a5
 chksum_set_value tcl8.6.17-src.tar.gz      a3903371efcce8a405c5c245d029e9f6850258a60fa3761c4d58995610949b31
+chksum_set_value tcl8.6.18-src.tar.gz      14f9af32b1767ff718477a8f974ad03c34341097e6b43f4ce54644ee974e268e
 chksum_set_value tcl9.0.0-src.tar.gz       3bfda6dbaee8e9b1eeacc1511b4e18a07a91dff82d9954cdb9c729d8bca4bbb7
 chksum_set_value tcl9.0.1-src.tar.gz       a72b1607d7a399c75148c80fcdead88ed3371a29884181f200f2200cdee33bbc
 chksum_set_value tcl9.0.2-src.tar.gz       e074c6a8d9ba2cddf914ba97b6677a552d7a52a3ca102924389a05ccb249b520
@@ -853,10 +854,10 @@ chksum_set_value nsf2.4.0.tar.gz           51bd956d8db19f9bc014bec0909f73659431c
 #chksum_set_value thread-thread-2-8-branch.tar.gz 1674cd723f175afc55912694b01d1918539eefc3d2e8fef0b8b509f7ae77d490
 chksum_set_value thread-thread-2-8-branch.tar.gz 21d69cfb8a010957398ee6fd41a03a770941803971ae0b5d17229684cec6ce88
 
-chksum_set_value naviserver-5.0.3.tar.gz   e29ca00d6c5d3c19e38ba63305ab89d71253405f11807cdb43c4b7fa3a9db3e1
-chksum_set_value naviserver-5.0.4.tar.gz   9a407b5d43e371dae897ea67f3cd1a3a0c3bd16ef61451b562645b75b1a55f07
-
-chksum_set_value naviserver-5.0.4-modules.tar.gz 1e718c2425b1b955fcef3746b9c41372b89baed6dac5d84414852a443587afa7
+chksum_set_value naviserver-5.0.3.tar.gz          e29ca00d6c5d3c19e38ba63305ab89d71253405f11807cdb43c4b7fa3a9db3e1
+chksum_set_value naviserver-5.0.4.tar.gz          9a407b5d43e371dae897ea67f3cd1a3a0c3bd16ef61451b562645b75b1a55f07
+chksum_set_value naviserver-5.0.4-modules.tar.gz  1e718c2425b1b955fcef3746b9c41372b89baed6dac5d84414852a443587afa7
+chksum_set_value naviserver-5.0.5-modules.tar.gz  29a8d5b167baf0ff3ba53a624180967e9d498854b72dc3bdaff9d319adc7d194
 
 # Get and print a value
 # echo "The value of key1 is: $(chksum_get_value "tdom-0.9.1-src.tgz")"
