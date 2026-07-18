@@ -319,6 +319,7 @@ openbsd=0
 archlinux=0
 alpine=0
 wolfi=0
+opensuse=0
 
 make="make"
 type="type -p"
@@ -398,6 +399,14 @@ else
             pg_packages="postgresql ${pg_packages}"
         fi
 
+    elif [ -r /etc/os-release ] && grep -Eq '^ID="?opensuse-(leap|tumbleweed)"?$' /etc/os-release ; then
+        opensuse=1
+        if [ "$with_postgres" = "1" ] ; then
+            pg_packages="postgresql postgresql-server postgresql-devel"
+        elif [ "$with_postgres_driver" = "1" ] ; then
+            pg_packages="postgresql-devel"
+        fi
+
     elif [ -f "/etc/os-release" ] && grep -q '^ID="?wolfi"?$' /etc/os-release 2>/dev/null ; then
         wolfi=1
         if [ $with_postgres_driver = "1" ] ; then
@@ -463,16 +472,18 @@ else
     fi
 
     group_addcmd="groupadd ${ns_group}"
-    if [ $freebsd = "1" ] ; then
+
+    if [ "$freebsd" = "1" ] ; then
         group_addcmd="pw groupadd ${ns_group}"
-        ns_user_addcmd="pw useradd ${ns_user} -G ${ns_group} "
-    elif [ [ $openbsd = "1" ] ; then
+        ns_user_addcmd="pw useradd ${ns_user} -g ${ns_group}"
+    elif [ "$openbsd" = "1" ] ; then
         ns_user_addcmd="useradd -m -g ${ns_group} ${ns_user}"
     else
         ns_user_addcmd="useradd -g ${ns_group} ${ns_user}"
     fi
+
     group_listcmd="grep ${ns_group} /etc/group"
-    ns_user_addgroup_hint="sudo usermod -G ${ns_group} YOUR_USERID"
+    ns_user_addgroup_hint="sudo usermod -a -G ${ns_group} YOUR_USERID"
 fi
 echo "---> OS settings for $uname: debian=${debian} redhat=${redhat} macosx=${macosx} sunos=${sunos} freebsd=${freebsd} openbsd=${openbsd} archlinux=${archlinux} alpine=${alpine} wolfi=${wolfi}"
 
@@ -603,6 +614,7 @@ freebsd=${freebsd}
 archlinux=${archlinux}
 alpine=${alpine}
 wolfi=${wolfi}
+opensuse=${opensuse}
 EOF
 
 echo "------------------------ Check User and Group --------------------"
@@ -616,10 +628,15 @@ fi
 
 id=$(id -u ${ns_user})
 if [ $? != "0" ] ; then
-
-    if [ $debian = "1" ] || [ $macosx = "1" ] || [ $archlinux = "1" ] || [ $freebsd = "1" ] || [ $openbsd = "1" ]; then
+    if [ "$debian" = "1" ] \
+           || [ "$macosx" = "1" ] \
+           || [ "$archlinux" = "1" ] \
+           || [ "$freebsd" = "1" ] \
+           || [ "$openbsd" = "1" ] \
+           || [ "$opensuse" = "1" ]
+    then
         echo "creating user ${ns_user} with command ${ns_user_addcmd}"
-        eval ${ns_user_addcmd}
+        eval "${ns_user_addcmd}"
     else
         echo "User ${ns_user} does not exist; you might add it with a command like"
         echo "     sudo ${ns_user_addcmd}"
@@ -635,17 +652,17 @@ function version_greater_equal()
 }
 
 mongodb=
-if [ $with_mongo = "1" ] ; then
+if [ "$with_mongo" = "1" ] ; then
     need_git=1
     debian10=0
     # Avoid Ubuntu, which has /etc/lsb-release
-    if [ $debian = "1" ] && [ ! -f /etc/lsb-release ] ; then
+    if [ "$debian" = "1" ] && [ ! -f /etc/lsb-release ] ; then
         debian_version=`cat /etc/debian_version`
         if version_greater_equal $debian_version 10 ; then
             debian10=1
         fi
     fi
-    if [ $debian10 = "1" ] ; then
+    if [ "$debian10" = "1" ] ; then
         PKG_OK=$(dpkg-query -W --showformat='${Status}\n' mongodb-org|grep "install ok installed")
         if [ "" = "$PKG_OK" ] ; then
             sudo apt-get install -y gnupg
@@ -655,9 +672,12 @@ if [ $with_mongo = "1" ] ; then
             sudo apt-get install -y mongodb-org
         fi
         mongodb="libtool autoconf cmake"
-    elif [ $debian = "1" ] ; then
+    elif [ "$debian" = "1" ] ; then
         mongodb="libtool autoconf cmake mongodb"
-   fi
+
+    elif [ "$opensuse" = "1" ] ; then
+        echo "Warning: automatic MongoDB installation is not implemented for openSUSE."
+    fi
 fi
 
 if [ "${need_git}" = "1" ] ; then
@@ -673,7 +693,7 @@ else
 fi
 with_openssl_configure_flag=
 
-if [ $debian = "1" ] ; then
+if [ "$debian" = "1" ] ; then
     # On Debian/Ubuntu, make sure we have zlib installed, otherwise
     # NaviServer can't provide compression support
     #
@@ -689,9 +709,8 @@ if [ $debian = "1" ] ; then
             ${pg_packages} ${git} ${mongodb}
     locale-gen en_US.UTF-8
     update-locale LANG="en_US.UTF-8"
-fi
 
-if [ $redhat = "1" ] ; then
+elif [ "$redhat" = "1" ] ; then
     # packages for FC/RHL
 
     if [ -x "/usr/bin/dnf" ] ; then
@@ -705,13 +724,26 @@ if [ $redhat = "1" ] ; then
                   ${pg_packages} ${git} ${mongodb}
     export LANG=en_US.UTF-8
     localedef --verbose --force -i en_US -f UTF-8 en_US.UTF-8
-fi
 
-if [ $archlinux = "1" ] ; then
+elif [ "$opensuse" = "1" ] ; then
+    #
+    # Packages for openSUSE Leap and Tumbleweed.
+    #
+    zypper --non-interactive refresh
+    zypper --non-interactive install \
+        make ${autoconf} automake gcc \
+        pkg-config zlib zlib-devel \
+        curl zip unzip \
+        openssl libopenssl-devel \
+        ${pg_packages} ${git} ${mongodb}
+
+    export LANG=en_US.UTF-8
+    localedef --verbose --force -i en_US -f UTF-8 en_US.UTF-8
+
+elif [ "$archlinux" = "1" ] ; then
     pacman -Sy --noconfirm gcc make ${pg_packages}
-fi
 
-if [ $alpine = "1" ] ; then
+elif [ "$alpine" = "1" ] ; then
     apk add musl-dev zlib openssl ${pg_packages}
     dev_packages="curl musl-dev gcc make zlib-dev openssl-dev autoconf automake patch"
     if [ $with_postgres_driver = "1" ] ; then
@@ -719,9 +751,7 @@ if [ $alpine = "1" ] ; then
     fi
     apk add $dev_packages
 
-fi
-
-if [ $wolfi = "1" ] ; then
+elif [ "$wolfi" = "1" ] ; then
     apk add zlib openssl ${pg_packages}
     dev_packages="curl clang make zlib-dev openssl-dev autoconf automake patch"
     if [ $with_postgres_driver = "1" ] ; then
@@ -729,16 +759,13 @@ if [ $wolfi = "1" ] ; then
     fi
     apk add $dev_packages
 
-fi
 
-
-if [ $macosx = "1" ] ; then
+elif [ "$macosx" = "1" ] ; then
     port install ${autoconf} automake zlib curl zip unzip openssl \
          ${pg_packages} ${git} ${mongodb}
     with_openssl_configure_flag="--with-openssl=/opt/local"
-fi
 
-if [ $sunos = "1" ] ; then
+elif [ "$sunos" = "1" ] ; then
     # packages for OpenSolaris/OmniOS
     pkg install pkg://omnios/developer/versioning/git \
         ${autoconf} automake /developer/gcc51 zlib \
@@ -755,16 +782,14 @@ if [ $sunos = "1" ] ; then
 
     #ln -s /opt/gcc-4.8.1/bin/gcc /bin/gcc
     tar="gtar"
-fi
 
-if [ $freebsd = "1" ] ; then
+elif [ "$freebsd" = "1" ] ; then
     pkg_list="gmake llvm openssl autoconf-switch automake curl zip unzip gtar ${pg_packages} ${autoconf} ${git} ${mongodb}"
     echo "FreeBSD package list: ${pkg_list}"
     pkg install -y ${pkg_list}
     tar="gtar"
-fi
 
-if [ $openbsd = "1" ] ; then
+elif [ "$openbsd" = "1" ] ; then
     export AUTOCONF_VERSION=2.69
     export AUTOMAKE_VERSION=1.15
 
@@ -1357,7 +1382,7 @@ EOF
  TclpFree(
      void *ptr)
 @@ -404,6 +421,7 @@
- 	PutBlocks(cachePtr, bucket, bucketInfo[bucket].numMove);
+        PutBlocks(cachePtr, bucket, bucketInfo[bucket].numMove);
      }
  }
 +#endif
