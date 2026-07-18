@@ -827,6 +827,7 @@ chksum_set_value tcl9.0.0-src.tar.gz       3bfda6dbaee8e9b1eeacc1511b4e18a07a91d
 chksum_set_value tcl9.0.1-src.tar.gz       a72b1607d7a399c75148c80fcdead88ed3371a29884181f200f2200cdee33bbc
 chksum_set_value tcl9.0.2-src.tar.gz       e074c6a8d9ba2cddf914ba97b6677a552d7a52a3ca102924389a05ccb249b520
 chksum_set_value tcl9.0.3-src.tar.gz       2537ba0c86112c8c953f7c09d33f134dd45c0fb3a71f2d7f7691fd301d2c33a6
+chksum_set_value tcl9.1b0-src.tar.gz       7a5cba88694512b12bd052e5ddc1c80a1eeed5247d57a7735306137fc7533d1d
 
 chksum_set_value tcl-core-8-5-19.tar.gz    45bf6624144d063e12dcc840a27d9edfedf9a4d33c8362f95f718a2ea7e799a1
 chksum_set_value tcl-core-8-6-14.tar.gz    4a8834f8b7ec68087e21a05779758956d559c88491cc43020d445ff3edaabaab
@@ -1429,8 +1430,22 @@ fi
 tcl_makeflags="${tcl_makeflags:--j4}"
 
 echo "Compiling Tcl with extra flags: ${tcl_makeflags} ${extra_debug_flags}"
-${make} ${tcl_makeflags} "${extra_debug_flags}"
-${make} install
+
+case "${version_tcl}:$(uname -s)" in
+    9.0.4:Linux)
+        tcl_build_libpath="$(pwd)${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+
+        env LD_LIBRARY_PATH="${tcl_build_libpath}" \
+            ${make} ${tcl_makeflags} "${extra_debug_flags}"
+
+        env LD_LIBRARY_PATH="${tcl_build_libpath}" \
+            ${make} install
+        ;;
+    *)
+        ${make} ${tcl_makeflags} "${extra_debug_flags}"
+        ${make} install
+        ;;
+esac
 
 if [ -n "${NS_INSTALL_DEBUG_CCACHE:-}" ]; then
   if command -v ccache >/dev/null 2>&1; then
