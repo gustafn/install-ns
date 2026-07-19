@@ -392,19 +392,21 @@ else
 
     elif [ -f "/etc/alpine-release" ] ; then
         alpine=1
-        if [ $with_postgres_driver = "1" ] ; then
+        if [ "$with_postgres_driver" = "1" ] ; then
             pg_packages="libpq"
         fi
-        if [ $with_postgres = "1" ] ; then
+        if [ "$with_postgres" = "1" ] ; then
             pg_packages="postgresql ${pg_packages}"
         fi
 
     elif [ -r /etc/os-release ] && grep -Eq '^ID="?opensuse-(leap|tumbleweed)"?$' /etc/os-release ; then
         opensuse=1
+        if [ "$with_postgres_driver" = "1" ] ; then
+            pg_packages="postgresql-devel"
+            pg_incl="/usr/include/pgsql"
+        fi
         if [ "$with_postgres" = "1" ] ; then
-            pg_packages="postgresql postgresql-server postgresql-devel postgresql-server-devel"
-        elif [ "$with_postgres_driver" = "1" ] ; then
-            pg_packages="postgresql-devel postgresql-server-devel"
+            pg_packages="postgresql postgresql-server postgresql-devel"
         fi
 
     elif [ -f "/etc/os-release" ] && grep -q '^ID="?wolfi"?$' /etc/os-release 2>/dev/null ; then
@@ -737,18 +739,6 @@ elif [ "$opensuse" = "1" ] ; then
         openssl libopenssl-devel \
         glibc-locale glibc-i18ndata \
         ${pg_packages} ${git} ${mongodb}
-
-    if [ "$with_postgres" = "1" ] || [ "$with_postgres_driver" = "1" ] ; then
-        pg_config=$(command -v pg_config)
-        if [ -z "$pg_config" ]; then
-            echo "Could not locate pg_config"
-            exit 1
-        fi
-        pg_incl="$("$pg_config" --includedir-server)"
-        pg_lib="$("$pg_config" --libdir)"
-        echo "---> PostgreSQL include directory: ${pg_incl}"
-        echo "---> PostgreSQL library directory: ${pg_lib}"
-    fi
 
     export LANG=en_US.UTF-8
     localedef --verbose --force -i en_US -f UTF-8 en_US.UTF-8
