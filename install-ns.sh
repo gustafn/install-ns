@@ -737,7 +737,7 @@ elif [ "$opensuse" = "1" ] ; then
         pkg-config patch zlib zlib-devel \
         curl zip unzip \
         openssl libopenssl-devel \
-        glibc-locale glibc-i18ndata \
+        glibc-locale glibc-i18ndata glibc-gconv-modules-extra \
         ${pg_packages} ${git} ${mongodb}
 
     export LANG=en_US.UTF-8
