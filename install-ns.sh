@@ -735,7 +735,20 @@ elif [ "$opensuse" = "1" ] ; then
         pkg-config zlib zlib-devel \
         curl zip unzip \
         openssl libopenssl-devel \
+        glibc-locale glibc-i18ndata \
         ${pg_packages} ${git} ${mongodb}
+
+    if [ "$with_postgres" = "1" ] || [ "$with_postgres_driver" = "1" ] ; then
+        pg_config=$(command -v pg_config)
+        if [ -z "$pg_config" ]; then
+            echo "Could not locate pg_config"
+            exit 1
+        fi
+        pg_incl="$("$pg_config" --includedir-server)"
+        pg_lib="$("$pg_config" --libdir)"
+        echo "---> PostgreSQL include directory: ${pg_incl}"
+        echo "---> PostgreSQL library directory: ${pg_lib}"
+    fi
 
     export LANG=en_US.UTF-8
     localedef --verbose --force -i en_US -f UTF-8 en_US.UTF-8
