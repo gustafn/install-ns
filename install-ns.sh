@@ -732,7 +732,7 @@ elif [ "$opensuse" = "1" ] ; then
     zypper --non-interactive refresh
     zypper --non-interactive install \
         make ${autoconf} automake gcc \
-        pkg-config zlib zlib-devel \
+        pkg-config patch zlib zlib-devel \
         curl zip unzip \
         openssl libopenssl-devel \
         glibc-locale glibc-i18ndata \
