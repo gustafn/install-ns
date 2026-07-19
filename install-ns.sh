@@ -402,9 +402,9 @@ else
     elif [ -r /etc/os-release ] && grep -Eq '^ID="?opensuse-(leap|tumbleweed)"?$' /etc/os-release ; then
         opensuse=1
         if [ "$with_postgres" = "1" ] ; then
-            pg_packages="postgresql postgresql-server postgresql-devel"
+            pg_packages="postgresql postgresql-server postgresql-devel postgresql-server-devel"
         elif [ "$with_postgres_driver" = "1" ] ; then
-            pg_packages="postgresql-devel"
+            pg_packages="postgresql-devel postgresql-server-devel"
         fi
 
     elif [ -f "/etc/os-release" ] && grep -q '^ID="?wolfi"?$' /etc/os-release 2>/dev/null ; then
