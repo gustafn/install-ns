@@ -1565,9 +1565,9 @@ do
     cd ${modules_src_dir}/${module}
 
     if [ "${module}" = "nsdbpg" ] || [ "${module}" = "nsdbipg" ] ; then
-        ${make} PGLIB="${pg_lib}" PGINCLUDE="${pg_incl}" NAVISERVER="${ns_install_dir}" "${extra_debug_flags}" install
+        ${make} PGLIB="${pg_lib}" PGINCLUDE="${pg_incl}" NAVISERVER="${ns_install_dir}" "${extra_debug_flags}" all install
     else
-        ${make} NAVISERVER=${ns_install_dir} "${extra_debug_flags}" install
+        ${make} NAVISERVER=${ns_install_dir} "${extra_debug_flags}" all install
     fi
     cd ${build_dir}
 done
