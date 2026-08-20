@@ -647,6 +647,7 @@ if [ $? != "0" ] ; then
 fi
 
 echo "------------------------ System dependencies ---------------------------------"
+set -o errexit
 
 function version_greater_equal()
 {
@@ -708,7 +709,7 @@ if [ "$debian" = "1" ] ; then
     fi
     apt-get install -y make ${autoconf} pkg-config locales gcc zlib1g-dev \
             curl zip unzip openssl libssl-dev \
-            ${pg_packages} ${git} ${mongodb}
+            ${pg_packages} ${git} ${mongodb} || exit 1
     locale-gen en_US.UTF-8
     update-locale LANG="en_US.UTF-8"
 
@@ -822,7 +823,6 @@ fi
 
 
 echo "------------------------ Downloading sources ----------------------------"
-set -o errexit
 
 # Function to set a value in the pseudo-associative array
 chksum_set_value() {
