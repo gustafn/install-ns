@@ -50,6 +50,7 @@ version_xotcl=${version_xotcl:-2.4.0}
 version_tdom=${version_tdom:-0.9.6}
 #version_tdom=GIT
 #version_tdom_git="master@{2014-11-01 00:00:00}"
+version_openssl=${version_openssl:-SYSTEM}
 ns_modules=${ns_modules:-}
 ns_user=${ns_user:-nsadmin}
 ns_group=${ns_group:-nsadmin}
@@ -264,6 +265,13 @@ if [ ! "${version_tdom}" = "GIT" ] ; then
 else
     need_git=1
     tdom_src_dir=tdom
+fi
+
+if [ ! "${version_openssl}" = "SYSTEM" ]; then
+    openssl_tar="openssl-${version_openssl}.tar.gz"
+    openssl_src_dir="openssl-${version_openssl}"
+    openssl_url="https://github.com/openssl/openssl/releases/download/openssl-${version_openssl}/${openssl_tar}"
+    openssl_prefix="${openssl_prefix:-${ns_install_dir}/openssl-${version_openssl}}"
 fi
 
 tcllib_src_dir=tcllib-${version_tcllib}
@@ -521,6 +529,7 @@ SETTINGS   build_dir              (Build directory)                 ${build_dir}
            version_xotcl          (Version of NSF/NX/XOTcl)         ${version_xotcl}
            version_tcl            (Version of Tcl)                  ${version_tcl}
            version_tdom           (Version of tDOM)                 ${version_tdom}
+           version_openssl        (Version of OpenSSL)              ${version_openssl}
            ns_user                (NaviServer user)                 ${ns_user}
            ns_group               (NaviServer group)                ${ns_group}
                                   (Make command)                    ${make}
@@ -888,6 +897,9 @@ chksum_set_value naviserver-5.0.4.tar.gz          9a407b5d43e371dae897ea67f3cd1a
 chksum_set_value naviserver-5.0.4-modules.tar.gz  1e718c2425b1b955fcef3746b9c41372b89baed6dac5d84414852a443587afa7
 chksum_set_value naviserver-5.0.5-modules.tar.gz  29a8d5b167baf0ff3ba53a624180967e9d498854b72dc3bdaff9d319adc7d194
 
+chksum_set_value openssl-4.0.2.tar.gz 736b467530f916737b7031310ccb21d8218c6229e61e8e160cd1d3458cd543a8
+
+
 # Get and print a value
 # echo "The value of key1 is: $(chksum_get_value "tdom-0.9.1-src.tgz")"
 
@@ -921,92 +933,115 @@ function retry {
   done
 }
 
+function file_sha256() {
+    local filename="$1"
+
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum "${filename}" | awk '{print $1}'
+    elif command -v shasum >/dev/null 2>&1; then
+        shasum -a 256 "${filename}" | awk '{print $1}'
+    elif command -v openssl >/dev/null 2>&1; then
+        openssl dgst -sha256 "${filename}" | sed 's/.* //'
+    else
+        return 1
+    fi
+}
+
+function file_checksum_ok() {
+    local filename="$1"
+    local expected actual
+
+    expected=$(chksum_get_value "${filename}")
+
+    #
+    # An existing, nonempty file without a known checksum is accepted.
+    #
+    if [ -z "${expected}" ]; then
+        [ -s "${filename}" ]
+        return
+    fi
+
+    actual=$(file_sha256 "${filename}") || {
+        echo "Cannot calculate SHA-256 checksum for ${filename}" >&2
+        return 1
+    }
+
+    if [ "${actual}" != "${expected}" ]; then
+        echo "Checksum mismatch for ${filename}" >&2
+        echo "    Expected: ${expected}" >&2
+        echo "    Actual:   ${actual}" >&2
+        return 1
+    fi
+
+    return 0
+}
+
 function download_file() {
     local target_filename="$1"
     local download_url="$2"
-
-    local provided_checksum=$(chksum_get_value ${target_filename})
+    local provided_checksum
+    local actual_checksum
     local max_attempts=5
     local attempt=1
-    local openssl=$(${type} openssl)
-    local sha256sum=$(${type} sha256sum)
-    local shasum=$(${type} shasum)
+    local extraflags
 
-    #echo openssl $openssl sha256sum $sha256sum shasum $shasum
+    provided_checksum=$(chksum_get_value "${target_filename}")
 
-    while [ $attempt -le $max_attempts ]; do
-        echo "Downloading ($attempt) ${target_filename} from ${download_url} ..."
-        if [ $attempt = $((max_attempts-1)) ] ; then
+    #
+    # Reuse a cached file only when it is nonempty and, when a checksum
+    # is available, its checksum is correct.
+    #
+    if [ -f "${target_filename}" ]; then
+        if file_checksum_ok "${target_filename}"; then
+            echo "No need to fetch ${target_filename} (already available and valid)"
+            return 0
+        fi
+
+        echo "Removing invalid cached file ${target_filename}"
+        rm -f "${target_filename}"
+    fi
+
+    while [ "${attempt}" -le "${max_attempts}" ]; do
+        echo "Downloading (${attempt}) ${target_filename} from ${download_url} ..."
+
+        if [ "${attempt}" = "$((max_attempts - 1))" ]; then
             extraflags="--http1.1"
-        elif [ $attempt = $max_attempts ] ; then
+        elif [ "${attempt}" = "${max_attempts}" ]; then
             extraflags="--max-time 300 --connect-timeout 300 --keepalive-time 300 -v --trace-time"
         else
             extraflags=""
         fi
 
-        #
-        # Make sure, we check after the download the retrieved file.
-        #
-        rm -f ${target_filename}
-        #
-        # The function "retry" is used for commands ending with an
-        # error return code.
-        #
-        retry curl $extraflags -f -L -s -k -S \
-              --retry 5 --retry-delay 2 --retry-connrefused \
-              -H "Connection: close" \
-              -o "${target_filename}" "$download_url"
+        rm -f "${target_filename}"
 
-        if [ ! -f ${target_filename} ] ; then
-            #
-            # We got no file.
-            #
-            local actual_checksum="download failed"
-        else
-            #
-            # A file was downloaded
-            #
-            if [ "$openssl" != "" ] ; then
-                local actual_checksum=$(openssl dgst -sha256 "${target_filename}" | sed -e 's/.* //')
-            elif [ "$sha256sum" != "" ] ; then
-                local actual_checksum=$(sha256sum "${target_filename}" | sed -e 's/\s.*$//')
-            elif [ "$shasum" != "" ] ; then
-                local actual_checksum=$(shasum -a 256 "${target_filename}" | sed -e 's/\s.*$//')
-            else
-                local actual_checksum=
+        if retry curl ${extraflags} -f -L -s -k -S \
+                --retry 5 --retry-delay 2 --retry-connrefused \
+                -H "Connection: close" \
+                -o "${target_filename}" "${download_url}"
+        then
+            if [ -n "${provided_checksum}" ]; then
+                if file_checksum_ok "${target_filename}"; then
+                    echo "... checksum of ${target_filename} OK"
+                    return 0
+                fi
+            elif [ -s "${target_filename}" ]; then
+                actual_checksum=$(file_sha256 "${target_filename}" || true)
+
+                echo "No checksum provided for ${target_filename}."
+                if [ -n "${actual_checksum}" ]; then
+                    echo "Consider adding:"
+                    echo "chksum_set_value ${target_filename} ${actual_checksum}"
+                fi
+                return 0
             fi
         fi
 
-        if [ "${provided_checksum}" = "" ] ; then
-            echo "   no checksum provided, consider setting:"
-            echo "   chksum_set_value ${target_filename} ${actual_checksum}"
-            file_size=$(wc -c < ${target_filename})
-            echo "   The downloaded file ${target_filename} has ${file_size} bytes"
-            echo "   Used command: curl $extraflags -H 'Connection: close' -L -s -k -o '${target_filename}' '$download_url'"
-            break
-        fi
-        if [ "${provided_checksum}" = "${actual_checksum}" ] ; then
-            echo "... checksum of ${target_filename} OK"
-            break
-        fi
-        if [ "${actual_checksum}" = "" ] ; then
-            echo "... do not know how to compute checksum of ${target_filename} on this system"
-            break
-        fi
-
-        echo "Checksums differ for ${target_filename}"
-        echo "    Provided checksum : ${provided_checksum}"
-        echo "    Actual checksum   : ${actual_checksum}"
-        echo "    Downloadeded      :" `ls -l "${target_filename}"`
-
+        rm -f "${target_filename}"
         attempt=$((attempt + 1))
-        sleep 1 # Wait a bit before retrying
     done
 
-    if [ $attempt -gt $max_attempts ]; then
-        echo "Failed to download the file after $max_attempts attempts."
-        exit 1
-    fi
+    echo "Failed to download a valid ${target_filename} after ${max_attempts} attempts." >&2
+    return 1
 }
 
 if [ "${tcl_fetch_always}" = "1" ] ; then
@@ -1025,17 +1060,27 @@ else
 fi
 
 if [ ! "${thread_tar}" = "" ] ; then
-    if [ ! -f ${thread_tar} ] ; then
-        download_file ${thread_tar} ${thread_url}
-    else
-        echo "No need to fetch ${thread_tar} (already available)"
-    fi
+    download_file ${thread_tar} ${thread_url}
 fi
 
 
 if [ ! -f ${tcllib_tar} ] ; then
     download_file ${tcllib_tar} ${tcllib_url}
 fi
+
+case "${version_openssl}" in
+    SYSTEM|"")
+        # Keep the current OS/package OpenSSL handling.
+        ;;
+    [0-9]*)
+        download_file "$openssl_tar" "$openssl_url"
+        ;;
+    *)
+        echo "Unsupported OpenSSL version: ${version_openssl}" >&2
+        exit 1
+        ;;
+esac
+
 
 # All versions of tcllib up to 1.15 were named tcllib-*.
 # tcllib-1.16 was named a while Tcllib-1.16 (capital T), but has been renamed later
@@ -1047,11 +1092,7 @@ fi
 
 if [ ! "${version_ns}" = ".." ] ; then
     if [ ! "${ns_tar}" = "" ] ; then
-        if [ ! -f ${ns_tar} ] ; then
-            download_file ${ns_tar} ${ns_url}
-            #echo "Downloading ${ns_tar} ..."
-            #curl -L -s -k -o ${ns_tar} ${ns_url}
-        fi
+        download_file ${ns_tar} ${ns_url}
     else
         if [ ! -d naviserver ] ; then
             git clone https://github.com/naviserver-project/naviserver.git
@@ -1068,11 +1109,7 @@ fi
 
 cd ${build_dir}
 if [ ! "${modules_tar}" = "" ] ; then
-    if [ ! -f ${modules_tar} ] ; then
-        #echo "Downloading ${modules_tar} ..."
-        #curl -L -s -k -o ${modules_tar} ${modules_url}
-        download_file ${modules_tar} ${modules_url}
-    fi
+    download_file ${modules_tar} ${modules_url}
     ${tar} zxf naviserver-${version_modules}-modules.tar.gz
 else
     if [ ! -d ${modules_src_dir} ] ; then
@@ -1147,11 +1184,7 @@ fi
 cd ${build_dir}
 
 if [ ! "${version_xotcl}" = "HEAD" ] ; then
-    if [ ! -f ${nsf_tar} ] ; then
-        #echo "Downloading ${nsf_tar} from ${nsf_url} ..."
-        #curl -L -s -k -o ${nsf_tar} ${nsf_url}
-        download_file ${nsf_tar} ${nsf_url}
-    fi
+    download_file ${nsf_tar} ${nsf_url}
 else
     if [ ! -d nsf ] ; then
         #git clone https://github.com/nm-wu/nsf.git
@@ -1174,17 +1207,7 @@ if [ $with_mongo = "1" ] ; then
 fi
 
 if [ ! "${version_tdom}" = "GIT" ] ; then
-    if [ ! -f ${tdom_tar} ] ; then
-        #echo "Downloading ${tdom_tar} from ${tdom_url}"
-        rm -rf ${tdom_src_dir} ${tdom_tar}
-        #curl --max-time 300 --connect-timeout 300 --keepalive-time 300 -v --trace-time \
-        #     -L -s -k -o ${tdom_tar} ${tdom_url}
-        #curl -L -s -k -o ${tdom_tar} ${tdom_url}
-        download_file $tdom_tar $tdom_url
-        #echo "... download from ${tdom_url} finished."
-    else
-        echo "No need to fetch ${tdom_tar} (already available)"
-    fi
+    download_file $tdom_tar $tdom_url
     ${tar} zxf ${tdom_tar}
 else
     if [ ! -f "tdom/${version_tdom_git}" ] ; then
@@ -1505,6 +1528,38 @@ sed -i.bak '/package require Tcl 8.2/d' installer.tcl
 ./configure --prefix=${ns_install_dir}
 ${make} install
 cd ..
+
+
+if [ ! "${version_openssl}" = "SYSTEM" ]; then
+    echo "------------------------ Installing OpenSSL ${version_openssl} ----------------"
+
+    cd "${build_dir}"
+    rm -rf "${openssl_src_dir}"
+    ${tar} xfz "${openssl_tar}"
+    cd "${openssl_src_dir}"
+
+    ./Configure \
+        --prefix="${openssl_prefix}" \
+        --openssldir="${openssl_prefix}/ssl" \
+        shared
+
+    ${make} -j4
+    ${make} install_sw
+
+    #
+    # override the with_openssl_configure_flag if it was provided
+    #
+    openssl_bin="${openssl_prefix}/bin/openssl"
+    with_openssl_configure_flag="--with-openssl=${openssl_prefix}/include,${openssl_prefix}/lib64"
+
+    if [ ! -d "${openssl_prefix}/lib64" ]; then
+        with_openssl_configure_flag="--with-openssl=${openssl_prefix}/include,${openssl_prefix}/lib"
+    fi
+
+    export PKG_CONFIG_PATH="${openssl_prefix}/lib64/pkgconfig:${openssl_prefix}/lib/pkgconfig${PKG_CONFIG_PATH:+:${PKG_CONFIG_PATH}}"
+
+    cd "${build_dir}"
+fi
 
 echo "------------------------ Installing NaviServer ---------------------------"
 
