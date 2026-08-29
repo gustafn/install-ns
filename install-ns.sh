@@ -705,6 +705,11 @@ else
 fi
 with_openssl_configure_flag=
 
+openssl_packages=
+if [ "${version_openssl}" = "SYSTEM" ]; then
+    openssl_packages=openssl
+fi
+
 if [ "$debian" = "1" ] ; then
     # On Debian/Ubuntu, make sure we have zlib installed, otherwise
     # NaviServer can't provide compression support
@@ -717,7 +722,7 @@ if [ "$debian" = "1" ] ; then
         export TZ="${TZ:-Etc/UTC}"
     fi
     apt-get install -y make ${autoconf} pkg-config locales gcc zlib1g-dev \
-            curl zip unzip openssl libssl-dev \
+            curl zip unzip ${openssl_packages} ${openssl_packages:+libssl-dev} \
             ${pg_packages} ${git} ${mongodb} || exit 1
     locale-gen en_US.UTF-8
     update-locale LANG="en_US.UTF-8"
@@ -732,7 +737,7 @@ elif [ "$redhat" = "1" ] ; then
     fi
 
     ${pkgmanager} install make ${autoconf} automake gcc zlib zlib-devel \
-                  curl zip unzip openssl openssl-devel \
+                  curl zip unzip ${openssl_packages} ${openssl_packages:+openssl-devel} \
                   ${pg_packages} ${git} ${mongodb}
     export LANG=en_US.UTF-8
     localedef --verbose --force -i en_US -f UTF-8 en_US.UTF-8
@@ -746,7 +751,7 @@ elif [ "$opensuse" = "1" ] ; then
         make ${autoconf} automake gcc \
         pkg-config patch zlib zlib-devel \
         curl zip unzip \
-        openssl libopenssl-devel \
+        ${openssl_packages} ${openssl_packages:+libopenssl-devel} \
         glibc-locale glibc-i18ndata glibc-gconv-modules-extra \
         ${pg_packages} ${git} ${mongodb}
 
@@ -757,16 +762,16 @@ elif [ "$archlinux" = "1" ] ; then
     pacman -Sy --noconfirm gcc make ${pg_packages}
 
 elif [ "$alpine" = "1" ] ; then
-    apk add musl-dev zlib openssl ${pg_packages}
-    dev_packages="curl musl-dev gcc make zlib-dev openssl-dev autoconf automake patch"
+    apk add musl-dev zlib ${openssl_packages} ${pg_packages}
+    dev_packages="curl musl-dev gcc make zlib-dev ${openssl_packages:+openssl-dev} autoconf automake patch"
     if [ $with_postgres_driver = "1" ] ; then
         dev_packages="${dev_packages} libpq-dev"
     fi
     apk add $dev_packages
 
 elif [ "$wolfi" = "1" ] ; then
-    apk add zlib openssl ${pg_packages}
-    dev_packages="curl clang make zlib-dev openssl-dev autoconf automake patch"
+    apk add zlib ${openssl_packages} ${pg_packages}
+    dev_packages="curl clang make zlib-dev ${openssl_packages:+openssl-dev} autoconf automake patch"
     if [ $with_postgres_driver = "1" ] ; then
         dev_packages="${dev_packages} postgresql-dev"
     fi
@@ -774,9 +779,11 @@ elif [ "$wolfi" = "1" ] ; then
 
 
 elif [ "$macosx" = "1" ] ; then
-    port install ${autoconf} automake zlib curl zip unzip openssl \
+    port install ${autoconf} automake zlib curl zip unzip ${openssl_packages} \
          ${pg_packages} ${git} ${mongodb}
-    with_openssl_configure_flag="--with-openssl=/opt/local"
+    if [ "${version_openssl}" = "SYSTEM" ]; then
+        with_openssl_configure_flag="--with-openssl=/opt/local"
+    fi
 
 elif [ "$sunos" = "1" ] ; then
     # packages for OpenSolaris/OmniOS
@@ -797,7 +804,7 @@ elif [ "$sunos" = "1" ] ; then
     tar="gtar"
 
 elif [ "$freebsd" = "1" ] ; then
-    pkg_list="gmake llvm openssl autoconf-switch automake curl zip unzip gtar ${pg_packages} ${autoconf} ${git} ${mongodb}"
+    pkg_list="gmake llvm ${openssl_packages} autoconf-switch automake curl zip unzip gtar ${pg_packages} ${autoconf} ${git} ${mongodb}"
     echo "FreeBSD package list: ${pkg_list}"
     pkg install -y ${pkg_list}
     tar="gtar"
@@ -814,20 +821,21 @@ elif [ "$openbsd" = "1" ] ; then
     command -v aclocal
     tar="gtar"
 
-    openssl_pkg=$(pkg_info -Q openssl | grep -E '^openssl-3\.' | sort -V | tail -1)
-    if [ -n "$openssl_pkg" ]; then
-        pkg_add "$openssl_pkg"
-        with_openssl_configure_flag="--with-openssl=/usr/local/include/eopenssl35,/usr/local/lib/eopenssl35"
-    else
-        echo "Could not resolve OpenBSD OpenSSL 3.x package"
-        exit 1
+    if [ "${version_openssl}" = "SYSTEM" ]; then
+        openssl_pkg=$(pkg_info -Q openssl | grep -E '^openssl-3\.' | sort -V | tail -1)
+        if [ -n "$openssl_pkg" ]; then
+            pkg_add "$openssl_pkg"
+        else
+            echo "Could not resolve OpenBSD OpenSSL 3.x package"
+            exit 1
+        fi
+        echo "---> OpenBSD selected version of the openssl package: <$openssl_pkg>"
+
+        openssl_base=$(printf '%s\n' "$openssl_pkg" | sed -E 's/^openssl-([0-9]+)\.([0-9]+).*/eopenssl\1\2/')
+
+        openssl_bin="/usr/local/bin/${openssl_base}"
+        with_openssl_configure_flag="--with-openssl=/usr/local/include/${openssl_base},/usr/local/lib/${openssl_base}"
     fi
-    echo "---> OpenBSD selected version of the openssl package: <$openssl_pkg>"
-
-    openssl_base=$(printf '%s\n' "$openssl_pkg" | sed -E 's/^openssl-([0-9]+)\.([0-9]+).*/eopenssl\1\2/')
-
-    openssl_bin="/usr/local/bin/${openssl_base}"
-    with_openssl_configure_flag="--with-openssl=/usr/local/include/${openssl_base},/usr/local/lib/${openssl_base}"
 fi
 
 
@@ -1550,6 +1558,7 @@ if [ ! "${version_openssl}" = "SYSTEM" ]; then
     # override the with_openssl_configure_flag if it was provided
     #
     openssl_bin="${openssl_prefix}/bin/openssl"
+    export OPENSSL="${openssl_bin}"
     with_openssl_configure_flag="--with-openssl=${openssl_prefix}/include,${openssl_prefix}/lib64"
 
     if [ ! -d "${openssl_prefix}/lib64" ]; then
