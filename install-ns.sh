@@ -18,6 +18,11 @@ while [ x"$1" != x ] ; do
     esac
 done
 
+function version_greater_equal()
+{
+    printf '%s\n%s\n' "$2" "$1" | sort --check=quiet --version-sort
+}
+
 #
 # if print_build_env == 1, write ENV variables (no just for OPENSSL) to
 # ${ns_install_dir}/lib/install-ns.env
@@ -51,6 +56,20 @@ version_tdom=${version_tdom:-0.9.6}
 #version_tdom=GIT
 #version_tdom_git="master@{2014-11-01 00:00:00}"
 version_openssl=${version_openssl:-SYSTEM}
+version_nghttp3=${version_nghttp3:-1.15.0}
+with_nghttp3=0
+case "${version_openssl}" in
+    [0-9]*)
+        if version_greater_equal "${version_openssl}" 4.0.2; then
+            with_nghttp3=1
+        else
+            version_nghttp3=
+        fi
+        ;;
+    *)
+        version_nghttp3=
+        ;;
+esac
 ns_modules=${ns_modules:-}
 ns_user=${ns_user:-nsadmin}
 ns_group=${ns_group:-nsadmin}
@@ -272,6 +291,12 @@ if [ ! "${version_openssl}" = "SYSTEM" ]; then
     openssl_src_dir="openssl-${version_openssl}"
     openssl_url="https://github.com/openssl/openssl/releases/download/openssl-${version_openssl}/${openssl_tar}"
     openssl_prefix="${openssl_prefix:-${ns_install_dir}/openssl-${version_openssl}}"
+fi
+
+if [ "${with_nghttp3}" = "1" ]; then
+    nghttp3_tar="nghttp3-${version_nghttp3}.tar.gz"
+    nghttp3_src_dir="nghttp3-${version_nghttp3}"
+    nghttp3_url="https://github.com/ngtcp2/nghttp3/releases/download/v${version_nghttp3}/${nghttp3_tar}"
 fi
 
 tcllib_src_dir=tcllib-${version_tcllib}
@@ -530,6 +555,7 @@ SETTINGS   build_dir              (Build directory)                 ${build_dir}
            version_tcl            (Version of Tcl)                  ${version_tcl}
            version_tdom           (Version of tDOM)                 ${version_tdom}
            version_openssl        (Version of OpenSSL)              ${version_openssl}
+           version_nghttp3        (Version of nghttp3)              ${version_nghttp3}
            ns_user                (NaviServer user)                 ${ns_user}
            ns_group               (NaviServer group)                ${ns_group}
                                   (Make command)                    ${make}
@@ -657,11 +683,6 @@ fi
 
 echo "------------------------ System dependencies ---------------------------------"
 set -o errexit
-
-function version_greater_equal()
-{
-    printf '%s\n%s\n' "$2" "$1" | sort --check=quiet --version-sort
-}
 
 mongodb=
 if [ "$with_mongo" = "1" ] ; then
@@ -906,6 +927,7 @@ chksum_set_value naviserver-5.0.4-modules.tar.gz  1e718c2425b1b955fcef3746b9c413
 chksum_set_value naviserver-5.0.5-modules.tar.gz  29a8d5b167baf0ff3ba53a624180967e9d498854b72dc3bdaff9d319adc7d194
 
 chksum_set_value openssl-4.0.2.tar.gz 736b467530f916737b7031310ccb21d8218c6229e61e8e160cd1d3458cd543a8
+chksum_set_value nghttp3-1.15.0.tar.gz 0e431c81eb2d3df5ced048d6e942925ff922ad053e76a0274eea7b164c9b776e
 
 
 # Get and print a value
@@ -1088,6 +1110,10 @@ case "${version_openssl}" in
         exit 1
         ;;
 esac
+
+if [ "${with_nghttp3}" = "1" ]; then
+    download_file "${nghttp3_tar}" "${nghttp3_url}"
+fi
 
 
 # All versions of tcllib up to 1.15 were named tcllib-*.
@@ -1566,6 +1592,27 @@ if [ ! "${version_openssl}" = "SYSTEM" ]; then
     fi
 
     export PKG_CONFIG_PATH="${openssl_prefix}/lib64/pkgconfig:${openssl_prefix}/lib/pkgconfig${PKG_CONFIG_PATH:+:${PKG_CONFIG_PATH}}"
+
+    cd "${build_dir}"
+fi
+
+if [ "${with_nghttp3}" = "1" ]; then
+    echo "------------------------ Installing nghttp3 ${version_nghttp3} ----------------"
+
+    cd "${build_dir}"
+    rm -rf "${nghttp3_src_dir}"
+    ${tar} xfz "${nghttp3_tar}"
+    cd "${nghttp3_src_dir}"
+
+    ./configure \
+        --prefix="${ns_install_dir}" \
+        --libdir="${ns_install_dir}/lib" \
+        --enable-lib-only
+
+    ${make} -j4
+    ${make} install
+
+    export PKG_CONFIG_PATH="${ns_install_dir}/lib/pkgconfig${PKG_CONFIG_PATH:+:${PKG_CONFIG_PATH}}"
 
     cd "${build_dir}"
 fi
