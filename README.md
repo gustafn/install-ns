@@ -26,30 +26,33 @@ This command outputs a list of settings, similar to the example below:
 
      SETTINGS   build_dir              (Build directory)                 /usr/local/src
                 ns_install_dir         (Installation directory)          /usr/local/ns
-                version_ns             (Version of NaviServer)           4.99.31
+                version_ns             (Version of NaviServer)           5.0.4
                 git_branch_ns          (Branch for git checkout of ns)   main
-                version_modules        (Version of NaviServer Modules)   4.99.31
+                version_modules        (Version of NaviServer Modules)   5.0.4
                 version_tcllib         (Version of Tcllib)               1.20
                 version_thread         (Version Tcl thread library)
                 version_xotcl          (Version of NSF/NX/XOTcl)         2.4.0
-                version_tcl            (Version of Tcl)                  8.6.16
-                version_tdom           (Version of tDOM)                 0.9.5
+                version_tcl            (Version of Tcl)                  8.6.18
+                version_tdom           (Version of tDOM)                 0.9.6
+                version_openssl        (Version of OpenSSL)              SYSTEM
+                version_nghttp3        (Version of nghttp3)
                 ns_user                (NaviServer user)                 nsadmin
                 ns_group               (NaviServer group)                nsadmin
                                        (Make command)                    make
-                                       (Type command)                    type -an
+                                       (Type command)                    type -p
                 ns_modules             (NaviServer Modules)              nsdbpg
                 with_mongo             (Add MongoDB client and server)   0
                 with_postgres          (Install PostgreSQL DB server)    1
                 with_postgres_driver   (Add PostgreSQL driver support)   1
+                with_ns_deprecated     (NaviServer with deprecated cmds) 1
                 with_system_malloc     (Tcl compiled with system malloc) 0
                 with_debug_flags       (Tcl and nsd compiled with debug) 0
                 with_ns_doc            (NaviServer documentation)        1
 
                 pg_user                (PostgreSQL user)                 postgres
-                                       (PostgreSQL include)              /usr/include/postgresql
-                                       (PostgreSQL lib)                  /usr/lib
-                                       (PostgreSQL Packages)             postgresql libpq-dev
+                                       (PostgreSQL include)              /opt/local/include/postgresql17/
+                                       (PostgreSQL lib)                  /opt/local/lib/postgresql17/
+                                       (PostgreSQL Packages)             postgresql17 postgresql17-server
 
 
 The first column lists variable names that you can use to override the
@@ -101,6 +104,15 @@ To compile and build NaviServer, append the word `build` at the end of the comma
 ```bash
 sudo bash install-ns.sh build
 ```
+
+To build NaviServer with HTTP/3 support, specify OpenSSL 4.0.2 or newer:
+
+```bash
+sudo version_openssl=4.0.2 bash install-ns.sh build
+```
+
+For these OpenSSL versions, the installer automatically builds the required
+nghttp3 library before configuring and compiling NaviServer.
 
 ## Additional Information
 
