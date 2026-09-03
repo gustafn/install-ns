@@ -1588,7 +1588,7 @@ if [ ! "${version_openssl}" = "SYSTEM" ]; then
     openssl_bin="${openssl_prefix}/bin/openssl"
     openssl_libdir="${openssl_prefix}/lib"
     export OPENSSL="${openssl_bin}"
-    export LDFLAGS="${LDFLAGS:+${LDFLAGS} }-Wl,-rpath,${openssl_libdir}"
+    export LDFLAGS="${LDFLAGS:+${LDFLAGS} }-L${openssl_libdir} -Wl,-rpath,${openssl_libdir}"
     export PKG_CONFIG_PATH="${openssl_libdir}/pkgconfig${PKG_CONFIG_PATH:+:${PKG_CONFIG_PATH}}"
     with_openssl_configure_flag="--with-openssl=${openssl_prefix}/include,${openssl_libdir}"
 
