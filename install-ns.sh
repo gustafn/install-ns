@@ -1575,7 +1575,9 @@ if [ ! "${version_openssl}" = "SYSTEM" ]; then
     ./Configure \
         --prefix="${openssl_prefix}" \
         --openssldir="${openssl_prefix}/ssl" \
-        shared
+        --libdir=lib \
+        shared \
+        "-Wl,-rpath,${openssl_prefix}/lib"
 
     ${make} -j4
     ${make} install_sw
@@ -1584,14 +1586,11 @@ if [ ! "${version_openssl}" = "SYSTEM" ]; then
     # override the with_openssl_configure_flag if it was provided
     #
     openssl_bin="${openssl_prefix}/bin/openssl"
+    openssl_libdir="${openssl_prefix}/lib"
     export OPENSSL="${openssl_bin}"
-    with_openssl_configure_flag="--with-openssl=${openssl_prefix}/include,${openssl_prefix}/lib64"
-
-    if [ ! -d "${openssl_prefix}/lib64" ]; then
-        with_openssl_configure_flag="--with-openssl=${openssl_prefix}/include,${openssl_prefix}/lib"
-    fi
-
-    export PKG_CONFIG_PATH="${openssl_prefix}/lib64/pkgconfig:${openssl_prefix}/lib/pkgconfig${PKG_CONFIG_PATH:+:${PKG_CONFIG_PATH}}"
+    export LDFLAGS="${LDFLAGS:+${LDFLAGS} }-Wl,-rpath,${openssl_libdir}"
+    export PKG_CONFIG_PATH="${openssl_libdir}/pkgconfig${PKG_CONFIG_PATH:+:${PKG_CONFIG_PATH}}"
+    with_openssl_configure_flag="--with-openssl=${openssl_prefix}/include,${openssl_libdir}"
 
     cd "${build_dir}"
 fi
