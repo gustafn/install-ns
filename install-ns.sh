@@ -776,8 +776,20 @@ elif [ "$opensuse" = "1" ] ; then
         glibc-locale glibc-i18ndata glibc-gconv-modules-extra \
         ${pg_packages} ${git} ${mongodb}
 
+    localedef_status=0
+    localedef --force -i en_US -f UTF-8 en_US.UTF-8 || localedef_status=$?
+    case "$localedef_status" in
+        0|1) ;;
+        *)
+            echo "Failed to generate en_US.UTF-8 (status $localedef_status)" >&2
+            exit "$localedef_status"
+            ;;
+    esac
+    if [ "$(LC_ALL=en_US.UTF-8 locale charmap)" != "UTF-8" ]; then
+        echo "Generated en_US.UTF-8 locale is not usable" >&2
+        exit 1
+    fi
     export LANG=en_US.UTF-8
-    localedef --verbose --force -i en_US -f UTF-8 en_US.UTF-8
 
 elif [ "$archlinux" = "1" ] ; then
     pacman -Sy --noconfirm gcc make ${pg_packages}
