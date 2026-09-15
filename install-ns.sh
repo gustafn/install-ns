@@ -223,24 +223,37 @@ fi
 
 # tags: https://core.tcl-lang.org/thread/taglist
 if [ "${version_thread}" = "" ] && [ ${tcl_fetch_from_core} = "1" ] ; then
-    if [ "${version_tcl}" = "trunk" ] ; then
-        version_thread=trunk
-    elif [[ ${version_tcl} == "main" ]] ; then
-        version_thread=main
-    elif [[ ${version_tcl} == *"core-9-0"* ]] ; then
-        version_thread=main
-    elif [[ ${version_tcl} == *"8-5"* ]] ; then
-        version_thread=thread-2-6
-    elif [[ ${version_tcl} == *"9.0."* ]] ; then
-        version_thread=thread-3-0-0
-        #version_thread=3.0b1
-    else
-        #version_thread=thread-2-8-branch
-        version_thread=thread-2-8-10
-    fi
+    case "${version_tcl}" in
+        trunk|main)
+            version_thread=main
+            ;;
+        core-9-*)
+            # Tcl 9 tags and branches, including core-9-1-b1-rc.
+            version_thread=main
+            ;;
+        9.*)
+            # Numeric Tcl 9 release versions.
+            version_thread=thread-3-0-0
+            ;;
+        core-8-5-*|8.5.*)
+            version_thread=thread-2-6
+            ;;
+        *)
+            version_thread=thread-2-8-10
+            ;;
+    esac
     thread_fetch_from_core=1
+    case "${version_thread}" in
+        main)
+            thread_url="https://github.com/tcltk/thread/archive/refs/heads/${version_thread}.tar.gz"
+            ;;
+        *)
+            thread_url="https://github.com/tcltk/thread/archive/refs/tags/${version_thread}.tar.gz"
+            ;;
+    esac
     #thread_url=https://core.tcl-lang.org/thread/tarball/thread.tar.gz?uuid=${version_thread}
-    thread_url=https://github.com/tcltk/thread/archive/refs/tags/${version_thread}.tar.gz
+    #thread_url=https://github.com/tcltk/thread/archive/refs/tags/${version_thread}.tar.gz
+
     thread_tar=thread-${version_thread}.tar.gz
     #thread_src_dir=thread
     thread_src_dir=thread-${version_thread}
@@ -1710,6 +1723,11 @@ else
 
     rm -rf ${thread_src_dir}
     ${tar} xvfz ${thread_tar}
+
+    # GitHub archives may lack Fossil source-version metadata.
+    if [ ! -s "${thread_src_dir}/manifest.uuid" ]; then
+        printf '%s\n' unknown > "${thread_src_dir}/manifest.uuid"
+    fi
 
     if [ ! -f ${thread_src_dir}/tclconfig ] ; then
         #url=https://core.tcl-lang.org/tclconfig/tarball/tclconfig.tar.gz?uuid=tcl8-compat
