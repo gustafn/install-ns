@@ -942,6 +942,7 @@ chksum_set_value tdom-0.9.6-src.tgz        6d24734aef46d1dc16f3476685414794d6a4e
 
 chksum_set_value nsf2.3.0.tar.gz           3940c4c00e18900abac8d57c195498f563c3cdb65157257af57060185cfd7ba9
 chksum_set_value nsf2.4.0.tar.gz           51bd956d8db19f9bc014bec0909f73659431ce83f835c479739b5384d3bcc1f6
+chksum_set_value nsf2.5.0.tar.gz           a5c5f5fdd3e4c1d10e2bf4dc67a6ff2feadbdf7b973d5f82a2c42703251cb04d
 
 #chksum_set_value thread-thread-2-8-branch.tar.gz 1674cd723f175afc55912694b01d1918539eefc3d2e8fef0b8b509f7ae77d490
 chksum_set_value thread-thread-2-8-branch.tar.gz 21d69cfb8a010957398ee6fd41a03a770941803971ae0b5d17229684cec6ce88
@@ -1606,6 +1607,13 @@ if [ ! "${version_openssl}" = "SYSTEM" ]; then
 
     ${make} -j4
     ${make} install_sw
+    ${make} install_ssldirs
+
+    if [ ! -r "${openssl_prefix}/ssl/openssl.cnf" ]; then
+        echo "OpenSSL configuration file was not installed:" \
+             "${openssl_prefix}/ssl/openssl.cnf" >&2
+        exit 1
+    fi
 
     #
     # override the with_openssl_configure_flag if it was provided
