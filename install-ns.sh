@@ -953,6 +953,8 @@ chksum_set_value naviserver-5.0.4-modules.tar.gz  1e718c2425b1b955fcef3746b9c413
 chksum_set_value naviserver-5.0.5-modules.tar.gz  29a8d5b167baf0ff3ba53a624180967e9d498854b72dc3bdaff9d319adc7d194
 
 chksum_set_value openssl-4.0.2.tar.gz 736b467530f916737b7031310ccb21d8218c6229e61e8e160cd1d3458cd543a8
+chksum_set_value openssl-4.0.3.tar.gz 325b5c806167c13b40b1ffeadfe0248197c00eccc4cf123ec1e28d2d2fd216d9
+
 chksum_set_value nghttp3-1.15.0.tar.gz 0e431c81eb2d3df5ced048d6e942925ff922ad053e76a0274eea7b164c9b776e
 
 
