@@ -74,6 +74,18 @@ ns_modules=${ns_modules:-}
 ns_user=${ns_user:-nsadmin}
 ns_group=${ns_group:-nsadmin}
 with_mongo=${with_mongo:-0}
+# Install the external libspf2 utility when nssmtpd is selected.
+with_spfquery=${with_spfquery:-1}
+case "$with_spfquery" in
+    0|1) ;;
+    *) echo "with_spfquery must be 0 or 1" >&2; exit 1 ;;
+esac
+# Optional native SPF evaluator for nssmtpd (Tcl interface needs NaviServer 5+).
+with_spf2=${with_spf2:-0}
+case "$with_spf2" in
+    0|1) ;;
+    *) echo "with_spf2 must be 0 or 1" >&2; exit 1 ;;
+esac
 with_ns_deprecated=${with_ns_deprecated:-1}
 with_system_malloc=${with_system_malloc:-0}
 with_ns_doc=${with_ns_doc:-1}
@@ -574,6 +586,8 @@ SETTINGS   build_dir              (Build directory)                 ${build_dir}
                                   (Make command)                    ${make}
                                   (Type command)                    ${type}
            ns_modules             (NaviServer Modules)              ${ns_modules}
+           with_spfquery          (nssmtpd SPF runtime utility)     ${with_spfquery}
+           with_spf2              (nssmtpd libspf2 support)         ${with_spf2}
            with_mongo             (Add MongoDB client and server)   ${with_mongo}
            with_postgres          (Install PostgreSQL DB server)    ${with_postgres}
            with_postgres_driver   (Add PostgreSQL driver support)   ${with_postgres_driver}
@@ -648,6 +662,11 @@ ns_user=${ns_user}
 pg_user=${pg_user}
 ns_group=${ns_group}
 with_mongo=${with_mongo}
+with_spfquery=${with_spfquery}
+SPFQUERY="${SPFQUERY:-}"
+with_spf2=${with_spf2}
+SPF2_CFLAGS="${SPF2_CFLAGS:-}"
+SPF2_LIBS="${SPF2_LIBS:--lspf2}"
 with_postgres=${with_postgres}
 with_postgres_driver=${with_postgres_driver}
 with_ns_deprecated=${with_ns_deprecated}
@@ -739,7 +758,100 @@ else
 fi
 with_openssl_configure_flag=
 
+# BEGIN external SPF utility support
+install_spfquery() {
+    spfquery_executable=
+    [ "$with_spfquery" = 1 ] || return 0
+    spfquery_selected=0
+    for spfquery_module in $ns_modules; do
+        if [ "$spfquery_module" = nssmtpd ]; then spfquery_selected=1; break; fi
+    done
+    [ "$spfquery_selected" = 1 ] || return 0
+    if [ -n "${SPFQUERY:-}" ]; then
+        case "$SPFQUERY" in
+            /*) spfquery_executable=$SPFQUERY ;;
+            *) echo "WARNING: SPFQUERY must be an absolute path; skipping SPF utility" >&2; return 0 ;;
+        esac
+    else
+        spfquery_package=
+        if [ "$debian" = 1 ]; then
+            spfquery_package=spfquery
+            spfquery_executable=/usr/bin/spfquery.libspf2
+            apt-get install -y "$spfquery_package" || true
+        elif [ "$alpine" = 1 ]; then
+            spfquery_package=libspf2-tools
+            spfquery_executable=/usr/bin/spfquery
+            apk add --no-cache "$spfquery_package" || true
+        elif [ "$redhat" = 1 ]; then
+            spfquery_package=libspf2-progs
+            spfquery_executable=/usr/bin/spfquery.libspf2
+            if command -v dnf >/dev/null 2>&1; then
+                dnf install -y "$spfquery_package" || true
+            else
+                yum install -y "$spfquery_package" || true
+            fi
+        elif [ "$opensuse" = 1 ]; then
+            spfquery_package=libspf2-tools
+            spfquery_executable=/usr/bin/spf_query
+            zypper --non-interactive install "$spfquery_package" || true
+        else
+            echo "WARNING: automatic spfquery installation is unavailable on this platform; set SPFQUERY to a preinstalled libspf2 utility" >&2
+            return 0
+        fi
+    fi
+    if [ ! -f "$spfquery_executable" ] || [ ! -x "$spfquery_executable" ]; then
+        echo "WARNING: libspf2 utility unavailable at $spfquery_executable; skipping SPF link" >&2
+        spfquery_executable=
+    fi
+}
+
+link_spfquery() {
+    [ -n "$spfquery_executable" ] || return 0
+    spfquery_link="$ns_install_dir/bin/spfquery"
+    if [ -L "$spfquery_link" ] && [ "$(readlink "$spfquery_link")" = "$spfquery_executable" ]; then
+        return 0
+    fi
+    # Preserve administrator-managed files and links, including broken links.
+    if [ -e "$spfquery_link" ] || [ -L "$spfquery_link" ]; then
+        echo "WARNING: preserving existing $spfquery_link; expected target $spfquery_executable" >&2
+        return 0
+    fi
+    if ln -s "$spfquery_executable" "$spfquery_link"; then
+        echo "SPF utility: $spfquery_link -> $spfquery_executable"
+    else
+        echo "WARNING: could not create $spfquery_link; SPF utility remains optional" >&2
+    fi
+}
+# END external SPF utility support
+
+install_spfquery
+
+# Install both packages explicitly so removing development packages from a
+# container does not autoremove the runtime library.
+if [ "$with_spf2" = "1" ]; then
+    case " $ns_modules " in
+        *" nssmtpd "*) ;;
+        *) echo "with_spf2=1 requires nssmtpd in ns_modules" >&2; exit 1 ;;
+    esac
+    if [ "$debian" = "1" ]; then
+        if apt-cache show libspf2-2t64 >/dev/null 2>&1; then
+            spf2_runtime=libspf2-2t64
+        else
+            spf2_runtime=libspf2-2
+        fi
+        apt-get install -y libspf2-dev "$spf2_runtime"
+    elif [ "$alpine" = "1" ]; then
+        apk add --no-cache libspf2-dev libspf2
+    elif [ -n "${SPF2_CFLAGS:-}${SPF2_LIBS:-}" ]; then
+        echo "Using preinstalled libspf2 via SPF2_CFLAGS/SPF2_LIBS"
+    else
+        echo "Automatic libspf2 installation supports Debian/Ubuntu and Alpine. Install it manually and set SPF2_CFLAGS/SPF2_LIBS on this platform." >&2
+        exit 1
+    fi
+fi
+
 openssl_packages=
+
 if [ "${version_openssl}" = "SYSTEM" ]; then
     openssl_packages=openssl
 fi
@@ -1704,12 +1816,24 @@ export OPENSSL="${openssl_bin}"
 ${make} install
 cd ${build_dir}
 
+link_spfquery
+
 for module in ${ns_modules}
 do
     echo "------------------------ Installing modules/${module} ----------------------"
     cd ${modules_src_dir}/${module}
 
-    if [ "${module}" = "nsdbpg" ] || [ "${module}" = "nsdbipg" ] ; then
+    if [ "${module}" = "nssmtpd" ]; then
+        if [ "$with_spf2" = "1" ] && ! grep -q 'WITH_SPF2' Makefile; then
+            echo "This nssmtpd source does not support WITH_SPF2; select a newer module version." >&2
+            exit 1
+        fi
+        # Avoid retaining an object compiled with a different feature setting.
+        ${make} NAVISERVER="${ns_install_dir}" clean
+        ${make} NAVISERVER="${ns_install_dir}" WITH_SPF2="$with_spf2" \
+            SPF2_CFLAGS="${SPF2_CFLAGS:-}" SPF2_LIBS="${SPF2_LIBS:--lspf2}" \
+            "${extra_debug_flags}" all install
+    elif [ "${module}" = "nsdbpg" ] || [ "${module}" = "nsdbipg" ] ; then
         ${make} PGLIB="${pg_lib}" PGINCLUDE="${pg_incl}" NAVISERVER="${ns_install_dir}" "${extra_debug_flags}" all install
     else
         ${make} NAVISERVER=${ns_install_dir} "${extra_debug_flags}" all install

@@ -119,3 +119,69 @@ nghttp3 library before configuring and compiling NaviServer.
 For further details, visit:  
 [http://openacs.org/xowiki/naviserver-openacs](http://openacs.org/xowiki/naviserver-openacs)
 ```
+
+## Optional nssmtpd SPF support
+
+Selecting `nssmtpd` automatically attempts to install the external libspf2 SPF
+utility (`with_spfquery=1`, the default). Package mappings are:
+
+| Platform | Package | Executable |
+| --- | --- | --- |
+| Debian/Ubuntu | `spfquery` | `/usr/bin/spfquery.libspf2` |
+| Alpine | `libspf2-tools` | `/usr/bin/spfquery` |
+| Fedora / RHEL-compatible | `libspf2-progs` | `/usr/bin/spfquery.libspf2` |
+| openSUSE | `libspf2-tools` | `/usr/bin/spf_query` |
+
+RHEL-compatible systems need an appropriate repository such as EPEL already
+configured; the installer does not add repositories. On other platforms, or to
+use a custom installation, set `SPFQUERY=/absolute/path/to/libspf2-spfquery`.
+This skips package installation and uses the supplied executable. Perl/Python
+SPF utilities with similar names are not compatible.
+
+After installing NaviServer, the installer creates
+`$ns_install_dir/bin/spfquery` as a symlink to the executable. Existing files
+and links are preserved; rerunning with the same link is harmless. Missing
+packages or executables produce warnings but do not prevent installation.
+Use `with_spfquery=0` to skip this feature; this does not remove an existing
+utility or link. No external timeout utility is needed.
+
+The link provides a stable path for opt-in startup configuration:
+
+```tcl
+ns_section "ns/server/$server/module/nssmtpd" {
+    set spfquery [file join [ns_info home] bin spfquery]
+    if {[file executable $spfquery]} {
+        ns_param spfproc [list smtpd::spfquery -command $spfquery]
+    }
+}
+```
+
+Load the `nsproxy` module and configure `greylistspfexceptions` separately.
+Use the installation prefix instead of `[ns_info home]` if the server home is
+configured elsewhere. The installer does not activate SPF policy or overwrite
+an explicit evaluator setting. The external adapter requires NaviServer 5.0+
+and an nssmtpd version containing `smtpd::spfquery`.
+
+The default `with_spf2=0` builds without native libspf2 linking. To enable the
+native evaluator, include nssmtpd in the selected modules and use:
+
+```sh
+sudo with_spf2=1 ns_modules="nssmtpd nsstats" bash install-ns.sh build
+```
+
+Retain any other modules needed by your installation. Use NaviServer 5.0 or
+newer for the Tcl SPF interface and an nssmtpd source revision supporting
+`WITH_SPF2` (2.8 or newer). An explicit request with older module sources fails.
+
+On Debian/Ubuntu and Alpine the installer installs development and runtime
+libspf2 packages, keeping the runtime package explicitly installed so image
+cleanup can remove development packages safely. Other systems require a
+preinstalled library and explicit `SPF2_CFLAGS` and/or `SPF2_LIBS`, e.g.
+`SPF2_CFLAGS=-I/opt/local/include SPF2_LIBS='-L/opt/local/lib -lspf2'`.
+These overrides also work on supported systems. The setting and library flags
+are saved in `lib/nsConfig.sh` for subsequent module builds. nssmtpd is cleaned
+before rebuilding so toggling support cannot reuse an incompatible object.
+
+Compiling support does not enable mail-policy exceptions. Configure
+`spfproc smtpd::libspf2` and selected `greylistspfexceptions` separately.
+libspf2 uses the system DNS resolver; it needs no separate service/config file.
