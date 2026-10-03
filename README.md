@@ -149,16 +149,15 @@ The link provides a stable path for opt-in startup configuration:
 
 ```tcl
 ns_section "ns/server/$server/module/nssmtpd" {
-    set spfquery [file join [ns_info home] bin spfquery]
+    set spfquery [file join [ns_info bindir] spfquery]
     if {[file executable $spfquery]} {
-        ns_param spfproc [list smtpd::spfquery -command $spfquery]
+        ns_param spfproc smtpd::spfquery
     }
 }
 ```
 
 Load the `nsproxy` module and configure `greylistspfexceptions` separately.
-Use the installation prefix instead of `[ns_info home]` if the server home is
-configured elsewhere. The installer does not activate SPF policy or overwrite
+The adapter defaults to the executable in `[ns_info bindir]`, supporting split bin/sbin installations. The installer does not activate SPF policy or overwrite
 an explicit evaluator setting. The external adapter requires NaviServer 5.0+
 and an nssmtpd version containing `smtpd::spfquery`.
 
